@@ -1,0 +1,89 @@
+Please refer to Tara and Excel Lab, or taratest.ijs for usage.
+ 
+There are 3 main classes inside Tara package.
+
+  biffbook
+  biffwork
+  biffxf
+
+They have a lot of properties, some major properties/methods are:
+
+  workbook (class 'biffbook')
+  ===========================
+  property
+  --------
+  sheet            ... array of workbook object
+  sheeti           ... index of current worksheet
+
+  method
+  ------
+  conew            ... create workbook
+  destroy          ... destroy workbook
+
+  addcolinfo       ... set individual column width
+  addrowinfo       ... set individual row height
+
+  save             ... save workbook object to file
+
+  writedate        ... write date to cell
+  writenumber      ... write number to cell
+  writestring      ... write text to cell
+
+  rgbcolor         ... choose color
+
+  addxfobj         ... clone xf
+
+  colrepeat        ... repeated columns in printing
+  rowrepeat        ... repeated rows in printing
+
+  addsheet         ... add a new worksheet
+
+  insertpicture    ... insert bmp picture
+
+  worksheet (class 'biffsheet')
+  =============================
+  property
+  --------
+  defaultcolwidth  ... default column width
+  defaultrowheight ... default row height
+
+  mergedcell       ... list of merged cells
+
+  leftmargin       ... margin in inch
+  rightmargin
+  topmargin
+  bottommargin
+
+  header           ... worksheet header and footer
+  footer               can use commands, eg. &P &N
+
+  sheetname        ... name of worksheet
+
+  xf (class 'biffxf')
+  ===================
+  property
+  --------
+  fontname       ...  no need to use double quotes (")
+  fontheight     ...  in twip
+  fontweight     ...  400 normal 700 bold
+  fontitalic     ...  boolean
+  fontunderline  ...  boolean
+  fontstrike     ...  boolean
+
+  fontcolor      ... text color
+  patterncolor   ... background color
+  pattern        ... pattern of background color
+
+  format         ... number and date format
+
+  horzalign      ... horizontal alignment,
+                   0 general  1 left  2 center 3 left
+  vertalgin      ... vertical alignment,
+                   0 top  1 center  2 bottom
+  wraptext       ... wrap text
+                   boolean
+
+  leftlinestyle    ... cell border style
+  rightlinestyle
+  toplinestyle
+  bottomlinestyle
