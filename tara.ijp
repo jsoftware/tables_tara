@@ -1,0 +1,45 @@
+NB. project file: c:/jdev/addons/trunk/tables/tara
+
+coclass 'jproject'
+
+PRIMARYFILES=: 0 : 0
+~Addons/tables/tara/jolew
+~Addons/tables/tara/jbiff
+)
+
+PRIMARYLIBS=: ''
+
+DEVFILES=: ''
+
+DEVLIBS=: ''
+
+OTHERFILES=: 0 : 0
+~Addons/tables/tara/manifest.ijs
+~Addons/tables/tara/tara.ijt
+~Addons/tables/tara/taradoc.txt
+~Addons/tables/tara/taratest.ijs
+~Addons/tables/tara/test.xls
+~Addons/tables/tara/dora.bmp
+)
+
+TARGETFILE=: '~Addons/tables/tara/tara.ijs'
+
+TARGETLOCALE=: ''
+
+TARGETHEADER=: ''
+
+TARGETEXTRA=: ''
+
+BUILDOPTS=: 0 1 0 0 0 0 0
+
+PREBUILDFILE=: ''
+
+POSTBUILDFILE=: ''
+
+TESTFILE=: '~Addons/tables/tara/test.ijs'
+
+NOTES=: ''
+
+VERSION=: ''
+
+WINDOWS=: ''

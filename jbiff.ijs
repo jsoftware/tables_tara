@@ -1,1144 +1,3 @@
-NB. built from project: ~Addons/tables/tara/tara
-NB. ---------------------------------------------------------
-NB. package for reading and writing ole2 storage
-NB.  based on the ole::storage_lite 0.14 perl package
-NB.  ported by bill lam, bbill.lam@gmail.com
-NB.  ole::storage_lite was written by kawai takanori, kwitknr@cpan.org
-NB. utility function for olew
-
-cocurrent 'oleutlfcn'
-NB. return datetime in j timestamp format
-oledate2local=: 3 : 0
-86400000* _72682+86400%~10000000%~(8#256)#. a.i.y
-)
-
-NB. y datetime in j timestamp format
-localdate2ole=: 3 : 0
-a.{~(8#256)#: 10000000*x:86400*(y%86400000)+72682
-)
-
-NB. followings also defined in z locale
-NB. ---------------------------------------------------------
-NB. followings bit op require j5
-bitand=: 17 b.
-bitxor=: 22 b.
-bitor=: 23 b.
-bitrot=: 32 b.
-bitshl=: 33 b.
-bitsha=: 34 b.
-NB. binary strings
-bigendian=: ({.a.)={. 1&(3!:4) 1  NB. 0 little endian   1 big endian
-toBYTE=: {&a.@(256&|)
-fromBYTE=: a.&i.
-toWORDm=: 1&(3!:4)@:<.
-toDWORDm=: 2&(3!:4)@:<.
-toucodem=: ''&,@(1&(3!:4))@(3&u:)@u:
-toDoublem=: 2&(3!:5)
-fromWORDm=: _1&(3!:4)
-fromDWORDm=: _2&(3!:4)
-fromucodem=: 6&u:
-fromDoublem=: _2&(3!:5)
-toWORDr=: ,@:(|."1)@(_2: ]\ 1&(3!:4)@:<.)
-toDWORDr=: ,@:(|."1)@(_4: ]\ 2&(3!:4)@:<.)
-toucoder=: ''&,@:,@:(|."1@(_2: ]\ 1&(3!:4)))@(3&u:)@u:
-toDoubler=: ,@:(|."1)@(_8: ]\ 2&(3!:5))
-fromWORDr=: _1&(3!:4)@:,@:(|."1)@(_2&(]\))
-fromDWORDr=: _2&(3!:4)@:,@:(|."1)@(_4&(]\))
-fromucoder=: 6&u:@:,@:(|."1)@(_2&(]\))
-fromDoubler=: _2&(3!:5)@:,@:(|."1)@(_8&(]\))
-NB. always little endian conversion
-toWORD0=: toWORDm`toWORDr@.bigendian f.
-toDWORD0=: toDWORDm`toDWORDr@.bigendian f.
-toucode0=: toucodem`toucoder@.bigendian f.
-toDouble0=: toDoublem`toDoubler@.bigendian f.
-fromWORD0=: fromWORDm`fromWORDr@.bigendian f.
-fromDWORD0=: fromDWORDm`fromDWORDr@.bigendian f.
-fromucode0=: fromucodem`fromucoder@.bigendian f.
-fromDouble0=: fromDoublem`fromDoubler@.bigendian f.
-NB. always big endian conversion
-toWORD1=: toWORDm`toWORDr@.(-.bigendian) f.
-toDWORD1=: toDWORDm`toDWORDr@.(-.bigendian) f.
-toucode1=: toucodem`toucoder@.(-.bigendian) f.
-toDouble1=: toDoublem`toDoubler@.(-.bigendian) f.
-fromWORD1=: fromWORDm`fromWORDr@.(-.bigendian) f.
-fromDWORD1=: fromDWORDm`fromDWORDr@.(-.bigendian) f.
-fromucode1=: fromucodem`fromucoder@.(-.bigendian) f.
-fromDouble1=: fromDoublem`fromDoubler@.(-.bigendian) f.
-NB. decimal from hex string, always return integer
-dfhs=: 3 : 0
-z=. 0
-for_bit. , {&(#: i.16) @ ('0123456789abcdef'&i.) y do.
-  z=. bit (23 b.) 1 (33 b.) z
-end.
-z
-)
-
-NB. for biff8 RGB values
-RGB=: 3 : 0"1
-(0{y) (23 b.) 8 (33 b.) (1{y) (23 b.) 8 (33 b.) (2{y)
-)
-
-RGBtuple=: 3 : 0"0
-(16bff (17 b.) y), (_8 (33 b.) 16bff00 (17 b.) y), (_16 (33 b.) 16bff0000 (17 b.) y)
-)
-
-NB. utf8 filename in J601
-3 : 0''
-if. 504 < 0&". 'j'-.~4{.9!:14 '' do.
-  fboxname=: ([: < 8 u: >) :: ]
-else.
-  fboxname=: ([: < [: (1&u: ::]) >) ::]
-end.
-i. 0 0
-)
-
-fread=: (1!:1 :: _1:) @ fboxname
-fdir=: 1!:0@fboxname
-freadx=: (1!:11 :: _1:)@(fboxname@{., }.)`(1!:11)@.(0: = L.)
-fwritex=: ([ (1!:12) (fboxname@{., }.)@])`(1!:12)@.((0: = L.)@])
-fopen=: (1!:21 :: _1:) @ (fboxname &>) @ boxopen
-fclose=: (1!:22 :: _1:) @ (fboxname &>) @ boxopen
-fwrite=: [ (1!:2) fboxname@]
-fappend=: [ (1!:3) fboxname@]
-fexist=: (1:@(1!:4) :: 0:) @ (fboxname &>) @ boxopen
-ferase=: (1!:55 :: _1:) @ (fboxname &>) @ boxopen
-maxpp=: 15 [ 16   NB. max print precision for ieee 8-byte double (52 + 1 implied mantissa)
-NB. ---------------------------------------------------------
-
-coclass 'oleheaderinfo'
-coinsert 'olepps'
-create=: 3 : 0
-coinsert 'olepps'
-smallsize=: 16b1000
-ppssize=: 16b80
-bigblocksize=: 16b200
-smallblocksize=: 16b0040
-bdbcount=: 0
-rootstart=: 0
-sbdstart=: 0
-sbdcount=: 0
-extrabbdstart=: 0
-extrabbdcount=: 0
-bbdinfo=: 0 2$''
-sbstart=: 0
-sbsize=: 0
-data=: ''
-fileh=: ''
-ppsfile=: ''
-)
-
-destroy=: codestroy
-
-coclass 'olestorage'
-ppstyperoot=: 5
-ppstypedir=: 1
-ppstypefile=: 2
-datasizesmall=: 16b1000
-longintsize=: 4
-ppssize=: 16b80
-create=: 3 : 0
-coinsert 'oleutlfcn'
-sfile=: y
-openfilenum=: ''
-headerinfo=: ''
-)
-
-destroy=: 3 : 0
-if. '' -.@-: openfilenum do. fclose"0 openfilenum end.
-if. #headerinfo do. destroy__headerinfo '' end.
-codestroy ''
-)
-
-NB.  getppstree:
-getppstree=: 3 : 0
-bdata=. y
-NB. 0.init
-rhinfo=. initparse sfile
-if. ''-:rhinfo do. '' return. end.
-NB. 1. get data
-(0&{ :: (''"_)) >@{: ugetppstree 0 ; rhinfo ; <bdata
-)
-
-NB.  getsearch:
-getppssearch=: 3 : 0
-'raname bdata icase'=. y
-NB. 0.init
-rhinfo=. initparse sfile
-if. ''-:rhinfo do. '' return. end.
-NB. 1. get data
-(0&{ :: (''"_)) >@{: ugetppssearch 0 ; rhinfo ; raname ; bdata ; <icase
-)
-
-NB.  ugetnthpps:
-getnthpps=: 3 : 0
-'ino bdata'=. y
-NB. 0.init
-rhinfo=. initparse sfile
-if. ''-:rhinfo do. '' return. end.
-NB. 1. get data
-ugetnthpps ino ; rhinfo ; <bdata
-)
-
-NB.  initparse:
-initparse=: 3 : 0
-if. #headerinfo do. headerinfo return. end.
-NB. 1. sfile is a resource  hopefully a file resource
-if. 1 4 e.~ 3!:0 y do.
-  oio=. y
-else.
-NB. 2. sfile is a filename string
-  openfilenum=: ~. openfilenum, oio=. fopen <y   NB. ~. workaround J504's 1!:21 bug
-end.
-if. '' -.@-: p=. getheaderinfo oio do. headerinfo=: p end.
-p
-)
-
-NB.  ugetppstree:
-ugetppstree=: 3 : 0
-'ino rhinfo bdata radone'=. 4{.y
-if. '' -.@-: radone do.
-  if. ino e. radone do. radone ; <'' return. end.
-end.
-radone=. radone, ino
-irootblock=. rootstart__rhinfo
-NB. 1. get information about itself
-opps=. ugetnthpps ino ; rhinfo ; <bdata
-NB. 2. child
-if. dirpps__opps ~: _1 do.
-  radone=. >@{. ra=. ugetppstree dirpps__opps ; rhinfo ; bdata ; <radone
-  achildl=. >@{: ra
-  child__opps=: child__opps, achildl
-else.
-  child__opps=: ''
-end.
-NB. 3. previous, next ppss
-alist=. ''
-if. prevpps__opps ~: _1 do.
-  radone=. >@{. ra=. ugetppstree prevpps__opps ; rhinfo ; bdata ; <radone
-  alist=. >@{: ra
-end.
-alist=. alist, opps
-if. nextpps__opps ~: _1 do.
-  radone=. >@{. ra=. ugetppstree nextpps__opps ; rhinfo ; bdata ; <radone
-  alist=. alist, >@{: ra
-end.
-radone ; <alist
-)
-
-NB.  ugetppssearch:
-ugetppssearch=: 3 : 0
-'ino rhinfo raname bdata icase radone'=. 6{.y
-irootblock=. rootstart__rhinfo
-NB. 1. check it self
-if. '' -.@-: radone do.
-  if. ino e. radone do. radone ; <'' return. end.
-end.
-radone=. radone, ino
-opps=. ugetnthpps ino ; rhinfo ; <0
-found=. 0
-NB. for_cmp. raname do.
-NB.   if. ((icase *. name__opps -:&toupper >cmp) +. name__opps-:>cmp) do.
-NB.     found=. 1 break.
-NB.   end.
-NB. end.
-if. ((icase *. name__opps -:&toupper raname) +. name__opps-:raname) do.
-  found=. 1
-end.
-if. found do.
-  if. 1=bdata do.
-    opps=. ugetnthpps ino ; rhinfo ; <bdata
-  end.
-  ares=. opps
-else.
-  ares=. ''
-end.
-NB. 2. check child, previous, next ppss
-if. dirpps__opps ~: _1 do.
-  radone=. >@{. ra=. ugetppssearch dirpps__opps ; rhinfo ; raname ; bdata ; icase ; <radone
-  ares=. ares, >@{: ra
-end.
-if. prevpps__opps ~: _1 do.
-  radone=. >@{. ra=. ugetppssearch prevpps__opps ; rhinfo ; raname ; bdata ; icase ; <radone
-  ares=. ares, >@{: ra
-end.
-if. nextpps__opps ~: _1 do.
-  radone=. >@{. ra=. ugetppssearch nextpps__opps ; rhinfo ; raname ; bdata ; icase ; <radone
-  ares=. ares, >@{: ra
-end.
-radone ; <ares
-)
-
-NB.  get header info  base informain about that file
-getheaderinfo=: 3 : 0
-NB. 0. check id
-fp=. 0
-if. -. (freadx y, fp, 8)-:16bd0 16bcf 16b11 16be0 16ba1 16bb1 16b1a 16be1{a. do. '' return. end.
-rhinfo=. '' conew 'oleheaderinfo'
-fileh__rhinfo=: y
-NB. big block size
-if. ''-:iwk=. getinfofromfile fileh__rhinfo ; 16b1e ; 2 do. '' [ destroy__rhinfo '' return. end.
-bigblocksize__rhinfo=: <. 2&^ iwk
-NB. small block size
-if. ''-:iwk=. getinfofromfile fileh__rhinfo ; 16b20 ; 2 do. '' [ destroy__rhinfo '' return. end.
-smallblocksize__rhinfo=: <. 2&^ iwk
-NB. bdb count
-if. ''-:iwk=. getinfofromfile fileh__rhinfo ; 16b2c ; 4 do. '' [ destroy__rhinfo '' return. end.
-bdbcount__rhinfo=: iwk
-NB. start block
-if. ''-:iwk=. getinfofromfile fileh__rhinfo ; 16b30 ; 4 do. '' [ destroy__rhinfo '' return. end.
-rootstart__rhinfo=: iwk
-if. ''-:iwk=. getinfofromfile fileh__rhinfo ; 16b3c ; 4 do. '' [ destroy__rhinfo '' return. end.
-sbdstart__rhinfo=: iwk
-NB. small bd count
-if. ''-:iwk=. getinfofromfile fileh__rhinfo ; 16b40 ; 4 do. '' [ destroy__rhinfo '' return. end.
-sbdcount__rhinfo=: iwk
-NB. extra bbd start
-if. ''-:iwk=. getinfofromfile fileh__rhinfo ; 16b44 ; 4 do. '' [ destroy__rhinfo '' return. end.
-extrabbdstart__rhinfo=: iwk
-NB. extra bd count
-if. ''-:iwk=. getinfofromfile fileh__rhinfo ; 16b48 ; 4 do. '' [ destroy__rhinfo '' return. end.
-extrabbdcount__rhinfo=: iwk
-NB. get bbd info
-bbdinfo__rhinfo=: getbbdinfo rhinfo
-NB. get root pps
-oroot=. ugetnthpps 0 ; rhinfo ; <0
-sbstart__rhinfo=: startblock__oroot
-sbsize__rhinfo=: size__oroot
-rhinfo
-)
-
-NB.  getinfofromfile
-getinfofromfile=: 3 : 0
-'file ipos ilen'=. y
-if. ''-:file do. '' return. end.
-if. 2=ilen do.
-  fromWORD0 freadx file, ipos, ilen
-else.
-  fromDWORD0 freadx file, ipos, ilen
-end.
-)
-
-NB.  getbbdinfo
-getbbdinfo=: 3 : 0
-rhinfo=. y
-abdlist=. ''
-ibdbcnt=. bdbcount__rhinfo
-i1stcnt=. <.(bigblocksize__rhinfo - 16b4c) % longintsize
-ibdlcnt=. (<.bigblocksize__rhinfo % longintsize) - 1
-NB. 1. 1st bdlist
-fp=. 16b4c
-igetcnt=. ibdbcnt <. i1stcnt
-abdlist=. abdlist, fromDWORD0 freadx fileh__rhinfo, fp, longintsize*igetcnt
-ibdbcnt=. ibdbcnt - igetcnt
-NB. 2. extra bdlist
-iblock=. extrabbdstart__rhinfo
-while. ((ibdbcnt> 0) *. isnormalblock iblock) do.
-  fp=. setfilepos iblock ; 0 ; <rhinfo
-  igetcnt=. ibdbcnt <. ibdlcnt
-  abdlist=. abdlist, fromDWORD0 freadx fileh__rhinfo, fp, longintsize*igetcnt
-  ibdbcnt=. ibdbcnt - igetcnt
-  iblock=. fromDWORD0 freadx fileh__rhinfo, (fp=. fp+longintsize*igetcnt), longintsize
-end.
-NB. 3.get bds
-iblkno=. 0
-ibdcnt=. <.bigblocksize__rhinfo % longintsize
-hbd=. 0 2$''
-for_ibdl. abdlist do.
-  fp=. setfilepos ibdl ; 0 ; <rhinfo
-  awk=. fromDWORD0 freadx fileh__rhinfo, fp, bigblocksize__rhinfo
-  for_i. i.ibdcnt do.
-    if. ((i{awk) ~: iblkno+1) do.
-      hbd=. hbd, iblkno, i{awk
-    end.
-    iblkno=. >:iblkno
-  end.
-end.
-hbd
-)
-
-NB.  ugetnthpps
-ugetnthpps=: 3 : 0
-'ipos rhinfo bdata'=. y
-ippsstart=. rootstart__rhinfo
-ibasecnt=. <.bigblocksize__rhinfo % ppssize
-ippsblock=. <.ipos % ibasecnt
-ippspos=. ipos |~ ibasecnt
-iblock=. getnthblockno ippsstart ; ippsblock ; <rhinfo
-if. ''-:iblock do. '' return. end.
-fp=. setfilepos iblock ; (ppssize*ippspos) ; <rhinfo
-inmsize=. fromWORD0 (16b40+i.2){swk=. freadx fileh__rhinfo, fp, ppssize
-inmsize=. 0 >. inmsize - 2
-snm=. inmsize{.swk
-sname=. fromucode0 (i.inmsize){swk
-itype=. 256|fromWORD0 (16b42+i.2){swk
-'lppsprev lppsnext ldirpps'=. fromDWORD0 (16b44+i.12){swk
-ratime1st=: ((itype = ppstyperoot) +. (itype = ppstypedir)) { 0, oledate2local (16b64+i.8){swk
-ratime2nd=: ((itype = ppstyperoot) +. (itype = ppstypedir)) { 0, oledate2local (16b6c+i.8){swk
-'istart isize'=. fromDWORD0 (16b74+i.8){swk
-if. 1=bdata do.
-  sdata=. getdata itype ; istart ; isize ; <rhinfo
-  pps=. createpps ipos ; sname ; itype ; lppsprev ; lppsnext ; ldirpps ; ratime1st ; ratime2nd ; istart ; isize ; sdata
-else.
-  pps=. createpps ipos ; sname ; itype ; lppsprev ; lppsnext ; ldirpps ; ratime1st ; ratime2nd ; istart ; isize
-end.
-pps
-)
-
-NB.  setfilepos
-setfilepos=: 3 : 0
-'iblock ipos rhinfo'=. y
-ipos + (iblock+1)*bigblocksize__rhinfo
-)
-
-NB.  getnthblockno
-getnthblockno=: 3 : 0
-'istblock inth rhinfo'=. y
-inext=. istblock
-for_i. i.inth do.
-  isv=. inext
-  inext=. getnextblockno isv ; <rhinfo
-  if. 0= isnormalblock inext do. '' return. end.
-end.
-inext
-)
-
-NB.  getdata
-getdata=: 3 : 0
-'itype iblock isize rhinfo'=. y
-if. itype = ppstypefile do.
-  if. isize < datasizesmall do.
-    getsmalldata iblock ; isize ; <rhinfo
-  else.
-    getbigdata iblock ; isize ; <rhinfo
-  end.
-elseif. itype = ppstyperoot do.  NB. root
-  getbigdata iblock ; isize ; <rhinfo
-elseif. itype = ppstypedir do.  NB.  directory
-  0
-end.
-)
-
-NB.  getbigdata
-getbigdata=: 3 : 0
-'iblock isize rhinfo'=. y
-if. 0= isnormalblock iblock do. '' return. end.
-irest=. isize
-sres=. ''
-akeys=. /:~ {."1 bbdinfo__rhinfo
-while. irest > 0 do.
-  ares=. (akeys>:iblock)#akeys
-  inkey=. {.ares
-  i=. inkey - iblock
-  inext=. ({:"1 bbdinfo__rhinfo){~({."1 bbdinfo__rhinfo)i.inkey
-  fp=. setfilepos iblock ; 0 ; <rhinfo
-  igetsize=. irest <. bigblocksize__rhinfo * (i+1)
-  sres=. sres, freadx fileh__rhinfo, fp, igetsize
-  irest=. irest-igetsize
-  iblock=. inext
-end.
-sres
-)
-
-NB.  getnextblockno
-getnextblockno=: 3 : 0
-'iblockno rhinfo'=. y
-if. iblockno e. {."1 bbdinfo__rhinfo do.
-  ({:"1 bbdinfo__rhinfo){~({."1 bbdinfo__rhinfo)i.iblockno
-else.
-  iblockno+1
-end.
-)
-
-NB.  isnormalblock
-NB. _4 : bdlist, _3 : bbd,
-NB. _2: end of chain _1 : unused
-isnormalblock=: 3 : 0
-y -.@e. _4 _3 _2 _1
-)
-
-NB.  getsmalldata
-getsmalldata=: 3 : 0
-'ismblock isize rhinfo'=. y
-irest=. isize
-sres=. ''
-while. irest > 0 do.
-  fp=. setfilepossmall ismblock ; <rhinfo
-  sres=. sres, freadx fileh__rhinfo, fp, irest <. smallblocksize__rhinfo
-  irest=. irest - smallblocksize__rhinfo
-  ismblock=. getnextsmallblockno ismblock ; <rhinfo
-end.
-sres
-)
-
-NB.  setfilepossmall
-setfilepossmall=: 3 : 0
-'ismblock rhinfo'=. y
-ismstart=. sbstart__rhinfo
-ibasecnt=. <.bigblocksize__rhinfo % smallblocksize__rhinfo
-inth=. <.ismblock%ibasecnt
-ipos=. ismblock |~ ibasecnt
-iblk=. getnthblockno ismstart ; inth ; <rhinfo
-setfilepos iblk ; (ipos * smallblocksize__rhinfo) ; <rhinfo
-)
-
-NB.  getnextsmallblockno
-getnextsmallblockno=: 3 : 0
-'ismblock rhinfo'=. y
-ibasecnt=. <.bigblocksize__rhinfo % longintsize
-inth=. <.ismblock%ibasecnt
-ipos=. ismblock |~ ibasecnt
-iblk=. getnthblockno sbdstart__rhinfo ; inth ; <rhinfo
-fp=. setfilepos iblk ; (ipos * longintsize) ; <rhinfo
-fromDWORD0 freadx fileh__rhinfo, fp, longintsize
-)
-
-createpps=: 3 : 0
-'ipos sname itype lppsprev lppsnext ldirpps ratime1st ratime2nd istart isize sdata'=. 11{.y
-select. {.itype
-case. ppstyperoot do.
-  p=. conew 'oleppsroot'
-  create__p ratime1st ; ratime2nd ; ''
-case. ppstypedir do.
-  p=. conew 'oleppsdir'
-  create__p sname ; ratime1st ; ratime2nd ; ''
-case. ppstypefile do.
-  p=. conew 'oleppsfile'
-  create__p sname ; sdata ; ''
-case. do.
-  assert. 0
-end.
-no__p=: ipos
-name__p=: u: sname
-type__p=: {.itype
-prevpps__p=: lppsprev
-nextpps__p=: lppsnext
-dirpps__p=: ldirpps
-time1st__p=: ratime1st
-time2nd__p=: ratime2nd
-startblock__p=: istart
-size__p=: isize
-data__p=: sdata
-p
-)
-
-cocurrent 'olepps'
-coinsert 'oleutlfcn'
-ppstyperoot=: 5
-ppstypedir=: 1
-ppstypefile=: 2
-datasizesmall=: 16b1000
-longintsize=: 4
-ppssize=: 16b80
-NB.  no
-NB.  name
-NB.  type
-NB.  prevpps
-NB.  nextpps
-NB.  dirpps
-NB.  time1st
-NB.  time2nd
-NB.  startblock
-NB.  size
-NB.  data
-NB.  child
-NB.  ppsfile
-fputs=: 3 : 0
-if. fileh-:'' do. data=: data, y else. fileh fappend~ y end.
-)
-
-NB. ---------------------------------------------------------
-NB.  datalen
-NB.  check for update
-NB. ---------------------------------------------------------
-datalen=: 3 : 0
-if. '' -.@-: ppsfile do. fsize ppsfile return. end.
-#data
-)
-
-NB. ---------------------------------------------------------
-NB.  makesmalldata
-NB. ---------------------------------------------------------
-makesmalldata=: 3 : 0
-'alist rhinfo'=. y
-sres=. ''
-ismblk=. 0
-for_opps. alist do.
-NB. 1. make sbd, small data string
-  if. type__opps=ppstypefile do.
-    if. size__opps <: 0 do. continue. end.
-    if. size__opps < smallsize__rhinfo do.
-      ismbcnt=. >. size__opps % smallblocksize__rhinfo
-NB. 1.1 add to sbd
-      for_i. i.ismbcnt-1 do.
-        fputs__rhinfo toDWORD0 i+ismblk+1
-      end.
-      fputs__rhinfo toDWORD0 _2
-NB. 1.2 add to data string  will be written for rootentry
-NB. check for update
-      if. '' -.@-: ppsfile__opps do.
-        sres=. sres, ]`(''"_)@.(_1&-:)@:fread ppsfile__opps
-      else.
-        sres=. sres, data__opps
-      end.
-      if. size__opps |~ smallblocksize__rhinfo do.
-        sres=. sres, ({.a.) #~ smallblocksize__rhinfo ([ - |) size__opps
-      end.
-NB. 1.3 set for pps
-      startblock__opps=: ismblk
-      ismblk=. ismblk + ismbcnt
-    end.
-  end.
-end.
-isbcnt=. <. bigblocksize__rhinfo % longintsize
-if. ismblk |~ isbcnt do.
-  fputs__rhinfo, (,:toDWORD0 _1) #~ isbcnt ([ - |) ismblk
-end.
-NB. 2. write sbd with adjusting length for block
-sres
-)
-
-NB. ---------------------------------------------------------
-NB.  saveppswk
-NB. ---------------------------------------------------------
-saveppswk=: 3 : 0
-rhinfo=. y
-NB. 1. write pps
-z=. toucode0 name
-z=. z, ({.a.)#~ 64-2*#name                         NB.   64
-z=. z, toWORD0 2*1+#name                     NB.   66
-z=. z, toBYTE type                                 NB.   67
-z=. z, toBYTE 16b00 NB. uk                         NB.   68
-z=. z, toDWORD0 prevpps NB. prev             NB.   72
-z=. z, toDWORD0 nextpps NB. next             NB.   76
-z=. z, toDWORD0 dirpps  NB. dir              NB.   80
-z=. z, 0 9 2 0{a.                                  NB.   84
-z=. z, 0 0 0 0{a.                                  NB.   88
-z=. z, 16bc0 0 0 0{a.                              NB.   92
-z=. z, 0 0 0 16b46{a.                              NB.   96
-z=. z, 0 0 0 0{a.                                  NB.  100
-z=. z, localdate2ole time1st                       NB.  108
-z=. z, localdate2ole time2nd                       NB.  116
-z=. z, toDWORD0 startblock                   NB.  120
-z=. z, toDWORD0 size                         NB.  124
-z=. z, toDWORD0 0                            NB.  128
-fputs__rhinfo z
-z
-)
-
-
-coclass 'oleppsdir'
-coinsert 'olepps'
-create=: 3 : 0
-coinsert 'oleutlfcn'
-coinsert 'olepps'
-'sname ratime1st ratime2nd rachild'=. y
-no=: 0
-name=: u: sname
-type=: ppstypedir
-prevpps=: 0
-nextpps=: 0
-dirpps=: 0
-time1st=: ratime1st
-time2nd=: ratime2nd
-startblock=: 0
-size=: 0
-data=: ''
-child=: rachild
-fileh=: ''
-ppsfile=: ''
-)
-
-destroy=: codestroy
-
-coclass 'oleppsfile'
-coinsert 'olepps'
-create=: 3 : 0
-coinsert 'oleutlfcn'
-coinsert 'olepps'
-'snm sdata sfile'=. y
-no=: 0
-name=: u: snm
-type=: ppstypefile
-prevpps=: 0
-nextpps=: 0
-dirpps=: 0
-time1st=: 0
-time2nd=: 0
-startblock=: 0
-size=: 0
-data=: >(''-:sfile) { sdata ; ''
-child=: ''
-ppsfile=: ''
-fileh=: ''
-ppsfile=: ''
-if. '' -.@-: sfile do.
-  if. 1 4 e.~ 3!:0 sfile do.
-    ppsfile=: sfile
-  elseif. do.
-    fname=. sfile
-    ferase <fname
-    ppsfile=: fopen <fname
-  end.
-  if. #sdata do.
-    ppsfile fappend~ sdata
-  end.
-end.
-)
-
-append=: 3 : 0
-if. '' -.@-: ppsfile do.
-  ppsfile fappend~ y
-else.
-  data=: data, y
-end.
-)
-
-destroy=: codestroy
-
-coclass 'oleppsroot'
-coinsert 'olepps'
-create=: 3 : 0
-coinsert 'oleutlfcn'
-coinsert 'olepps'
-'ratime1st ratime2nd rachild'=. y
-no=: 0
-name=: u: 'Root Entry'
-type=: ppstyperoot
-prevpps=: 0
-nextpps=: 0
-dirpps=: 0
-time1st=: ratime1st
-time2nd=: ratime2nd
-startblock=: 0
-size=: 0
-data=: ''
-child=: rachild
-fileh=: ''
-ppsfile=: ''
-)
-
-destroy=: codestroy
-NB.  save  ole:
-save=: 3 : 0
-'sfile bnoas rhinfo'=. y
-if. ''-:rhinfo do.
-  rhinfo=. '' conew 'oleheaderinfo'
-end.
-bigblocksize__rhinfo=: <. 2&^ (0= bigblocksize__rhinfo) { (adjust2 bigblocksize__rhinfo), 9
-smallblocksize__rhinfo=: <. 2&^ (0= smallblocksize__rhinfo) { (adjust2 smallblocksize__rhinfo), 6
-smallsize__rhinfo=: 16b1000
-ppssize__rhinfo=: 16b80
-NB. 1.open file
-NB. 1.1 sfile is ref of scalar
-if. ''-:sfile do.
-  fileh__rhinfo=: ''
-elseif. 1 4 e.~ 3!:0 sfile do.
-  fileh__rhinfo=: sfile
-NB. 1.2 sfile is a simple filename string
-elseif. do.
-  ferase <sfile
-  fileh__rhinfo=: fopen <sfile
-end.
-iblk=. 0
-NB. 1. make an array of pps  for save
-alist=. ''
-list=. 18!:5 ''
-if. bnoas do.
-  alist=. >@{. saveppssetpnt2 list ; alist ; <rhinfo
-else.
-  alist=. >@{. saveppssetpnt list ; alist ; <rhinfo
-end.
-'isbdcnt ibbcnt ippscnt'=. calcsize alist ; <rhinfo
-NB. 2.save header
-saveheader rhinfo ; isbdcnt ; ibbcnt ; <ippscnt
-NB. 3.make small data string  write sbd
-ssmwk=. makesmalldata alist ; <rhinfo
-data=: ssmwk  NB. small datas become rootentry data
-NB. 4. write bb
-ibblk=. isbdcnt
-ibblk=. savebigdata ibblk ; alist ; <rhinfo
-NB. 5. write pps
-savepps alist ; <rhinfo
-NB. 6. write bd and bdlist and adding header informations
-savebbd isbdcnt ; ibbcnt ; ippscnt ; <rhinfo
-NB. 7.close file
-if. (''-.@-:sfile) *. -. 1 4 e.~ 3!:0 sfile do.
-  fclose fileh__rhinfo
-end.
-if. ''-:sfile do.
-  rc=. data__rhinfo
-else.
-  rc=. ''
-end.
-destroy__rhinfo ''
-rc
-)
-
-NB.  calcsize
-calcsize=: 3 : 0
-'ralist rhinfo'=. y
-NB. 0. calculate basic setting
-isbdcnt=. 0
-ibbcnt=. 0
-ippscnt=. 0
-ismalllen=. 0
-isbcnt=. 0
-for_opps. ralist do.
-  if. type__opps=ppstypefile do.
-    size__opps=: datalen__opps''  NB. mod
-    if. size__opps < smallsize__rhinfo do.
-      isbcnt=. isbcnt + >.size__opps % smallblocksize__rhinfo
-    else.
-      ibbcnt=. ibbcnt + >.size__opps % bigblocksize__rhinfo
-    end.
-  end.
-end.
-ismalllen=. isbcnt * smallblocksize__rhinfo
-islcnt=. <. bigblocksize__rhinfo % longintsize
-isbdcnt=. >.isbcnt % islcnt
-ibbcnt=. ibbcnt + >.ismalllen % bigblocksize__rhinfo
-icnt=. #ralist
-ibdcnt=. <.bigblocksize__rhinfo % ppssize
-ippscnt=. >.icnt % ibdcnt
-isbdcnt ; ibbcnt ; <ippscnt
-)
-
-NB.  adjust2
-adjust2=: 3 : 0
->. 2^.y
-)
-
-NB.  saveheader
-saveheader=: 3 : 0
-'rhinfo isbdcnt ibbcnt ippscnt'=. y
-NB. 0. calculate basic setting
-iblcnt=. <.bigblocksize__rhinfo % longintsize
-i1stbdl=. <.(bigblocksize__rhinfo - 16b4c) % longintsize
-ibdexl=. 0
-iall=. ibbcnt + ippscnt + isbdcnt
-iallw=. iall
-ibdcntw=. >.iallw % iblcnt
-ibdcnt=. >.(iall + ibdcntw) % iblcnt
-NB. 0.1 calculate bd count
-if. ibdcnt > i1stbdl do.
-NB.  todo: is do-while correct here?
-  whilst. ibdcnt > i1stbdl + ibdexl*iblcnt do.
-    ibdexl=. >:ibdexl
-    iallw=. >:iallw
-    ibdcntw=. >.iallw % iblcnt
-    ibdcnt=. >.(iallw + ibdcntw) % iblcnt
-  end.
-end.
-NB. 1.save header
-z=. 16bd0 16bcf 16b11 16be0 16ba1 16bb1 16b1a 16be1{a.
-z=. z, 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0{a.
-z=. z, toWORD0 16b3b
-z=. z, toWORD0 16b03
-z=. z, toWORD0 _2
-z=. z, toWORD0 9
-z=. z, toWORD0 6
-z=. z, toWORD0 0
-z=. z, 0 0 0 0 0 0 0 0 {a.
-z=. z, toDWORD0 ibdcnt
-z=. z, toDWORD0 ibbcnt+isbdcnt NB. root start
-z=. z, toDWORD0 0
-z=. z, toDWORD0 16b1000
-z=. z, toDWORD0 0                   NB. small block depot
-z=. z, toDWORD0 1
-NB. 2. extra bdlist start, count
-if. ibdcnt < i1stbdl do.
-  z=. z, toDWORD0 _2       NB. extra bdlist start
-  z=. z, toDWORD0 0        NB. extra bdlist count
-else.
-  z=. z, toDWORD0 iall+ibdcnt
-  z=. z, toDWORD0 ibdexl
-end.
-fputs__rhinfo z
-NB. 3. bdlist
-i=. 0
-while. (i<i1stbdl) *. (i < ibdcnt) do.
-  fputs__rhinfo toDWORD0 iall+i
-  i=. >:i
-end.
-if. i<i1stbdl do.
-  fputs__rhinfo, (,:toDWORD0 _1) #~ i1stbdl-i
-end.
-)
-
-NB.  savebigdata
-savebigdata=: 3 : 0
-'istblk ralist rhinfo'=. y
-ires=. 0
-NB. 1.write big (ge 16b1000)  data into block
-for_opps. ralist do.
-  if. type__opps ~: ppstypedir do.
-    size__opps=: datalen__opps''   NB. mod
-    if. ((size__opps >: smallsize__rhinfo) +. ((type__opps = ppstyperoot) *. 0~:#data__opps)) do.
-NB. 1.1 write data
-NB. check for update
-      if. '' -.@-: ppsfile__opps do.
-NB. check for update
-        ilen=. #sbuff=. ]`(''"_)@.(_1&-:)@:fread ppsfile__opps
-        fputs__rhinfo sbuff
-      else.
-        fputs__rhinfo data__opps
-      end.
-      if. size__opps |~ bigblocksize__rhinfo do.
-NB.  todo: check, if strrepeat()  is binary safe
-        fputs__rhinfo ({.a.) #~ bigblocksize__rhinfo ([ - |) size__opps
-      end.
-NB. 1.2 set for pps
-      startblock__opps=: istblk
-      istblk=. istblk + >.size__opps % bigblocksize__rhinfo
-    end.
-  end.
-end.
-istblk
-)
-
-NB.  savepps
-savepps=: 3 : 0
-'ralist rhinfo'=. y
-NB. 0. initial
-NB. 2. save pps
-for_oitem. ralist do.
-  saveppswk__oitem rhinfo
-end.
-NB. 3. adjust for block
-icnt=. #ralist
-ibcnt=. <.bigblocksize__rhinfo % ppssize__rhinfo
-if. (icnt |~ ibcnt) do.
-  fputs__rhinfo ({.a.) #~ (ibcnt ([ - |) icnt) * ppssize__rhinfo
-end.
->.icnt % ibcnt
-)
-
-NB.  saveppssetpnt2
-NB.   for test
-saveppssetpnt2=: 3 : 0
-'athis ralist rhinfo'=. y
-NB. 1. make array as children-relations
-NB. 1.1 if no children
-if. ''-:athis do. ralist ; _1 return.
-elseif. 1=#athis do.
-NB. 1.2 just only one
-  ralist=. ralist, l=. 0{athis
-  no__l=: (#ralist) -1
-  prevpps__l=: _1
-  nextpps__l=: _1
-  ralist=. >@{. ra=. saveppssetpnt2 child__l ; ralist ; <rhinfo
-  dirpps__l=: >@{: ra
-  ralist ; no__l return.
-elseif. do.
-NB. 1.3 array
-  icnt=. #athis
-NB. 1.3.1 define center
-  ipos=. 0 NB. int(icnt% 2)
-  awk=. athis
-  if. (#athis) > 2 do.
-    aprev=. 1{awk
-    anext=. 2}.awk
-  else.
-    aprev=. ''
-    anext=. }.awk
-  end.
-  l=. ipos{athis
-  ralist=. >@{. ra=. saveppssetpnt2 aprev ; ralist ; <rhinfo
-  prevpps__l=: >@{: ra
-  ralist= ralist, l
-  no__l=: (#ralist) -1
-NB. 1.3.2 devide a array into previous, next
-  ralist=. >@{. ra=. saveppssetpnt2 anext ; ralist ; <rhinfo
-  nextpps__l=: >@{: ra
-  ralist=. >@{. ra=. saveppssetpnt2 child__l ; ralist ; <rhinfo
-  dirpps__l=: >@{: ra
-  ralist ; no__l return.
-end.
-)
-
-NB.  saveppssetpnt2
-NB.   for test
-saveppssetpnt2s=: 3 : 0
-'athis ralist rhinfo'=. y
-NB. 1. make array as children-relations
-NB. 1.1 if no children
-if. (0:=#) athis do. ralist ; _1 return.
-elseif. (#athis) =1 do.
-NB. 1.2 just only one
-  ralist=. ralist, l=. 0{athis
-  no__l=: (#ralist) -1
-  prevpps__l=: _1
-  nextpps__l=: _1
-  ralist=. >@{. ra=. saveppssetpnt2 child__l ; ralist ; <rhinfo
-  dirpps__l=: >@{: ra
-  ralist ; no__l return.
-elseif. do.
-NB. 1.3 array
-  icnt=. #athis
-NB. 1.3.1 define center
-  ipos=. 0 NB. int(icnt% 2)
-  ralist=. ralist, l=. ipos{athis
-  no__l=: (#ralist) -1
-  awk=. athis
-NB. 1.3.2 devide a array into previous, next
-  aprev=. ipos{.awk
-  anext=. (1+ipos)}.awk
-  ralist=. >@{. ra=. saveppssetpnt2 aprev ; ralist ; <rhinfo
-  prevpps__l=: >@{: ra
-  ralist=. >@{. ra=. saveppssetpnt2 anext ; ralist ; <rhinfo
-  nextpps__l=: >@{: ra
-  ralist=. >@{. ra=. saveppssetpnt2 child__l ; ralist ; <rhinfo
-  dirpps__l=: >@{: ra
-  ralist ; no__l return.
-end.
-)
-
-NB.  saveppssetpnt
-saveppssetpnt=: 3 : 0
-'athis ralist rhinfo'=. y
-NB. 1. make array as children-relations
-NB. 1.1 if no children
-if. (0:=#) athis do. ralist ; _1 return.
-elseif. (#athis) =1 do.
-NB. 1.2 just only one
-  ralist=. ralist, l=. 0{athis
-  no__l=: (#ralist) -1
-  prevpps__l=: _1
-  nextpps__l=: _1
-  ralist=. >@{. ra=. saveppssetpnt child__l ; ralist ; <rhinfo
-  dirpps__l=: >@{: ra
-  ralist ; no__l return.
-elseif. do.
-NB. 1.3 array
-  icnt=. #athis
-NB. 1.3.1 define center
-  ipos=. <.icnt % 2
-  ralist=. ralist, l=. ipos{athis
-  no__l=: (#ralist) -1
-  awk=. athis
-NB. 1.3.2 devide a array into previous, next
-  aprev=. ipos{.awk
-  anext=. (1+ipos)}.awk
-  ralist=. >@{. ra=. saveppssetpnt aprev ; ralist ; <rhinfo
-  prevpps__l=: >@{: ra
-  ralist=. >@{. ra=. saveppssetpnt anext ; ralist ; <rhinfo
-  nextpps__l=: >@{: ra
-  ralist=. >@{. ra=. saveppssetpnt child__l ; ralist ; <rhinfo
-  dirpps__l=: >@{: ra
-  ralist ; no__l return.
-end.
-)
-
-NB.  saveppssetpnt
-saveppssetpnt1=: 3 : 0
-'athis ralist rhinfo'=. y
-NB. 1. make array as children-relations
-NB. 1.1 if no children
-if. (0:=#) athis do. ralist ; _1 return.
-elseif. (#athis) =1 do.
-NB. 1.2 just only one
-  ralist=. ralist, l=. 0{athis
-  no__l=: (#ralist) -1
-  prevpps__l=: _1
-  nextpps__l=: _1
-  ralist=. >@{. ra=. saveppssetpnt child__l ; ralist ; <rhinfo
-  dirpps__l=: >@{: ra
-  ralist ; no__l return.
-elseif. do.
-NB. 1.3 array
-  icnt=. #athis
-NB. 1.3.1 define center
-  ipos=. <.icnt % 2
-  ralist=. ralist, l=. ipos{athis
-  no__l=: (#ralist) -1
-  awk=. athis
-NB. 1.3.2 devide a array into previous, next
-  aprev=. ipos{.awk
-  anext=. (1+ipos)}.awk
-  ralist=. >@{. ra=. saveppssetpnt aprev ; ralist ; <rhinfo
-  prevpps__l=: >@{: ra
-  ralist=. >@{. ra=. saveppssetpnt anext ; ralist ; <rhinfo
-  nextpps__l=: >@{: ra
-  ralist=. >@{. ra=. saveppssetpnt child__l ; ralist ; <rhinfo
-  dirpps__l=: >@{: ra
-  ralist ; no__l return.
-end.
-)
-
-NB.  savebbd
-savebbd=: 3 : 0
-'isbdsize ibsize ippscnt rhinfo'=. y
-NB. 0. calculate basic setting
-ibbcnt=. <.bigblocksize__rhinfo % longintsize
-i1stbdl=. <.(bigblocksize__rhinfo - 16b4c) % longintsize
-ibdexl=. 0
-iall=. ibsize + ippscnt + isbdsize
-iallw=. iall
-ibdcntw=. >.iallw % ibbcnt
-ibdcnt=. >.(iall + ibdcntw) % ibbcnt
-NB. 0.1 calculate bd count
-if. ibdcnt >i1stbdl do.
-NB.  todo: do-while correct here?
-  whilst. ibdcnt > i1stbdl+ibdexl*ibbcnt do.
-    ibdexl=. >:ibdexl
-    iallw=. >:iallw
-    ibdcntw=. >.iallw % ibbcnt
-    ibdcnt=. >.(iallw + ibdcntw) % ibbcnt
-  end.
-end.
-NB. 1. making bd
-NB. 1.1 set for sbd
-if. isbdsize > 0 do.
-  for_i. i.(isbdsize-1) do.
-    fputs__rhinfo toDWORD0 i+1
-  end.
-  fputs__rhinfo toDWORD0 _2
-end.
-NB. 1.2 set for b
-for_i. i.(ibsize-1) do.
-  fputs__rhinfo toDWORD0 i+isbdsize+1
-end.
-fputs__rhinfo toDWORD0 _2
-NB. 1.3 set for pps
-for_i. i.(ippscnt-1) do.
-  fputs__rhinfo toDWORD0 i+isbdsize+ibsize+1
-end.
-fputs__rhinfo toDWORD0 _2
-NB. 1.4 set for bbd itself  _3 : bbd
-for_i. i.ibdcnt do.
-  fputs__rhinfo toDWORD0 _3
-end.
-NB. 1.5 set for extrabdlist
-for_i. i.ibdexl do.
-  fputs__rhinfo toDWORD0 _4
-end.
-NB. 1.6 adjust for block
-if. ((iallw + ibdcnt) |~ ibbcnt) do.
-  fputs__rhinfo, (,:toDWORD0 _1) #~ ibbcnt ([ - |) (iallw + ibdcnt)
-end.
-NB. 2.extra bdlist
-if. (ibdcnt > i1stbdl) do.
-  in=. 0
-  inb=. 0
-  i=. i1stbdl
-  while. i<ibdcnt do.
-    if. (in>: (ibbcnt-1)) do.
-      in=. 0
-      inb=. >:inb
-      fputs__rhinfo toDWORD0 iall+ibdcnt+inb
-    end.
-    fputs__rhinfo toDWORD0 ibsize+isbdsize+ippscnt+i
-    i=. >:i
-    in=. >:in
-  end.
-  if. ((ibdcnt-i1stbdl) |~ (ibbcnt-1)) do.
-    fputs__rhinfo, (,:toDWORD0 _1) #~ (ibbcnt-1) ([ - |) (ibdcnt-i1stbdl)
-  end.
-  fputs__rhinfo toDWORD0 _2
-end.
-)
-
-
 NB. ---------------------------------------------------------
 NB. package for biff format
 cocurrent 'biff'
@@ -1200,20 +59,24 @@ colorpattern=: 16b41
 colorfont=: 16b7fff
 NB. cell ref 'AA5' => 4 26
 A1toRC=: 3 : 0
+y=. y.
 assert. y e. '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 (26 #. (0 _1)+ _2&{. ' ABCDEFGHIJKLMNOPQRSTUVWXYZ'&i. c),~ <: 1&". y -. c=. y -. '0123456789'
 )
 
 toHeader=: toWORD0
 UString=: 3 : 0
+y=. y.
 toucode0 u: y
 )
 
 SString=: 3 : 0
+y=. y.
 (1&u: ::]) y
 )
 
 toString=: 3 : 0
+y=. y.
 if. 131072= 3!:0 y do.
   toucode0 y
 else.
@@ -1222,6 +85,7 @@ end.
 )
 
 toUString8=: 3 : 0
+y=. y.
 if. 131072= 3!:0 y do.
   (a.{~#y), (1{a.), toucode0 y
 else.
@@ -1230,6 +94,7 @@ end.
 )
 
 toUString16=: 3 : 0
+y=. y.
 if. 131072= 3!:0 y do.
   (toWORD0 #y), (1{a.), toucode0 y
 else.
@@ -1238,6 +103,7 @@ end.
 )
 
 toUString=: 3 : 0
+y=. y.
 if. 131072= 3!:0 y do.
   (1{a.), toucode0 y
 else.
@@ -1246,10 +112,12 @@ end.
 )
 
 toStream=: 4 : 0
+y=. y. [ x=. x.
 x fappend~ y
 )
 
 sulen8=: 3 : 0
+y=. y.
 if. 131072= 3!:0 y do.
   2+2*#y
 else.
@@ -1258,6 +126,7 @@ end.
 )
 
 sulen16=: 3 : 0
+y=. y.
 if. 131072= 3!:0 y do.
   3+2*#y
 else.
@@ -1283,6 +152,7 @@ cellborder_slanted_medium_dash_dotted=: 13
 NB. biff record
 NB. a formula which was array-entered into a range of cells
 biff_array=: 3 : 0
+y=. y.
 'range recalc parsedexpr'=. y
 'firstrow lastrow firstcol lastcol'=. range
 recordtype=. 16b0221
@@ -1300,6 +170,7 @@ z=. z,~ toHeader recordtype, #z
 
 NB. Should Excel make a backup of this XLS sheet?
 biff_backup=: 3 : 0
+y=. y.
 recordtype=. 16b0040
 z=. ''
 z=. z, toWORD0 0~:y
@@ -1308,6 +179,7 @@ z=. z,~ toHeader recordtype, #z
 
 NB. a cell with no formula or value
 biff_blank=: 4 : 0
+y=. y. [ x=. x.
 recordtype=. 16b0201
 y=. >y
 assert. 2=#y
@@ -1321,6 +193,7 @@ NB. set the Beginning of File marker
 NB.  version = Excel version   default is biff8 (97-2003)
 NB.  docn = Excel document type   default is worksheet
 biff_bof=: 3 : 0
+y=. y.
 'version docn'=. y
 recordtype=. 16b809
 z=. ''
@@ -1334,6 +207,7 @@ z=. z,~ toHeader recordtype, #z
 )
 
 biff_bookbool=: 3 : 0
+y=. y.
 recordtype=. 16b00da
 z=. ''
 z=. z, toWORD0 0~:y
@@ -1344,6 +218,7 @@ NB. a cell with a constant boolean OR error
 NB. boolerrvalue = boolean or error value
 NB. boolORerr = specifies a boolean or error   1 =. error, 0 =. boolean
 biff_boolerr=: 4 : 0
+y=. y. [ x=. x.
 'rowcol boolerrvalue boolORerr'=. y
 recordtype=. 16b0205
 z=. ''
@@ -1357,6 +232,7 @@ z=. z,~ toHeader recordtype, #z
 NB. set the bottom margin, used when printing, in inches
 NB. 8-byte IEEE floating point format
 biff_bottommargin=: 3 : 0
+y=. y.
 recordtype=. 16b0029
 z=. ''
 z=. z, toDouble0 y
@@ -1364,6 +240,7 @@ z=. z,~ toHeader recordtype, #z
 )
 
 biff_boundsheet=: 3 : 0
+y=. y.
 'offset visible type sheetname'=. y
 recordtype=. 16b85
 z=. ''
@@ -1376,6 +253,7 @@ z=. z,~ toHeader recordtype, #z
 
 NB. set the iteration count as set in Options->Calculation
 biff_calccount=: 3 : 0
+y=. y.
 recordtype=. 16b000c
 z=. ''
 z=. z, toWORD0 y
@@ -1384,6 +262,7 @@ z=. z,~ toHeader recordtype, #z
 
 NB. set the calculation mode
 biff_calcmode=: 3 : 0
+y=. y.
 recordtype=. 13
 z=. ''
 z=. z, toWORD0 y
@@ -1391,6 +270,7 @@ z=. z,~ toHeader recordtype, #z
 )
 
 biff_codepage=: 3 : 0
+y=. y.
 recordtype=. 16b0042
 z=. ''
 z=. z, toWORD0 y
@@ -1398,6 +278,7 @@ z=. z,~ toHeader recordtype, #z
 )
 
 biff_colinfo=: 4 : 0
+y=. y. [ x=. x.
 'col1 col2 width hide level collapse'=. y
 recordtype=. 16b007d
 z=. ''
@@ -1410,6 +291,7 @@ z=. z,~ toHeader recordtype, #z
 NB. set the default cell attributes for those cells which aren't
 NB. defined
 biff_columndefault=: 3 : 0
+y=. y.
 recordtype=. 16b0020
 z=. ''
 z=. z, toWORD0 y
@@ -1418,6 +300,7 @@ z=. z,~ toHeader recordtype, #z
 
 NB. a continuation of a formula too long to fit into one cell
 biff_continue=: 3 : 0
+y=. y.
 recordtype=. 16b003c
 z=. ''
 z=. z, toString y
@@ -1425,6 +308,7 @@ z=. z,~ toHeader recordtype, #z
 )
 
 biff_country=: 3 : 0
+y=. y.
 recordtype=. 16b008c
 z=. ''
 z=. z, toWORD0 y
@@ -1432,6 +316,7 @@ z=. z,~ toHeader recordtype, #z
 )
 
 biff_crn=: 3 : 0
+y=. y.
 recordtype=. 16b005a
 z=. ''
 z=. z, SString y
@@ -1440,6 +325,7 @@ z=. z,~ toHeader recordtype, #z
 
 NB. Specify the date system used in the XLS worksheet
 biff_date1904=: 3 : 0
+y=. y.
 recordtype=. 16b0022
 z=. ''
 z=. z, toWORD0 0~:y
@@ -1448,6 +334,7 @@ z=. z,~ toHeader recordtype, #z
 
 NB. width is in character
 biff_defaultcolwidth=: 3 : 0
+y=. y.
 recordtype=. 16b0055
 z=. ''
 z=. z, toWORD0 y
@@ -1458,6 +345,7 @@ NB. the row height of all undefined rows
 NB. does not affect explicitly defined rows
 NB. height is in increments of 1/20th of a point
 biff_defaultrowheight=: 3 : 0
+y=. y.
 'notmatch hidden spaceabove spacebelow height'=. y
 recordtype=. 16b0225
 z=. ''
@@ -1468,6 +356,7 @@ z=. z,~ toHeader recordtype, #z
 
 NB. set the maximum change for an interative record
 biff_delta=: 3 : 0
+y=. y.
 recordtype=. 16b0010
 z=. ''
 z=. z, toDouble0 y
@@ -1478,6 +367,7 @@ NB. the minimum and maximum bounds of the worksheet
 NB. the last row and column are numbered one higher than
 NB. the last occupied row/column
 biff_dimensions=: 3 : 0
+y=. y.
 recordtype=. 16b0200
 z=. ''
 z=. z, toDWORD0 0 1+0 1{y
@@ -1488,12 +378,14 @@ z=. z,~ toHeader recordtype, #z
 
 NB. set the EOF record
 biff_eof=: 3 : 0
+y=. y.
 recordtype=. 16b000a
 z=. ''
 z=. z,~ toHeader recordtype, #z
 )
 
 biff_externname=: 4 : 0
+y=. y. [ x=. x.
 recordtype=. 16b0023
 z=. ''
 if. 'external'-:x do.
@@ -1528,6 +420,7 @@ z=. z,~ toHeader recordtype, #z
 )
 
 biff_externsheet=: 3 : 0
+y=. y.
 recordtype=. 16b0017
 z=. ''
 z=. z, toWORD0 #y
@@ -1540,6 +433,7 @@ z=. z,~ toHeader recordtype, #z
 NB. describes an entry in Excels font table
 NB.  height of the font in 1/20 of a point increments
 biff_font=: 3 : 0
+y=. y.
 recordtype=. 16b0031
 z=. ''
 'height italic strikeout color weight script underline family charset fontname'=. y
@@ -1558,6 +452,7 @@ z=. z,~ toHeader recordtype, #z
 
 NB. sepcify the footer for the worksheet
 biff_footer=: 3 : 0
+y=. y.
 recordtype=. 16b0015
 z=. ''
 if. #y do.
@@ -1568,6 +463,7 @@ z=. z,~ toHeader recordtype, #z
 
 NB. describes a cell format
 biff_format=: 3 : 0
+y=. y.
 'num str'=. y
 recordtype=. 16b041e
 z=. ''
@@ -1582,6 +478,7 @@ NB.  recalc = should the cell be recalculated on XLS load?
 NB.  exprlength = length of parsed expression
 NB.  pasedexpr = parsed expression
 biff_formula=: 4 : 0
+y=. y. [ x=. x.
 'rowcol value recalc calcopen shared parsedexpr'=. y
 recordtype=. 16b0006
 z=. ''
@@ -1596,6 +493,7 @@ z=. z,~ toHeader recordtype, #z
 )
 
 biff_gridset=: 3 : 0
+y=. y.
 recordtype=. 16b0082
 z=. ''
 z=. z, toWORD0 0~:y
@@ -1603,6 +501,7 @@ z=. z,~ toHeader recordtype, #z
 )
 
 biff_guts=: 3 : 0
+y=. y.
 recordtype=. 16b0080
 z=. ''
 z=. z, toWORD0 y
@@ -1610,6 +509,7 @@ z=. z,~ toHeader recordtype, #z
 )
 
 biff_hcenter=: 3 : 0
+y=. y.
 recordtype=. 16b008d
 z=. ''
 z=. z, toWORD0 0~:y
@@ -1618,6 +518,7 @@ z=. z,~ toHeader recordtype, #z
 
 NB. specify the header for the worksheet
 biff_header=: 3 : 0
+y=. y.
 recordtype=. 16b0014
 z=. ''
 if. #y do.
@@ -1627,6 +528,7 @@ z=. z,~ toHeader recordtype, #z
 )
 
 biff_hideobj=: 3 : 0
+y=. y.
 recordtype=. 16b008d
 z=. ''
 z=. z, toWORD0 y
@@ -1634,6 +536,7 @@ z=. z,~ toHeader recordtype, #z
 )
 
 biff_hlink=: 4 : 0
+y=. y. [ x=. x.
 recordtype=. 16b01b8
 z=. ''
 linktype=. x
@@ -1703,6 +606,7 @@ z=. z,~ toHeader recordtype, #z
 
 NB. a list of explicit row page breaks
 biff_horizontalpagebreaks=: 3 : 0
+y=. y.
 recordtype=. 16b001b
 z=. ''
 z=. z, toWORD0 #y
@@ -1711,6 +615,7 @@ z=. z,~ toHeader recordtype, #z
 )
 
 biff_index=: 3 : 0
+y=. y.
 recordtype=. 16b020b
 z=. ''
 z=. z, toDWORD0 0
@@ -1722,6 +627,7 @@ NB. a cell containing a 14-bit signed integer, biff8 use RK value to store integ
 NB. negative numbers and those outside this range are to
 NB. be held in a NUMBER cell
 biff_integer=: 4 : 0
+y=. y. [ x=. x.
 assert. 2=#y
 assert. 2=#>@{.y
 assert. 1 4 8 e.~ 3!:0 >1{y
@@ -1735,6 +641,7 @@ z=. z,~ toHeader recordtype, #z
 
 NB. set the state of iteration
 biff_iteration=: 3 : 0
+y=. y.
 recordtype=. 16b0011
 z=. ''
 z=. z, toWORD0 y
@@ -1743,6 +650,7 @@ z=. z,~ toHeader recordtype, #z
 
 NB. cell with a constant string of length
 biff_label=: 4 : 0
+y=. y. [ x=. x.
 assert. 2=#y
 assert. 2=#>@{.y
 assert. 2 131072 e.~ 3!:0 >1{y
@@ -1759,6 +667,7 @@ end.
 )
 
 biff_labelranges=: 3 : 0
+y=. y.
 'row col'=. y
 if. 0=(#row)+#col do. '' return. end.
 recordtype=. 16b015f
@@ -1773,6 +682,7 @@ z=. z,~ toHeader recordtype, #z
 NB. set the left margin, used when printing, in inches
 NB. 8-byte IEEE floating point format
 biff_leftmargin=: 3 : 0
+y=. y.
 recordtype=. 16b0026
 z=. ''
 z=. z, toDouble0 y
@@ -1780,6 +690,7 @@ z=. z,~ toHeader recordtype, #z
 )
 
 biff_mergedcells=: 3 : 0
+y=. y.
 if. (0:=#) y do. '' return. end.
 recordtype=. 16b00e5
 z=. ''
@@ -1789,6 +700,7 @@ z=. z,~ toHeader recordtype, #z
 )
 
 biff_name=: 3 : 0
+y=. y.
 recordtype=. 16b0018
 z=. ''
 'hidden function command macro complex builtin functiongroup binaryname keybd name formula sheet menu description helptopic statusbar'=. y
@@ -1815,6 +727,7 @@ z=. z,~ toHeader recordtype, #z
 NB. a cell containing a constant floating point number
 NB. IEEE 8-byte floating point format
 biff_number=: 4 : 0
+y=. y. [ x=. x.
 assert. 2=#y
 assert. 2=#>@{.y
 assert. 1 4 8 e.~ 3!:0 >1{y
@@ -1828,6 +741,7 @@ z=. z,~ toHeader recordtype, #z
 
 NB. workbook/worksheet object protection
 biff_objectprotect=: 3 : 0
+y=. y.
 recordtype=. 16b0063
 z=. ''
 z=. z, toWORD0 0~:y
@@ -1835,6 +749,7 @@ z=. z,~ toHeader recordtype, #z
 )
 
 biff_palette=: 3 : 0
+y=. y.
 recordtype=. 16b0092
 z=. ''
 z=. z, toWORD0 #y
@@ -1844,6 +759,7 @@ z=. z,~ toHeader recordtype, #z
 
 NB. number and position of panes in a window
 biff_pane=: 3 : 0
+y=. y.
 recordtype=. 16b0041
 z=. ''
 'split vis activepane'=. y
@@ -1855,6 +771,7 @@ z=. z,~ toHeader recordtype, #z
 
 NB. worksheet/workbook protection (.5.18). It stores a 16-bit hash value,
 biff_password=: 3 : 0
+y=. y.
 recordtype=. 16b0013
 z=. ''
 z=. z, toWORD0 y
@@ -1863,6 +780,7 @@ z=. z,~ toHeader recordtype, #z
 
 NB. set the precision as set in Option->Calculation
 biff_precision=: 3 : 0
+y=. y.
 recordtype=. 16b000e
 z=. ''
 z=. z, toWORD0 0~:y
@@ -1871,6 +789,7 @@ z=. z,~ toHeader recordtype, #z
 
 NB. Print Gridlines when printing?
 biff_printgridlines=: 3 : 0
+y=. y.
 recordtype=. 16b002b
 z=. ''
 z=. z, toWORD0 0~:y
@@ -1879,6 +798,7 @@ z=. z,~ toHeader recordtype, #z
 
 NB. Shall Excel print the row 'n column headers
 biff_printheaders=: 3 : 0
+y=. y.
 recordtype=. 16b002a
 z=. ''
 z=. z, toWORD0 0~:y
@@ -1887,6 +807,7 @@ z=. z,~ toHeader recordtype, #z
 
 NB. workbook/worksheet cell content protection
 biff_protect=: 3 : 0
+y=. y.
 recordtype=. 16b0012
 z=. ''
 z=. z, toWORD0 0~:y
@@ -1899,6 +820,7 @@ NB. <letter><number>   like A1 or C3 -- you sank my battleship
 NB.    OR
 NB. R<number>C<number>   y'know R1C1 = row 1 col 1
 biff_refmode=: 3 : 0
+y=. y.
 recordtype=. 16b000f
 z=. ''
 z=. z, toWORD0 0~:y
@@ -1908,6 +830,7 @@ z=. z,~ toHeader recordtype, #z
 NB. set the right margin, used when printing, in inches
 NB. 8-byte IEEE floating point format
 biff_rightmargin=: 3 : 0
+y=. y.
 recordtype=. 16b0027
 z=. ''
 z=. z, toDouble0 y
@@ -1916,6 +839,7 @@ z=. z,~ toHeader recordtype, #z
 
 NB. a row descriptor needs the follwing ingredients
 biff_row=: 4 : 0
+y=. y. [ x=. x.
 xf=. x
 'rownumber firstcol lastcol usedefaultheight rowheight heightnotmatch spaceabove spacebelow hidden explicitformat outlinelevel outlinegroup'=. y
 recordtype=. 16b0208
@@ -1932,6 +856,7 @@ z=. z,~ toHeader recordtype, #z
 
 NB. workbook/worksheet scenarios protection
 biff_scenprotect=: 3 : 0
+y=. y.
 recordtype=. 16b00dd
 z=. ''
 z=. z, toWORD0 0~:y
@@ -1939,6 +864,7 @@ z=. z,~ toHeader recordtype, #z
 )
 
 biff_scl=: 3 : 0
+y=. y.
 recordtype=. 16b00a0
 z=. ''
 z=. z, toWORD0 y
@@ -1948,6 +874,7 @@ z=. z,~ toHeader recordtype, #z
 NB. sets the cells which are selected in a pane
 NB. not implemented yet
 biff_selection=: 3 : 0
+y=. y.
 recordtype=. 16b001d
 z=. ''
 'panenum row col refnum refs'=. y
@@ -1964,6 +891,7 @@ z=. z,~ toHeader recordtype, #z
 )
 
 biff_setup=: 3 : 0
+y=. y.
 recordtype=. 16b00a1
 z=. ''
 'setuppapersize setupscaling setupstartpage setupfitwidth setupfitheight setuprowmajor setupportrait setupinvalid setupblackwhite setupdraft setupcellnote setuporientinvalid setupusestartpage setupnoteatend setupprinterror setupdpi setupvdpi setupheadermargin setupfootermargin setupnumcopy'=. y
@@ -1982,6 +910,7 @@ z=. z,~ toHeader recordtype, #z
 )
 
 biff_standardwidth=: 3 : 0
+y=. y.
 recordtype=. 16b0099
 z=. ''
 z=. z, toWORD0 y
@@ -1992,6 +921,7 @@ NB. the string value of a formula
 NB. the value of all formulas outside of this record are held in
 NB. Excels formula format
 biff_string=: 3 : 0
+y=. y.
 if. #y do.
   recordtype=. 16b0207
   z=. ''
@@ -2003,6 +933,7 @@ end.
 )
 
 biff_style=: 4 : 0
+y=. y. [ x=. x.
 recordtype=. 16b0293
 z=. ''
 'builtin id level name'=. y
@@ -2018,6 +949,7 @@ z=. z,~ toHeader recordtype, #z
 )
 
 biff_supbook=: 4 : 0
+y=. y. [ x=. x.
 recordtype=. 16b01ae
 z=. ''
 if. 'external'-:x do.
@@ -2043,6 +975,7 @@ z=. z,~ toHeader recordtype, #z
 
 NB. a one-input row or column table created with the Data Table command
 biff_table=: 3 : 0
+y=. y.
 recordtype=. 16b0036
 z=. ''
 'firstrow lastrow firstcol lastcol recalc rowinput colinput row col'=. y
@@ -2061,6 +994,7 @@ z=. z,~ toHeader recordtype, #z
 NB. set the top margin, used when printing, in inches
 NB. 8-byte IEEE floating point format
 biff_topmargin=: 3 : 0
+y=. y.
 recordtype=. 16b0028
 z=. ''
 z=. z, toDouble0 y
@@ -2068,6 +1002,7 @@ z=. z,~ toHeader recordtype, #z
 )
 
 biff_vcenter=: 3 : 0
+y=. y.
 recordtype=. 16b0084
 z=. ''
 z=. z, toWORD0 0~:y
@@ -2076,6 +1011,7 @@ z=. z,~ toHeader recordtype, #z
 
 NB. a list of explicit column page breaks
 biff_verticalpagebreaks=: 3 : 0
+y=. y.
 recordtype=. 16b001a
 z=. ''
 z=. z, toWORD0 #y
@@ -2085,6 +1021,7 @@ z=. z,~ toHeader recordtype, #z
 
 NB. basic Excel window information
 biff_window1=: 3 : 0
+y=. y.
 recordtype=. 16b003d
 z=. ''
 'x y width height hidden'=. y
@@ -2102,6 +1039,7 @@ z=. z,~ toHeader recordtype, #z
 
 NB. advanced window information
 biff_window2=: 3 : 0
+y=. y.
 recordtype=. 16b023e
 z=. ''
 'flag topvisiblerow leftvisiblecol RGBcolor'=. y
@@ -2118,6 +1056,7 @@ z=. z,~ toHeader recordtype, #z
 
 NB. workbook/worksheet window configuration protection
 biff_windowprotect=: 3 : 0
+y=. y.
 recordtype=. 16b0019
 z=. ''
 z=. z, toWORD0 0~:y
@@ -2125,6 +1064,7 @@ z=. z,~ toHeader recordtype, #z
 )
 
 biff_wsbool=: 3 : 0
+y=. y.
 recordtype=. 16b0081
 z=. ''
 z=. z, toWORD0 y
@@ -2132,6 +1072,7 @@ z=. z,~ toHeader recordtype, #z
 )
 
 biff_xct=: 3 : 0
+y=. y.
 recordtype=. 16b0059
 z=. ''
 z=. z, toWORD0 y
@@ -2139,6 +1080,7 @@ z=. z,~ toHeader recordtype, #z
 )
 
 biff_xf=: 3 : 0
+y=. y.
 recordtype=. 16b00e0
 'font format typeprot align rotate indent used border linecolor color'=. y
 z=. ''
@@ -2159,6 +1101,7 @@ z=. z,~ toHeader recordtype, #z
 coclass 'biffrefname'
 coinsert 'biff'
 create=: 3 : 0
+y=. y.
 coinsert 'oleutlfcn'
 coinsert 'biff'
 'hidden function command macro complex builtin functiongroup binaryname keybd sheetidx'=: 0
@@ -2167,6 +1110,7 @@ coinsert 'biff'
 
 destroy=: codestroy
 writestream=: 3 : 0
+y=. y.
 z=. biff_name hidden ; function ; command ; macro ; complex ; builtin ; functiongroup ; binaryname ; keybd ; name ; formula ; sheetidx ; menu ; description ; helptopic ; statusbar
 )
 
@@ -2174,10 +1118,12 @@ z=. biff_name hidden ; function ; command ; macro ; complex ; builtin ; function
 coclass 'biffsupbook'
 coinsert 'biff'
 newextname=: 3 : 0
+y=. y.
 extname=: extname, <y
 )
 
 create=: 3 : 0
+y=. y.
 coinsert 'oleutlfcn'
 coinsert 'biff'
 'type sheetn source sheetname'=: 4{.y
@@ -2190,6 +1136,7 @@ crn=: ''  NB. not yet implemented
 
 destroy=: codestroy
 writestream=: 3 : 0
+y=. y.
 z=. ''
 if. 'external'-:type do. z=. z, type biff_supbook source ,&< sheetname
 elseif. 'internal'-:type do. z=. z, type biff_supbook y
@@ -2221,6 +1168,7 @@ NB. n
 NB. )
 getcolor=: ]
 getfont=: 3 : 0
+y=. y.
 'fontheight fontitalic fontstrike fontcolor fontweight fontscript fontunderline fontfamily fontcharset fontname'=. y
 y=. fontheight ; fontitalic ; fontstrike ; (getcolor fontcolor) ; fontweight ; fontscript ; fontunderline ; fontfamily ; fontcharset ; dltb fontname
 if. (#fontset__COCREATOR)= n=. fontset__COCREATOR i. y do.
@@ -2230,6 +1178,7 @@ n
 )
 
 getformat=: 3 : 0
+y=. y.
 if. (#formatset__COCREATOR)= n=. formatset__COCREATOR i. <y=. dltb y do.
   formatset__COCREATOR=: formatset__COCREATOR, <y
 end.
@@ -2240,6 +1189,7 @@ NB. return xf in xfset row for an biffxf object
 NB. usage: getxfrow__xfo''
 NB. font format typeprotparent align rotate indent used border linecolor color
 getxfrow=: 3 : 0
+y=. y.
 font=. getfont fontheight ; fontitalic ; fontstrike ; fontcolor ; fontweight ; fontscript ; fontunderline ; fontfamily ; fontcharset ; fontname
 formatn=. getformat format
 NB. see 6.70, otherwise excel cannot use cell format edit
@@ -2262,6 +1212,7 @@ font, formatn, typeprotparent, align, rotation, indentshrink, used, border, line
 NB. set biffxf object to an xfset row
 NB. font format typeprotparent align rotate indent used border linecolor color
 copyxfrow=: 3 : 0
+y=. y.
 'font formatn typeprotparent align rotate indentshrink used border linecolor color'=. y
 'fontheight fontitalic fontstrike fontcolor fontweight fontscript fontunderline fontfamily fontcharset fontname'=: font{fontset__COCREATOR
 NB. if. -. fontcolor e. colorborder, colorpattern, colorfont do.
@@ -2298,12 +1249,14 @@ patternbgcolor=: _7 bitshl 16b3f80 bitand color
 
 NB. copy content from an another biffxf object
 copyxfobj=: 3 : 0
+y=. y.
 l=. y
 nm=. nl__l 0
 for_nmi. nm do. (>nmi)=: ((>nmi), '__l')~ end.
 )
 
 create=: 3 : 0
+y=. y.
 coinsert 'oleutlfcn'
 coinsert 'biff'
 NB. read section 5.113 XF Extended Format and 5.43 FONT
@@ -2367,6 +1320,7 @@ NB.   scale_y The vertical scale
 NB. y
 NB.   bitmap  The bitmap filename
 insertpicture=: 4 : 0
+y=. y. [ x=. x.
 img=. y
 'rowcol xy scalexy'=. x
 if. 2 131072 e.~ 3!:0 rowcol do. rowcol=. A1toRC rowcol end.
@@ -2463,6 +1417,7 @@ NB.   width     Width of image frame
 NB.   height    Height of image frame
 NB.
 positionImage=: 3 : 0
+y=. y.
 'colstart rowstart x1 y1 width height'=. y
 NB. Initialise end cell to the same as the start cell
 colend=. colstart  NB. Col containing lower right corner of object
@@ -2498,6 +1453,7 @@ storeobjpicture colstart ; x1 ; rowstart ; y1 ; colend ; x2 ; rowend ; y2
 )
 
 getcolsizes=: 3 : 0
+y=. y.
 if. (#colsizes)= i=. y i.~ {."1 colsizes do.
   _1
 else.
@@ -2506,6 +1462,7 @@ end.
 )
 
 getrowsizes=: 3 : 0
+y=. y.
 if. (#rowsizes)= i=. y i.~ {."1 rowsizes do.
   _1
 else.
@@ -2521,6 +1478,7 @@ NB.
 NB.   return The width in pixels
 NB.
 sizeCol=: 3 : 0
+y=. y.
 NB. Look up the cell value to see if it has been changed
 if. _1~: getcolsizes y do.
   if. 0= getcolsizes y do.
@@ -2544,6 +1502,7 @@ NB.
 NB.   return The width in pixels
 NB.
 sizeRow=: 3 : 0
+y=. y.
 NB. Look up the cell value to see if it has been changed
 if. _1~: getrowsizes y do.
   if. 0= getrowsizes y do.
@@ -2571,6 +1530,7 @@ NB.   rwB  Row containing bottom right corner of object
 NB.   dyB  Distance from bottom of cell
 NB.
 storeobjpicture=: 3 : 0
+y=. y.
 'colL dxL rwT dyT colR dxR rwB dyB'=. y
 record=. 16b005d   NB. Record identifier
 length=. 16b003c   NB. Bytes to follow
@@ -2638,6 +1598,7 @@ NB.
 NB.   return Array with data and properties of the bitmap
 NB.
 processbitmap=: 3 : 0
+y=. y.
 raiseError=. ''
 NB. Open file.
 if. 32=3!:0 y do.
@@ -2709,6 +1670,7 @@ _1 ; raiseError
 )
 
 insertbackground=: 3 : 0
+y=. y.
 z=. processbitmap y
 if. _1=>@{.z do. z return. end.
 'width height size data'=. }.z
@@ -2744,10 +1706,12 @@ end.
 )
 
 adjdim=: 3 : 0
+y=. y.
 dimensions=: ((1 3{dimensions)>. y) 1 3}dimensions
 )
 
 initsheet=: 3 : 0
+y=. y.
 NB. read section 4.2.6 Record Order in BIFF8
 sheetname=: y
 NB. = calculation setting block
@@ -2841,6 +1805,7 @@ rowsizes=: 0 2$''
 )
 
 writestream=: 3 : 0
+y=. y.
 z=. biff_bof 16b600, 16
 NB. = calculation setting block
 p1=. #z
@@ -2900,6 +1865,7 @@ z=. z, biff_eof ''
 
 NB. 16 bit hash value for worksheet password (5.18.4)
 passwordhash=: 3 : 0
+y=. y.
 pw=. (15<.#y){.y
 hash=. 0 [ i=. 0
 while. i<#pw do.
@@ -2911,6 +1877,7 @@ hash=. 16bce4b bitxor (#pw) bitxor hash
 )
 
 create=: 3 : 0
+y=. y.
 coinsert 'oleutlfcn'
 coinsert 'biff'
 stream=: ''
@@ -2922,6 +1889,7 @@ destroy=: codestroy
 coclass 'biffbook'
 coinsert 'biff'
 getxfobj=: 3 : 0
+y=. y.
 z=. _1  NB. error
 if. ''-:y do.
   z=. cxf
@@ -2943,6 +1911,7 @@ z
 )
 
 getxfidx=: 3 : 0
+y=. y.
 rc=. 0
 if. ''-:y do. y=. cxf end.
 if. (3!:0 y) e. 32 do.
@@ -2966,12 +1935,14 @@ rc
 )
 
 add2sst=: 3 : 0
+y=. y.
 sstn=: >:sstn
 if. (#sst) = b=. sst i. y do. sst=: sst, y end.
 b
 )
 
 WriteSST=: 3 : 0
+y=. y.
 sstbuf=: (toWORD0 16b00fc, 0), toDWORD0 sstn, #sst
 wrtp=: 0 [ bufn=: RECORDLEN-8
 for_ix. sst do.
@@ -2990,11 +1961,13 @@ sstbuf=: (toWORD0 RECORDLEN-bufn) (wrtp+2+i.2)}sstbuf
 )
 
 wrtn=: 3 : 0
+y=. y.
 sstbuf=: sstbuf, toWORD0 y
 bufn=: bufn-2
 )
 
 wrtw=: 3 : 0
+y=. y.
 while. #y do.
   if. bufn<1+2*#y do.
     sstbuf=: sstbuf, (1{a.), toucode0 (<.-:bufn-1){.y
@@ -3010,6 +1983,7 @@ end.
 )
 
 wrt=: 3 : 0
+y=. y.
 while. #y do.
   if. bufn<1+#y do.
     sstbuf=: sstbuf, (0{a.), (bufn-1){.y
@@ -3025,6 +1999,7 @@ end.
 )
 
 wrtcont=: 3 : 0
+y=. y.
 sstbuf=: (toWORD0 RECORDLEN-bufn) (wrtp+2+i.2)}sstbuf
 wrtp=: #sstbuf
 sstbuf=: sstbuf, toWORD0 16b003c, 0
@@ -3032,6 +2007,7 @@ bufn=: RECORDLEN
 )
 
 initbook=: 3 : 0
+y=. y.
 NB. read section 4.2.6 Record Order in BIFF8
 fileprotectionstream=: ''
 workbookprotectionstream=: ''
@@ -3162,34 +2138,41 @@ refname=: ''
 )
 
 addhlink=: 3 : 0
+y=. y.
 l=. sheeti{sheet
 hlink__l=: hlink__l, y
 )
 
 writefileprotection=: 3 : 0
+y=. y.
 fileprotectionstream=: y
 )
 
 writeworkbookprotection=: 3 : 0
+y=. y.
 workbookprotectionstream=: y
 )
 
 writecelltable=: 3 : 0
+y=. y.
 l=. sheeti{sheet
 stream__l=: stream__l, y
 )
 
 writecondformattable=: 3 : 0
+y=. y.
 l=. sheeti{sheet
 condformatstream__l=: y
 )
 
 writedvtable=: 3 : 0
+y=. y.
 l=. sheeti{sheet
 dvstream__l=: y
 )
 
 celladr=: 4 : 0
+y=. y. [ x=. x.
 'relrow relcol'=. x
 'row col'=. y
 z=. toWORD0 row
@@ -3197,6 +2180,7 @@ z=. z, toWORD0 (16bff bitand col) bitor 14 bitshl (0~:relcol) bitor 1 bitshl 0~:
 )
 
 cellrangeadr=: 4 : 0
+y=. y. [ x=. x.
 'relrow1 relrow2 relcol1 relcol2'=. x
 'row1 row2 col1 col2'=. y
 z=. toWORD0 row1, row2
@@ -3205,26 +2189,31 @@ z=. z, toWORD0 (16bff bitand col2) bitor 14 bitshl (0~:relcol2) bitor 1 bitshl 0
 )
 
 newsupbook=: 3 : 0
+y=. y.
 supbook=: supbook, y conew 'biffsupbook'
 supbooki=: <:#supbook
 )
 
 newrefname=: 3 : 0
+y=. y.
 refname=: refname, '' conew 'biffrefname'
 {:refname
 )
 
 newextname=: 3 : 0
+y=. y.
 l=. supbooki{supbook
 newextname__l y
 )
 
 newcrn=: 3 : 0
+y=. y.
 l=. supbooki{supbook
 newcrn__l y
 )
 
 create=: 3 : 0
+y=. y.
 coinsert 'oleutlfcn'
 coinsert 'biff'
 if. ''-:y do.
@@ -3242,6 +2231,7 @@ cxf=: addxfobj 15{xfset  NB. predefined cell style
 )
 
 destroy=: 3 : 0
+y=. y.
 for_l. sheet do. destroy__l '' end.
 for_l. biffxfset do. destroy__l '' end.
 for_l. supbook do. destroy__l '' end.
@@ -3252,12 +2242,14 @@ codestroy ''
 NB. match color (red, green, blue) to internal color palette table
 NB. return color index
 rgbcolor=: 3 : 0
+y=. y.
 (i: <./) +/"1 | y -"1 RGBtuple colorset
 )
 
 NB. add new extended format
 NB. return xf object
 addxfobj=: 3 : 0
+y=. y.
 biffxfset=: biffxfset, z=. y conew 'biffxf'
 z
 )
@@ -3266,6 +2258,7 @@ NB. add new worksheet
 NB. return worksheet index
 NB. y sheet name or ''
 addsheet=: 3 : 0
+y=. y.
 sheet=: sheet, ((y-:'') >@{ y ; 'Sheet', ": >:#sheet) conew 'biffsheet'
 sheeti=: <:#sheet
 )
@@ -3273,6 +2266,7 @@ sheeti=: <:#sheet
 NB. save to file
 NB. y  filename ('' if return character data)
 save=: 3 : 0
+y=. y.
 fn=. >y
 z=. biff_bof 16b600, 5
 z=. z, fileprotectionstream
@@ -3345,8 +2339,10 @@ NB. x xf
 NB. y col1 col2 width hide level collapse
 NB.    eg. 2 5 400  to set (col 2 3 4 5) 400 twip hight
 addcolinfo=: 3 : 0
+y=. y.
 cxf addcolinfo y
 :
+y=. y. [ x=. x.
 'col1 col2 width hide level collapse'=. 6{.y
 l=. sheeti{sheet
 colsizes__l=: ~. colsizes__l, (col1 + i.>:col2-col1), "0 (0~:hide){width, 0
@@ -3359,8 +2355,10 @@ NB. x xf
 NB. y rownumber firstcol_lastcol usedefaultheight rowheight heightnotmatch spaceabove spacebelow hidden explicitformat outlinelevel outlinegroup
 NB.    eg. 3 0 256 0 12*256  to set (row 3) 12 character wide
 addrowinfo=: 3 : 0
+y=. y.
 cxf addrowinfo y
 :
+y=. y. [ x=. x.
 'rownumber firstcol lastcols usedefaultheight rowheight'=. 5{. y=. 12{.y
 l=. sheeti{sheet
 if. 0=usedefaultheight do.
@@ -3376,8 +2374,10 @@ NB. y row col ; text         (where 3>$$text)
 NB.    row col ; boxed text   (where 3>$$boxed text)
 NB.                           (always box last argument to make 2=#y)
 writestring=: 3 : 0
+y=. y.
 cxf writestring y
 :
+y=. y. [ x=. x.
 assert. 2=#y
 assert. 1 2 4 8 131072 e.~ 3!:0 >@{.y
 assert. 2 32 131072 e.~ 3!:0 >1{y
@@ -3430,8 +2430,10 @@ NB. write integer to the current worksheet
 NB. x xf
 NB. y row col ; integer   (where 3>$$integer)
 writeinteger=: 3 : 0
+y=. y.
 cxf writeinteger y
 :
+y=. y. [ x=. x.
 assert. 2=#y
 assert. 1 2 4 8 131072 e.~ 3!:0 >@{.y
 assert. 1 4 8 e.~ 3!:0 >1{y
@@ -3459,8 +2461,10 @@ NB. write number to the current worksheet
 NB. x xf
 NB. y row col ; number   (where 3>$$number)
 writenumber=: 3 : 0
+y=. y.
 cxf writenumber y
 :
+y=. y. [ x=. x.
 assert. 2=#y
 assert. 1 2 4 8 131072 e.~ 3!:0 >@{.y
 assert. 1 4 8 e.~ 3!:0 >1{y
@@ -3486,8 +2490,10 @@ NB. write number to the current worksheet with format
 NB. x xf
 NB. y row col ; number ; format   (where 3>$$number)
 writenumber2=: 3 : 0
+y=. y.
 cxf writenumber2 y
 :
+y=. y. [ x=. x.
 assert. 3=#y
 assert. 1 2 4 8 131072 e.~ 3!:0 >@{.y
 assert. 1 4 8 e.~ 3!:0 >1{y
@@ -3509,8 +2515,10 @@ NB. write date to the current worksheet with format
 NB. x xf
 NB. y row col ; datenumber ; format   (where 3>$$datenumber)
 writedate=: 3 : 0
+y=. y.
 cxf writedate y
 :
+y=. y. [ x=. x.
 assert. 2 3 e.~ #y
 assert. 1 2 4 8 131072 e.~ 3!:0 >@{.y
 assert. 1 4 8 e.~ 3!:0 >1{y
@@ -3531,6 +2539,7 @@ NB. y boxed bitmap file name or charachar data of bitmap
 NB. return if success   0 ; ''
 NB.        if fail     _1 ; 'reason for failure'
 insertpicture=: 4 : 0
+y=. y. [ x=. x.
 l=. sheeti{sheet
 x insertpicture__l y
 )
@@ -3540,6 +2549,7 @@ NB. y boxed bitmap file name or charachar data of bitmap
 NB. return if success   0 ; ''
 NB.        if fail     _1 ; 'reson for failure'
 insertbackground=: 3 : 0
+y=. y.
 l=. sheeti{sheet
 insertbackground__l y
 )
@@ -3567,6 +2577,7 @@ NB.    _1 first call printarea, rowrepeat, colrepeat, rowcolrepeat
 NB. y row1 row2 col1 col2
 NB. return  supbook
 printarea=: 4 : 0
+y=. y. [ x=. x.
 if. _1=x do.
   x=. newsupbook 'internal' ; #sheet
 end.
@@ -3584,6 +2595,7 @@ NB.    _1 first call printarea, rowrepeat, colrepeat, rowcolrepeat
 NB. y sheetidx row1 row2
 NB. return  supbook
 rowrepeat=: 4 : 0
+y=. y. [ x=. x.
 if. _1=x do.
   x=. newsupbook 'internal' ; #sheet
 end.
@@ -3601,6 +2613,7 @@ NB.    _1 first call printarea, rowrepeat, colrepeat, rowcolrepeat
 NB. y sheetidx col1 col2
 NB. return  supbook
 colrepeat=: 4 : 0
+y=. y. [ x=. x.
 if. _1=x do.
   x=. newsupbook 'internal' ; #sheet
 end.
@@ -3618,6 +2631,7 @@ NB.    _1 first call printarea, rowrepeat, colrepeat, rowcolrepeat
 NB. y sheetidx row1 row2 col1 col2
 NB. return  supbook
 rowcolrepeat=: 4 : 0
+y=. y. [ x=. x.
 if. _1=x do.
   x=. newsupbook 'internal' ; #sheet
 end.
@@ -3640,6 +2654,7 @@ coinsert 'oleutlfcn'
 NB. x 0 normal  1 debug
 NB. y stream data
 create=: 4 : 0
+y=. y. [ x=. x.
 coinsert 'oleutlfcn'
 debug=: x
 stream=: y
@@ -3700,6 +2715,7 @@ assert. 0~:biffver
 destroy=: codestroy
 NB. parse string from sst record
 readsst=: 3 : 0
+y=. y.
 fp=. 0
 while. fp<#y do.
   if. 0=sstchar+sstrtffe do.
@@ -3720,6 +2736,7 @@ end.
 
 NB. return record type, pointer to data buffer, length of data buffer
 nextrecord=: 3 : 0
+y=. y.
 'type len'=. fromWORD0 (filepos+i.4){stream
 filepos=: +/data=. (4+filepos), len
 type, data
@@ -3728,17 +2745,20 @@ type, data
 NB. byte string used in biff2/3/4/5/7
 NB. assume no continue record
 decodestring8=: 4 : 0
+y=. y. [ x=. x.
 len=. {.fromBYTE (x+0){y
 < len (([ <. #@]) {. ]) (x+1)}.y
 )
 
 decodestring16=: 4 : 0
+y=. y. [ x=. x.
 len=. {.fromWORD0 (x+i.2){y
 < len (([ <. #@]) {. ]) (x+2)}.y
 )
 
 NB. assume no continue record
 decodeustring8=: 4 : 0
+y=. y. [ x=. x.
 len=. {.fromBYTE (x+0){y
 uc=. 0~:1 bitand op=. {.fromBYTE (x+1){y
 fe=. 0~:4 bitand op
@@ -3751,6 +2771,7 @@ end.
 )
 
 decodeustring16=: 4 : 0
+y=. y. [ x=. x.
 NB. len number of (unicode) character in string
 NB. z decoded string
 NB. p point to rtf/fe block
@@ -3784,6 +2805,7 @@ end.
 
 NB. the first splitted string in continue record
 decodeustring16a=: 4 : 0
+y=. y. [ x=. x.
 'x len lenrtffe'=. x
 NB. there is no len for the first splitted string in continue record
 NB. there is option byte the first splitted string in continue record
@@ -3813,6 +2835,7 @@ end.
 
 NB. x 1 convert all number to string
 readsheet=: 0&$: : (4 : 0)
+y=. y. [ x=. x.
 if. 16b200 16b300 16b400 e.~ biffver do.  NB. biff2/3/4
   filepos=: 0
   scnt=. _1
@@ -4095,6 +3118,7 @@ end.
 
 NB. decode rk value
 getrk=: 3 : 0
+y=. y.
 if. 0=2 bitand d=. fromDWORD0 2}.y do. NB. double
   bigendian=: ({.a.)={. 1&(3!:4) 1  NB. 0 little endian   1 big endian
   if. 0=bigendian do.
@@ -4120,6 +3144,7 @@ NB. x sheet index or name
 NB. y Excel file name
 NB. 0 readexcel 'test.xls'
 readexcel=: 0&$: : (4 : 0)
+y=. y. [ x=. x.
 assert. fexist y
 ole=. (>y) conew 'olestorage'
 if. '' -: wk=: getppssearch__ole 'Workbook' ; 1 ; 1 do.              NB. biff8
@@ -4158,6 +3183,7 @@ NB. x sheet index or name
 NB. y Excel file name
 NB. 0 readexcelstring 'test.xls'
 readexcelstring=: 0&$: : (4 : 0)
+y=. y. [ x=. x.
 assert. fexist y
 ole=. (>y) conew 'olestorage'
 if. '' -: wk=: getppssearch__ole 'Workbook' ; 1 ; 1 do.              NB. biff8
@@ -4199,6 +3225,7 @@ NB. x sheet index or name
 NB. y Excel file name
 NB. 0 dumpexcel 'test.xls'
 dumpexcel=: 0&$: : (4 : 0)
+y=. y. [ x=. x.
 assert. fexist y
 ole=. (>y) conew 'olestorage'
 if. '' -: wk=: getppssearch__ole 'Workbook' ; 1 ; 1 do.              NB. biff8

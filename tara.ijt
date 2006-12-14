@@ -17,7 +17,7 @@ Download tara.zip from http://www.jsoftware.com/jwiki/Packages/Tara. This lab re
 
 Where is the addons directory? It can be found by using jpath. The file tara.ijs will be found there after a successful installation.
 )
-jpath '~addons/tara/tara.ijs'
+jpath '~addons/tables/tara/tara.ijs'
 
 NB. =========================================================
 Lab Section Location of temp directory
@@ -38,7 +38,7 @@ NB. =========================================================
 Lab Section Load Tara package
 First load tara.ijs
 )
-load '~addons/tara/tara.ijs'  
+load '~addons/tables/tara/tara.ijs'  
 
 NB. =========================================================
 Lab Section Classes in Tara
@@ -59,13 +59,13 @@ Tara provides verbs in the z locale for reading Excel files. They are:
 
 Now read the first worksheet of the sample Excel file 'test.xls'. The result is a boxed matrix.
 )
-readexcel jpath '~addons/tara/test.xls'      NB. read first worksheet
+readexcel jpath '~addons/tables/tara/test.xls'      NB. read first worksheet
 
 NB. =========================================================
 Lab Section readexcelstring
 readexcelstring is same as readexcel except that all values will be converted to string.
 )
-] b=. 'Sheet1' readexcelstring jpath '~addons/tara/test.xls'  NB. worksheet by name
+] b=. 'Sheet1' readexcelstring jpath '~addons/tables/tara/test.xls'  NB. worksheet by name
 3!:0&.> b
 
 NB. =========================================================
@@ -90,7 +90,7 @@ NB. =========================================================
 Lab Section dumpexcel 
 Let's dump the first worksheet of test.xls
 )
-0 dumpexcel jpath '~addons/tara/test.xls'      NB. dump first worksheet
+0 dumpexcel jpath '~addons/tables/tara/test.xls'      NB. dump first worksheet
 
 NB. =========================================================
 Lab Section
@@ -537,13 +537,13 @@ Tara is optimized to write numeric array and boxed character array.
 
 'writestring' and 'writenumber' write an array as a whole. Their right argument is:
 
-  the row and column is the upper-left cell.
-  the third item in the argument is data, it can be
+  the row and column define the upper-left corner cell.
+  the second item in the argument is data, it can be
   1. scalar, rank-1 or rank-2 numeric array
   2. scalar, rank-1 or rank-2 character array
   3. A box containing rank-1 or rank-2 boxed character array
 
-Remember the right argument always contains exactly 3 items.
+Remember the right argument always contains exactly 2 items.
 
 Save and open tara9.xls
 )
@@ -573,7 +573,7 @@ Open tara10.xls with MS Excel
 bi=: ('Courier New' ; 220) conew 'biffbook'
 
 writestring__bi 0 0 ; 'my picture'
-(0  4 ; 0  0 ; 1  1) insertpicture__bi <jpath '~addons/tara/dora.bmp'  NB. row 0 col 4 scalex 1 scaley 1
+(0  4 ; 0  0 ; 1  1) insertpicture__bi <jpath '~addons/tables/tara/dora.bmp'  NB. row 0 col 4 scalex 1 scaley 1
 save__bi jpath '~temp/tara10.xls'
 destroy__bi ''
 

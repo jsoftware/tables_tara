@@ -1,4 +1,5 @@
 cocurrent 'base'
+load jpath '~addons\tables\tara\tara.ijs'
 test1=: 3 : 0
 bi=. '' conew 'biffbook'               NB. create an workbook
 writestring__bi 1 3 ; 'hello world'    NB. write text in a cell: rowcol ; text (rowcol is 0-based)
@@ -162,7 +163,7 @@ NB. Picture
 test10=: 3 : 0
 bi=. ('Courier New' ; 220) conew 'biffbook'
 writestring__bi 0 0 ; 'my picture'
-(0 4 ; 0 0 ; 1 1) insertpicture__bi <jpath '~addons/tara/dora.bmp'  NB. row 0 col 4 scalex 1 scaley 1
+(0 4 ; 0 0 ; 1 1) insertpicture__bi <jpath '~addons/tables/tara/dora.bmp'  NB. row 0 col 4 scalex 1 scaley 1
 save__bi jpath '~temp/tara10.xls'
 destroy__bi ''
 )
@@ -176,3 +177,14 @@ destroy__bi ''
 rc
 )
 
+test1''
+test2''
+test3''
+test4''
+test5''
+test6''
+test7''
+test8''
+test9''
+test10''
+test11''

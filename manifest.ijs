@@ -7,7 +7,7 @@ Tara reads and writes files in Excel format. It supports the biff8 format used i
 
 After it is installed, run lab 'Tara and Excel' for examples of using the system.
 
-Tara was developed and is copyrighted by Bill Lam, bill_lam@myrealbox.com, but may be used freely, even for commercial purposes. 
+Tara was developed and is copyrighted by Bill Lam, bbill.lam@gmail.com, but may be used freely, even for commercial purposes. 
 )
 
 VERSION=: '1.1.0'
