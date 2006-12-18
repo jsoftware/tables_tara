@@ -1,9 +1,7 @@
 NB. built from project: ~Addons/tables/tara/tara
 NB. ---------------------------------------------------------
-NB. package for reading and writing ole2 storage
-NB.  based on the ole::storage_lite 0.14 perl package
-NB.  ported by bill lam, bbill.lam@gmail.com
-NB.  ole::storage_lite was written by kawai takanori, kwitknr@cpan.org
+NB.  jolew script for reading and writing ole2 storage
+NB.  portion based on ole::storage_lite by kawai takanori, kwitknr@cpan.org
 NB. utility function for olew
 
 cocurrent 'oleutlfcn'
@@ -624,7 +622,6 @@ z=. z, toDWORD0 0                            NB.  128
 fputs__rhinfo z
 z
 )
-
 
 coclass 'oleppsdir'
 coinsert 'olepps'
@@ -2155,7 +2152,6 @@ z=. z, toWORD0 color
 z=. z,~ toHeader recordtype, #z
 )
 
-
 coclass 'biffrefname'
 coinsert 'biff'
 create=: 3 : 0
@@ -2169,7 +2165,6 @@ destroy=: codestroy
 writestream=: 3 : 0
 z=. biff_name hidden ; function ; command ; macro ; complex ; builtin ; functiongroup ; binaryname ; keybd ; name ; formula ; sheetidx ; menu ; description ; helptopic ; statusbar
 )
-
 
 coclass 'biffsupbook'
 coinsert 'biff'
@@ -2205,7 +2200,6 @@ for_ni. crn do.
 end.
 z
 )
-
 
 coclass 'biffxf'
 coinsert 'biff'
@@ -4234,7 +4228,9 @@ destroy__ole ''
 ''
 )
 
+cocurrent 'base'
 NB.  populate z locale
 readexcel_z_=: readexcel_biffread_
 readexcelstring_z_=: readexcelstring_biffread_
 dumpexcel_z_=: dumpexcel_biffread_
+

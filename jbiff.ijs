@@ -1097,8 +1097,7 @@ z=. z, toWORD0 color
 z=. z,~ toHeader recordtype, #z
 )
 
-
-coclass 'biffrefname'
+coxclass 'biffrefname'
 coinsert 'biff'
 create=: 3 : 0
 y=. y.
@@ -1114,8 +1113,7 @@ y=. y.
 z=. biff_name hidden ; function ; command ; macro ; complex ; builtin ; functiongroup ; binaryname ; keybd ; name ; formula ; sheetidx ; menu ; description ; helptopic ; statusbar
 )
 
-
-coclass 'biffsupbook'
+coxclass 'biffsupbook'
 coinsert 'biff'
 newextname=: 3 : 0
 y=. y.
@@ -1153,8 +1151,7 @@ end.
 z
 )
 
-
-coclass 'biffxf'
+coxclass 'biffxf'
 coinsert 'biff'
 NB. merely create biffxf will not result in a new biff xf record in excel file
 NB. each biffxf object must be getxfidx
@@ -1305,7 +1302,7 @@ end.
 
 destroy=: codestroy
 
-coclass 'biffsheet'
+coxclass 'biffsheet'
 coinsert 'biff'
 NB. This verb use IMDATA record which has been obsoleted, only MS Excel can display it correct.
 NB. other Excel compatible program (open office calc, gnumeric can not display it.
@@ -1886,7 +1883,7 @@ initsheet y
 
 destroy=: codestroy
 
-coclass 'biffbook'
+coxclass 'biffbook'
 coinsert 'biff'
 getxfobj=: 3 : 0
 y=. y.
@@ -2190,13 +2187,13 @@ z=. z, toWORD0 (16bff bitand col2) bitor 14 bitshl (0~:relcol2) bitor 1 bitshl 0
 
 newsupbook=: 3 : 0
 y=. y.
-supbook=: supbook, y conew 'biffsupbook'
+supbook=: supbook, y coxnew 'biffsupbook'
 supbooki=: <:#supbook
 )
 
 newrefname=: 3 : 0
 y=. y.
-refname=: refname, '' conew 'biffrefname'
+refname=: refname, '' coxnew 'biffrefname'
 {:refname
 )
 
@@ -2250,7 +2247,7 @@ NB. add new extended format
 NB. return xf object
 addxfobj=: 3 : 0
 y=. y.
-biffxfset=: biffxfset, z=. y conew 'biffxf'
+biffxfset=: biffxfset, z=. y coxnew 'biffxf'
 z
 )
 
@@ -2259,7 +2256,7 @@ NB. return worksheet index
 NB. y sheet name or ''
 addsheet=: 3 : 0
 y=. y.
-sheet=: sheet, ((y-:'') >@{ y ; 'Sheet', ": >:#sheet) conew 'biffsheet'
+sheet=: sheet, ((y-:'') >@{ y ; 'Sheet', ": >:#sheet) coxnew 'biffsheet'
 sheeti=: <:#sheet
 )
 
@@ -2324,10 +2321,10 @@ for_i. i.#seekpoint do.
   z=. toDWORD0 i{sheetoffset
   olehead=. z (p1+i.4)}olehead
 end.
-stream=. ('Workbook' ; '' ; '') conew 'oleppsfile'
+stream=. ('Workbook' ; '' ; '') coxnew 'oleppsfile'
 append__stream olehead
 append__stream olesheet
-root=. (0 ; 0 ; <stream) conew 'oleppsroot'
+root=. (0 ; 0 ; <stream) coxnew 'oleppsroot'
 rc=. save__root fn ; 0 ; ''
 destroy__root ''
 destroy__stream ''
@@ -2649,7 +2646,7 @@ NB. read numeric and string data from excel files
 NB. written by bill lam
 NB. ---------------------------------------------------------
 
-coclass 'biffread'
+coxclass 'biffread'
 coinsert 'oleutlfcn'
 NB. x 0 normal  1 debug
 NB. y stream data
@@ -3146,13 +3143,13 @@ NB. 0 readexcel 'test.xls'
 readexcel=: 0&$: : (4 : 0)
 y=. y. [ x=. x.
 assert. fexist y
-ole=. (>y) conew 'olestorage'
+ole=. (>y) coxnew 'olestorage'
 if. '' -: wk=: getppssearch__ole 'Workbook' ; 1 ; 1 do.              NB. biff8
   if. '' -: wk=: getppssearch__ole 'Book' ; 1 ; 1 do.                NB. biff5/7
     assert. 16b40009 16b60209 16b60409 e.~ fromDWORD0 freadx y;0 4  NB. biff2/3/4
   end.
 end.
-ex=. conew 'biffread'
+ex=. coxnew 'biffread'
 if. ''-.@-:wk do.
   0&create__ex data__wk
 NB. get worksheet location
@@ -3185,13 +3182,13 @@ NB. 0 readexcelstring 'test.xls'
 readexcelstring=: 0&$: : (4 : 0)
 y=. y. [ x=. x.
 assert. fexist y
-ole=. (>y) conew 'olestorage'
+ole=. (>y) coxnew 'olestorage'
 if. '' -: wk=: getppssearch__ole 'Workbook' ; 1 ; 1 do.              NB. biff8
   if. '' -: wk=: getppssearch__ole 'Book' ; 1 ; 1 do.                NB. biff5/7
     assert. 16b40009 16b60209 16b60409 e.~ fromDWORD0 freadx y;0 4  NB. biff2/3/4
   end.
 end.
-ex=. conew 'biffread'
+ex=. coxnew 'biffread'
 if. ''-.@-:wk do.
   0&create__ex data__wk
 NB. get worksheet location
@@ -3227,13 +3224,13 @@ NB. 0 dumpexcel 'test.xls'
 dumpexcel=: 0&$: : (4 : 0)
 y=. y. [ x=. x.
 assert. fexist y
-ole=. (>y) conew 'olestorage'
+ole=. (>y) coxnew 'olestorage'
 if. '' -: wk=: getppssearch__ole 'Workbook' ; 1 ; 1 do.              NB. biff8
   if. '' -: wk=: getppssearch__ole 'Book' ; 1 ; 1 do.                NB. biff5/7
     assert. 16b40009 16b60209 16b60409 e.~ fromDWORD0 freadx y;0 4  NB. biff2/3/4
   end.
 end.
-ex=. conew 'biffread'
+ex=. coxnew 'biffread'
 if. ''-.@-:wk do.
   1&create__ex data__wk       NB. 1=debug mode
 NB. get worksheet location
@@ -3261,6 +3258,7 @@ destroy__ole ''
 ''
 )
 
+cocurrent 'base'
 NB.  populate z locale
 readexcel_z_=: readexcel_biffread_
 readexcelstring_z_=: readexcelstring_biffread_

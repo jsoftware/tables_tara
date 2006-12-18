@@ -1,8 +1,6 @@
 NB. ---------------------------------------------------------
-NB. package for reading and writing ole2 storage
-NB.  based on the ole::storage_lite 0.14 perl package
-NB.  ported by bill lam, bbill.lam@gmail.com
-NB.  ole::storage_lite was written by kawai takanori, kwitknr@cpan.org
+NB.  jolew script for reading and writing ole2 storage
+NB.  portion based on ole::storage_lite by kawai takanori, kwitknr@cpan.org
 NB. utility function for olew
 cocurrent 'oleutlfcn'
 NB. return datetime in j timestamp format
@@ -108,7 +106,7 @@ ferase=: (1!:55 :: _1:) @ (fboxname &>) @ boxopen
 maxpp=: 15 [ 16   NB. max print precision for ieee 8-byte double (52 + 1 implied mantissa)
 NB. ---------------------------------------------------------
 
-coclass 'oleheaderinfo'
+coxclass 'oleheaderinfo'
 coinsert 'olepps'
 create=: 3 : 0
 y=. y.
@@ -133,7 +131,7 @@ ppsfile=: ''
 
 destroy=: codestroy
 
-coclass 'olestorage'
+coxclass 'olestorage'
 ppstyperoot=: 5
 ppstypedir=: 1
 ppstypefile=: 2
@@ -286,7 +284,7 @@ y=. y.
 NB. 0. check id
 fp=. 0
 if. -. (freadx y, fp, 8)-:16bd0 16bcf 16b11 16be0 16ba1 16bb1 16b1a 16be1{a. do. '' return. end.
-rhinfo=. '' conew 'oleheaderinfo'
+rhinfo=. '' coxnew 'oleheaderinfo'
 fileh__rhinfo=: y
 NB. big block size
 if. ''-:iwk=. getinfofromfile fileh__rhinfo ; 16b1e ; 2 do. '' [ destroy__rhinfo '' return. end.
@@ -522,13 +520,13 @@ y=. y.
 'ipos sname itype lppsprev lppsnext ldirpps ratime1st ratime2nd istart isize sdata'=. 11{.y
 select. {.itype
 case. ppstyperoot do.
-  p=. conew 'oleppsroot'
+  p=. coxnew 'oleppsroot'
   create__p ratime1st ; ratime2nd ; ''
 case. ppstypedir do.
-  p=. conew 'oleppsdir'
+  p=. coxnew 'oleppsdir'
   create__p sname ; ratime1st ; ratime2nd ; ''
 case. ppstypefile do.
-  p=. conew 'oleppsfile'
+  p=. coxnew 'oleppsfile'
   create__p sname ; sdata ; ''
 case. do.
   assert. 0
@@ -655,8 +653,7 @@ fputs__rhinfo z
 z
 )
 
-
-coclass 'oleppsdir'
+coxclass 'oleppsdir'
 coinsert 'olepps'
 create=: 3 : 0
 y=. y.
@@ -681,7 +678,7 @@ ppsfile=: ''
 
 destroy=: codestroy
 
-coclass 'oleppsfile'
+coxclass 'oleppsfile'
 coinsert 'olepps'
 create=: 3 : 0
 y=. y.
@@ -728,7 +725,7 @@ end.
 
 destroy=: codestroy
 
-coclass 'oleppsroot'
+coxclass 'oleppsroot'
 coinsert 'olepps'
 create=: 3 : 0
 y=. y.
@@ -757,7 +754,7 @@ save=: 3 : 0
 y=. y.
 'sfile bnoas rhinfo'=. y
 if. ''-:rhinfo do.
-  rhinfo=. '' conew 'oleheaderinfo'
+  rhinfo=. '' coxnew 'oleheaderinfo'
 end.
 bigblocksize__rhinfo=: <. 2&^ (0= bigblocksize__rhinfo) { (adjust2 bigblocksize__rhinfo), 9
 smallblocksize__rhinfo=: <. 2&^ (0= smallblocksize__rhinfo) { (adjust2 smallblocksize__rhinfo), 6
