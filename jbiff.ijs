@@ -1,6 +1,7 @@
 NB. ---------------------------------------------------------
 NB. package for biff format
-cocurrent 'biff'
+coxclass 'biff'
+coinsert 'oleutlfcn'
 shortdatefmt=: 'dd/mm/yyyy'
 RECORDLEN=: 8224   NB. BIFF5: 2080 bytes, BIFF8: 8224 bytes
 NB. Excel version BIFF version Document type File type
@@ -1101,8 +1102,6 @@ coxclass 'biffrefname'
 coinsert 'biff'
 create=: 3 : 0
 y=. y.
-coinsert 'oleutlfcn'
-coinsert 'biff'
 'hidden function command macro complex builtin functiongroup binaryname keybd sheetidx'=: 0
 'name formula menu description helptopic statusbar'=: 6#a:
 )
@@ -1122,8 +1121,6 @@ extname=: extname, <y
 
 create=: 3 : 0
 y=. y.
-coinsert 'oleutlfcn'
-coinsert 'biff'
 'type sheetn source sheetname'=: 4{.y
 if. -. (<type) e. 'external' ; 'internal' ; 'addin' ; 'ole' ; 'dde' do.
   'unhandled exception' 13!:8 (3)
@@ -1254,8 +1251,6 @@ for_nmi. nm do. (>nmi)=: ((>nmi), '__l')~ end.
 
 create=: 3 : 0
 y=. y.
-coinsert 'oleutlfcn'
-coinsert 'biff'
 NB. read section 5.113 XF Extended Format and 5.43 FONT
 'fontheight fontitalic fontstrike fontcolor fontweight fontscript fontunderline fontfamily fontcharset fontname'=: {.fontset_COCREATOR
 format=: 'General'
@@ -1875,8 +1870,6 @@ hash=. 16bce4b bitxor (#pw) bitxor hash
 
 create=: 3 : 0
 y=. y.
-coinsert 'oleutlfcn'
-coinsert 'biff'
 stream=: ''
 initsheet y
 )
@@ -2211,8 +2204,6 @@ newcrn__l y
 
 create=: 3 : 0
 y=. y.
-coinsert 'oleutlfcn'
-coinsert 'biff'
 if. ''-:y do.
   'fontname fontsize'=: 'Courier New' ; 220
   sheetname=. 'Sheet1'
@@ -2652,7 +2643,6 @@ NB. x 0 normal  1 debug
 NB. y stream data
 create=: 4 : 0
 y=. y. [ x=. x.
-coinsert 'oleutlfcn'
 debug=: x
 stream=: y
 biffver=: 0        NB. biff5/7 16b500   biff8 16b600
@@ -3258,7 +3248,6 @@ destroy__ole ''
 ''
 )
 
-cocurrent 'base'
 NB.  populate z locale
 readexcel_z_=: readexcel_biffread_
 readexcelstring_z_=: readexcelstring_biffread_
