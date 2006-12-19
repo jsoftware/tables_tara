@@ -4,7 +4,7 @@ NB.  jolew script for reading and writing ole2 storage
 NB.  portion based on ole::storage_lite by kawai takanori, kwitknr@cpan.org
 NB. utility function for olew
 
-coclass 'oleutlfcn'
+cocurrent 'oleutlfcn'
 NB. return datetime in j timestamp format
 oledate2local=: 3 : 0
 86400000* _72682+86400%~10000000%~(8#256)#. a.i.y
@@ -103,113 +103,10 @@ ferase=: (1!:55 :: _1:) @ (fboxname &>) @ boxopen
 maxpp=: 15 [ 16   NB. max print precision for ieee 8-byte double (52 + 1 implied mantissa)
 NB. ---------------------------------------------------------
 
-coclass 'olepps'
-coinsert 'oleutlfcn'
-ppstyperoot=: 5
-ppstypedir=: 1
-ppstypefile=: 2
-datasizesmall=: 16b1000
-longintsize=: 4
-ppssize=: 16b80
-NB.  no
-NB.  name
-NB.  type
-NB.  prevpps
-NB.  nextpps
-NB.  dirpps
-NB.  time1st
-NB.  time2nd
-NB.  startblock
-NB.  size
-NB.  data
-NB.  child
-NB.  ppsfile
-fputs=: 3 : 0
-if. fileh-:'' do. data=: data, y else. fileh fappend~ y end.
-)
-
-NB. ---------------------------------------------------------
-NB.  datalen
-NB.  check for update
-NB. ---------------------------------------------------------
-datalen=: 3 : 0
-if. '' -.@-: ppsfile do. fsize ppsfile return. end.
-#data
-)
-
-NB. ---------------------------------------------------------
-NB.  makesmalldata
-NB. ---------------------------------------------------------
-makesmalldata=: 3 : 0
-'alist rhinfo'=. y
-sres=. ''
-ismblk=. 0
-for_opps. alist do.
-NB. 1. make sbd, small data string
-  if. type__opps=ppstypefile do.
-    if. size__opps <: 0 do. continue. end.
-    if. size__opps < smallsize__rhinfo do.
-      ismbcnt=. >. size__opps % smallblocksize__rhinfo
-NB. 1.1 add to sbd
-      for_i. i.ismbcnt-1 do.
-        fputs__rhinfo toDWORD0 i+ismblk+1
-      end.
-      fputs__rhinfo toDWORD0 _2
-NB. 1.2 add to data string  will be written for rootentry
-NB. check for update
-      if. '' -.@-: ppsfile__opps do.
-        sres=. sres, ]`(''"_)@.(_1&-:)@:fread ppsfile__opps
-      else.
-        sres=. sres, data__opps
-      end.
-      if. size__opps |~ smallblocksize__rhinfo do.
-        sres=. sres, ({.a.) #~ smallblocksize__rhinfo ([ - |) size__opps
-      end.
-NB. 1.3 set for pps
-      startblock__opps=: ismblk
-      ismblk=. ismblk + ismbcnt
-    end.
-  end.
-end.
-isbcnt=. <. bigblocksize__rhinfo % longintsize
-if. ismblk |~ isbcnt do.
-  fputs__rhinfo, (,:toDWORD0 _1) #~ isbcnt ([ - |) ismblk
-end.
-NB. 2. write sbd with adjusting length for block
-sres
-)
-
-NB. ---------------------------------------------------------
-NB.  saveppswk
-NB. ---------------------------------------------------------
-saveppswk=: 3 : 0
-rhinfo=. y
-NB. 1. write pps
-z=. toucode0 name
-z=. z, ({.a.)#~ 64-2*#name                         NB.   64
-z=. z, toWORD0 2*1+#name                     NB.   66
-z=. z, toBYTE type                                 NB.   67
-z=. z, toBYTE 16b00 NB. uk                         NB.   68
-z=. z, toDWORD0 prevpps NB. prev             NB.   72
-z=. z, toDWORD0 nextpps NB. next             NB.   76
-z=. z, toDWORD0 dirpps  NB. dir              NB.   80
-z=. z, 0 9 2 0{a.                                  NB.   84
-z=. z, 0 0 0 0{a.                                  NB.   88
-z=. z, 16bc0 0 0 0{a.                              NB.   92
-z=. z, 0 0 0 16b46{a.                              NB.   96
-z=. z, 0 0 0 0{a.                                  NB.  100
-z=. z, localdate2ole time1st                       NB.  108
-z=. z, localdate2ole time2nd                       NB.  116
-z=. z, toDWORD0 startblock                   NB.  120
-z=. z, toDWORD0 size                         NB.  124
-z=. z, toDWORD0 0                            NB.  128
-fputs__rhinfo z
-z
-)
-
 coclass 'oleheaderinfo'
 coinsert 'olepps'
 create=: 3 : 0
+coinsert 'olepps'
 smallsize=: 16b1000
 ppssize=: 16b80
 bigblocksize=: 16b200
@@ -231,7 +128,6 @@ ppsfile=: ''
 destroy=: codestroy
 
 coclass 'olestorage'
-coinsert 'oleutlfcn'
 ppstyperoot=: 5
 ppstypedir=: 1
 ppstypefile=: 2
@@ -239,6 +135,7 @@ datasizesmall=: 16b1000
 longintsize=: 4
 ppssize=: 16b80
 create=: 3 : 0
+coinsert 'oleutlfcn'
 sfile=: y
 openfilenum=: ''
 headerinfo=: ''
@@ -622,9 +519,115 @@ data__p=: sdata
 p
 )
 
+cocurrent 'olepps'
+coinsert 'oleutlfcn'
+ppstyperoot=: 5
+ppstypedir=: 1
+ppstypefile=: 2
+datasizesmall=: 16b1000
+longintsize=: 4
+ppssize=: 16b80
+NB.  no
+NB.  name
+NB.  type
+NB.  prevpps
+NB.  nextpps
+NB.  dirpps
+NB.  time1st
+NB.  time2nd
+NB.  startblock
+NB.  size
+NB.  data
+NB.  child
+NB.  ppsfile
+fputs=: 3 : 0
+if. fileh-:'' do. data=: data, y else. fileh fappend~ y end.
+)
+
+NB. ---------------------------------------------------------
+NB.  datalen
+NB.  check for update
+NB. ---------------------------------------------------------
+datalen=: 3 : 0
+if. '' -.@-: ppsfile do. fsize ppsfile return. end.
+#data
+)
+
+NB. ---------------------------------------------------------
+NB.  makesmalldata
+NB. ---------------------------------------------------------
+makesmalldata=: 3 : 0
+'alist rhinfo'=. y
+sres=. ''
+ismblk=. 0
+for_opps. alist do.
+NB. 1. make sbd, small data string
+  if. type__opps=ppstypefile do.
+    if. size__opps <: 0 do. continue. end.
+    if. size__opps < smallsize__rhinfo do.
+      ismbcnt=. >. size__opps % smallblocksize__rhinfo
+NB. 1.1 add to sbd
+      for_i. i.ismbcnt-1 do.
+        fputs__rhinfo toDWORD0 i+ismblk+1
+      end.
+      fputs__rhinfo toDWORD0 _2
+NB. 1.2 add to data string  will be written for rootentry
+NB. check for update
+      if. '' -.@-: ppsfile__opps do.
+        sres=. sres, ]`(''"_)@.(_1&-:)@:fread ppsfile__opps
+      else.
+        sres=. sres, data__opps
+      end.
+      if. size__opps |~ smallblocksize__rhinfo do.
+        sres=. sres, ({.a.) #~ smallblocksize__rhinfo ([ - |) size__opps
+      end.
+NB. 1.3 set for pps
+      startblock__opps=: ismblk
+      ismblk=. ismblk + ismbcnt
+    end.
+  end.
+end.
+isbcnt=. <. bigblocksize__rhinfo % longintsize
+if. ismblk |~ isbcnt do.
+  fputs__rhinfo, (,:toDWORD0 _1) #~ isbcnt ([ - |) ismblk
+end.
+NB. 2. write sbd with adjusting length for block
+sres
+)
+
+NB. ---------------------------------------------------------
+NB.  saveppswk
+NB. ---------------------------------------------------------
+saveppswk=: 3 : 0
+rhinfo=. y
+NB. 1. write pps
+z=. toucode0 name
+z=. z, ({.a.)#~ 64-2*#name                         NB.   64
+z=. z, toWORD0 2*1+#name                     NB.   66
+z=. z, toBYTE type                                 NB.   67
+z=. z, toBYTE 16b00 NB. uk                         NB.   68
+z=. z, toDWORD0 prevpps NB. prev             NB.   72
+z=. z, toDWORD0 nextpps NB. next             NB.   76
+z=. z, toDWORD0 dirpps  NB. dir              NB.   80
+z=. z, 0 9 2 0{a.                                  NB.   84
+z=. z, 0 0 0 0{a.                                  NB.   88
+z=. z, 16bc0 0 0 0{a.                              NB.   92
+z=. z, 0 0 0 16b46{a.                              NB.   96
+z=. z, 0 0 0 0{a.                                  NB.  100
+z=. z, localdate2ole time1st                       NB.  108
+z=. z, localdate2ole time2nd                       NB.  116
+z=. z, toDWORD0 startblock                   NB.  120
+z=. z, toDWORD0 size                         NB.  124
+z=. z, toDWORD0 0                            NB.  128
+fputs__rhinfo z
+z
+)
+
 coclass 'oleppsdir'
 coinsert 'olepps'
 create=: 3 : 0
+coinsert 'oleutlfcn'
+coinsert 'olepps'
 'sname ratime1st ratime2nd rachild'=. y
 no=: 0
 name=: u: sname
@@ -647,6 +650,8 @@ destroy=: codestroy
 coclass 'oleppsfile'
 coinsert 'olepps'
 create=: 3 : 0
+coinsert 'oleutlfcn'
+coinsert 'olepps'
 'snm sdata sfile'=. y
 no=: 0
 name=: u: snm
@@ -690,6 +695,8 @@ destroy=: codestroy
 coclass 'oleppsroot'
 coinsert 'olepps'
 create=: 3 : 0
+coinsert 'oleutlfcn'
+coinsert 'olepps'
 'ratime1st ratime2nd rachild'=. y
 no=: 0
 name=: u: 'Root Entry'
@@ -1131,8 +1138,7 @@ end.
 
 NB. ---------------------------------------------------------
 NB. package for biff format
-coclass 'biff'
-coinsert 'oleutlfcn'
+cocurrent 'biff'
 shortdatefmt=: 'dd/mm/yyyy'
 RECORDLEN=: 8224   NB. BIFF5: 2080 bytes, BIFF8: 8224 bytes
 NB. Excel version BIFF version Document type File type
@@ -2149,6 +2155,8 @@ z=. z,~ toHeader recordtype, #z
 coclass 'biffrefname'
 coinsert 'biff'
 create=: 3 : 0
+coinsert 'oleutlfcn'
+coinsert 'biff'
 'hidden function command macro complex builtin functiongroup binaryname keybd sheetidx'=: 0
 'name formula menu description helptopic statusbar'=: 6#a:
 )
@@ -2165,6 +2173,8 @@ extname=: extname, <y
 )
 
 create=: 3 : 0
+coinsert 'oleutlfcn'
+coinsert 'biff'
 'type sheetn source sheetname'=: 4{.y
 if. -. (<type) e. 'external' ; 'internal' ; 'addin' ; 'ole' ; 'dde' do.
   'unhandled exception' 13!:8 (3)
@@ -2288,6 +2298,8 @@ for_nmi. nm do. (>nmi)=: ((>nmi), '__l')~ end.
 )
 
 create=: 3 : 0
+coinsert 'oleutlfcn'
+coinsert 'biff'
 NB. read section 5.113 XF Extended Format and 5.43 FONT
 'fontheight fontitalic fontstrike fontcolor fontweight fontscript fontunderline fontfamily fontcharset fontname'=: {.fontset_COCREATOR
 format=: 'General'
@@ -2893,6 +2905,8 @@ hash=. 16bce4b bitxor (#pw) bitxor hash
 )
 
 create=: 3 : 0
+coinsert 'oleutlfcn'
+coinsert 'biff'
 stream=: ''
 initsheet y
 )
@@ -3205,6 +3219,8 @@ newcrn__l y
 )
 
 create=: 3 : 0
+coinsert 'oleutlfcn'
+coinsert 'biff'
 if. ''-:y do.
   'fontname fontsize'=: 'Courier New' ; 220
   sheetname=. 'Sheet1'
@@ -3618,6 +3634,7 @@ coinsert 'oleutlfcn'
 NB. x 0 normal  1 debug
 NB. y stream data
 create=: 4 : 0
+coinsert 'oleutlfcn'
 debug=: x
 stream=: y
 biffver=: 0        NB. biff5/7 16b500   biff8 16b600
