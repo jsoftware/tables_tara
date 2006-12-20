@@ -110,7 +110,7 @@ coxclass 'oleheaderinfo'
 coinsert 'olepps'
 create=: 3 : 0
 y=. y.
-coinsert 'olepps'
+coxinsert 'olepps'
 smallsize=: 16b1000
 ppssize=: 16b80
 bigblocksize=: 16b200
@@ -132,6 +132,7 @@ ppsfile=: ''
 destroy=: codestroy
 
 coxclass 'olestorage'
+coinsert 'oleutlfcn'
 ppstyperoot=: 5
 ppstypedir=: 1
 ppstypefile=: 2
@@ -140,7 +141,7 @@ longintsize=: 4
 ppssize=: 16b80
 create=: 3 : 0
 y=. y.
-coinsert 'oleutlfcn'
+coxinsert 'oleutlfcn'
 sfile=: y
 openfilenum=: ''
 headerinfo=: ''
@@ -657,8 +658,8 @@ coxclass 'oleppsdir'
 coinsert 'olepps'
 create=: 3 : 0
 y=. y.
-coinsert 'oleutlfcn'
-coinsert 'olepps'
+coxinsert 'oleutlfcn'
+coxinsert 'olepps'
 'sname ratime1st ratime2nd rachild'=. y
 no=: 0
 name=: u: sname
@@ -682,8 +683,8 @@ coxclass 'oleppsfile'
 coinsert 'olepps'
 create=: 3 : 0
 y=. y.
-coinsert 'oleutlfcn'
-coinsert 'olepps'
+coxinsert 'oleutlfcn'
+coxinsert 'olepps'
 'snm sdata sfile'=. y
 no=: 0
 name=: u: snm
@@ -729,8 +730,8 @@ coxclass 'oleppsroot'
 coinsert 'olepps'
 create=: 3 : 0
 y=. y.
-coinsert 'oleutlfcn'
-coinsert 'olepps'
+coxinsert 'oleutlfcn'
+coxinsert 'olepps'
 'ratime1st ratime2nd rachild'=. y
 no=: 0
 name=: u: 'Root Entry'
