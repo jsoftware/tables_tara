@@ -4,7 +4,7 @@ NB.  jolew script for reading and writing ole2 storage
 NB.  portion based on ole::storage_lite by kawai takanori, kwitknr@cpan.org
 NB. utility function for olew
 
-cocurrent 'oleutlfcn'
+coclass 'oleutlfcn'
 NB. return datetime in j timestamp format
 oledate2local=: 3 : 0
 86400000* _72682+86400%~10000000%~(8#256)#. a.i.y
@@ -518,7 +518,7 @@ data__p=: sdata
 p
 )
 
-cocurrent 'olepps'
+coclass 'olepps'
 coinsert 'oleutlfcn'
 ppstyperoot=: 5
 ppstypedir=: 1
@@ -1131,7 +1131,7 @@ end.
 
 NB. ---------------------------------------------------------
 NB. package for biff format
-cocurrent 'biff'
+coclass 'biff'
 shortdatefmt=: 'dd/mm/yyyy'
 RECORDLEN=: 8224   NB. BIFF5: 2080 bytes, BIFF8: 8224 bytes
 NB. Excel version BIFF version Document type File type

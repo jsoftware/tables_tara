@@ -2,7 +2,7 @@ NB. ---------------------------------------------------------
 NB.  jolew script for reading and writing ole2 storage
 NB.  portion based on ole::storage_lite by kawai takanori, kwitknr@cpan.org
 NB. utility function for olew
-cocurrent 'oleutlfcn'
+coxclass 'oleutlfcn'
 NB. return datetime in j timestamp format
 oledate2local=: 3 : 0
 y=. y.
@@ -107,10 +107,9 @@ maxpp=: 15 [ 16   NB. max print precision for ieee 8-byte double (52 + 1 implied
 NB. ---------------------------------------------------------
 
 coxclass 'oleheaderinfo'
-coinsert 'olepps'
+coxtend 'olepps'
 create=: 3 : 0
 y=. y.
-coxinsert 'olepps'
 smallsize=: 16b1000
 ppssize=: 16b80
 bigblocksize=: 16b200
@@ -132,7 +131,7 @@ ppsfile=: ''
 destroy=: codestroy
 
 coxclass 'olestorage'
-coinsert 'oleutlfcn'
+coxtend 'oleutlfcn'
 ppstyperoot=: 5
 ppstypedir=: 1
 ppstypefile=: 2
@@ -141,7 +140,6 @@ longintsize=: 4
 ppssize=: 16b80
 create=: 3 : 0
 y=. y.
-coxinsert 'oleutlfcn'
 sfile=: y
 openfilenum=: ''
 headerinfo=: ''
@@ -546,8 +544,8 @@ data__p=: sdata
 p
 )
 
-cocurrent 'olepps'
-coinsert 'oleutlfcn'
+coxclass 'olepps'
+coxtend 'oleutlfcn'
 ppstyperoot=: 5
 ppstypedir=: 1
 ppstypefile=: 2
@@ -655,11 +653,9 @@ z
 )
 
 coxclass 'oleppsdir'
-coinsert 'olepps'
+coxtend 'olepps'
 create=: 3 : 0
 y=. y.
-coxinsert 'oleutlfcn'
-coxinsert 'olepps'
 'sname ratime1st ratime2nd rachild'=. y
 no=: 0
 name=: u: sname
@@ -680,11 +676,9 @@ ppsfile=: ''
 destroy=: codestroy
 
 coxclass 'oleppsfile'
-coinsert 'olepps'
+coxtend 'olepps'
 create=: 3 : 0
 y=. y.
-coxinsert 'oleutlfcn'
-coxinsert 'olepps'
 'snm sdata sfile'=. y
 no=: 0
 name=: u: snm
@@ -727,11 +721,9 @@ end.
 destroy=: codestroy
 
 coxclass 'oleppsroot'
-coinsert 'olepps'
+coxtend 'olepps'
 create=: 3 : 0
 y=. y.
-coxinsert 'oleutlfcn'
-coxinsert 'olepps'
 'ratime1st ratime2nd rachild'=. y
 no=: 0
 name=: u: 'Root Entry'

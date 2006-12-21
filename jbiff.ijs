@@ -1,6 +1,6 @@
 NB. ---------------------------------------------------------
 NB. package for biff format
-cocurrent 'biff'
+coxclass 'biff'
 shortdatefmt=: 'dd/mm/yyyy'
 RECORDLEN=: 8224   NB. BIFF5: 2080 bytes, BIFF8: 8224 bytes
 NB. Excel version BIFF version Document type File type
@@ -1098,11 +1098,9 @@ z=. z,~ toHeader recordtype, #z
 )
 
 coxclass 'biffrefname'
-coinsert 'biff'
+coxtend 'biff'
 create=: 3 : 0
 y=. y.
-coxinsert 'oleutlfcn'
-coxinsert 'biff'
 'hidden function command macro complex builtin functiongroup binaryname keybd sheetidx'=: 0
 'name formula menu description helptopic statusbar'=: 6#a:
 )
@@ -1114,7 +1112,7 @@ z=. biff_name hidden ; function ; command ; macro ; complex ; builtin ; function
 )
 
 coxclass 'biffsupbook'
-coinsert 'biff'
+coxtend 'biff'
 newextname=: 3 : 0
 y=. y.
 extname=: extname, <y
@@ -1122,8 +1120,6 @@ extname=: extname, <y
 
 create=: 3 : 0
 y=. y.
-coxinsert 'oleutlfcn'
-coxinsert 'biff'
 'type sheetn source sheetname'=: 4{.y
 if. -. (<type) e. 'external' ; 'internal' ; 'addin' ; 'ole' ; 'dde' do.
   'unhandled exception' 13!:8 (3)
@@ -1152,7 +1148,7 @@ z
 )
 
 coxclass 'biffxf'
-coinsert 'biff'
+coxtend 'biff'
 NB. merely create biffxf will not result in a new biff xf record in excel file
 NB. each biffxf object must be getxfidx
 NB. getcolor=: 3 : 0
@@ -1254,8 +1250,6 @@ for_nmi. nm do. (>nmi)=: ((>nmi), '__l')~ end.
 
 create=: 3 : 0
 y=. y.
-coxinsert 'oleutlfcn'
-coxinsert 'biff'
 NB. read section 5.113 XF Extended Format and 5.43 FONT
 'fontheight fontitalic fontstrike fontcolor fontweight fontscript fontunderline fontfamily fontcharset fontname'=: {.fontset_COCREATOR
 format=: 'General'
@@ -1303,7 +1297,7 @@ end.
 destroy=: codestroy
 
 coxclass 'biffsheet'
-coinsert 'biff'
+coxtend 'biff'
 NB. This verb use IMDATA record which has been obsoleted, only MS Excel can display it correct.
 NB. other Excel compatible program (open office calc, gnumeric can not display it.
 NB.   Insert a 24bit bitmap image in a worksheet.
@@ -1875,8 +1869,6 @@ hash=. 16bce4b bitxor (#pw) bitxor hash
 
 create=: 3 : 0
 y=. y.
-coxinsert 'oleutlfcn'
-coxinsert 'biff'
 stream=: ''
 initsheet y
 )
@@ -1884,7 +1876,7 @@ initsheet y
 destroy=: codestroy
 
 coxclass 'biffbook'
-coinsert 'biff'
+coxtend 'biff'
 getxfobj=: 3 : 0
 y=. y.
 z=. _1  NB. error
@@ -2211,8 +2203,6 @@ newcrn__l y
 
 create=: 3 : 0
 y=. y.
-coxinsert 'oleutlfcn'
-coxinsert 'biff'
 if. ''-:y do.
   'fontname fontsize'=: 'Courier New' ; 220
   sheetname=. 'Sheet1'
@@ -2647,12 +2637,11 @@ NB. written by bill lam
 NB. ---------------------------------------------------------
 
 coxclass 'biffread'
-coinsert 'oleutlfcn'
+coxtend 'oleutlfcn'
 NB. x 0 normal  1 debug
 NB. y stream data
 create=: 4 : 0
 y=. y. [ x=. x.
-coxinsert 'oleutlfcn'
 debug=: x
 stream=: y
 biffver=: 0        NB. biff5/7 16b500   biff8 16b600
