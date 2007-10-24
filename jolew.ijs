@@ -21,6 +21,7 @@ NB. followings bit op require j5
 bitand=: 17 b.
 bitxor=: 22 b.
 bitor=: 23 b.
+bitneg=: 26 b.
 bitrot=: 32 b.
 bitshl=: 33 b.
 bitsha=: 34 b.
@@ -63,13 +64,16 @@ fromDWORD1=: fromDWORDm`fromDWORDr@.(-.bigendian) f.
 fromucode1=: fromucodem`fromucoder@.(-.bigendian) f.
 fromDouble1=: fromDoublem`fromDoubler@.(-.bigendian) f.
 NB. decimal from hex string, always return integer
-dfhs=: 3 : 0
+DFH=: 3 : 0
 y=. y.
-z=. 0
-for_bit. , {&(#: i.16) @ ('0123456789abcdef'&i.) y do.
-  z=. bit (23 b.) 1 (33 b.) z
+if. '0x'-:2{.y=. }:^:('L'={:y) y do.
+  d=. 0
+  for_nib. ('0123456789abcdef'&i.) tolower 2}.y do.
+    d=. nib (23 b.) 4 (33 b.) d
+  end.
+else.
+  0&". y
 end.
-z
 )
 
 NB. for biff8 RGB values
@@ -90,7 +94,7 @@ if. 504 < 0&". 'j'-.~4{.9!:14 '' do.
 else.
   fboxname=: ([: < [: (1&u: ::]) >) ::]
 end.
-i. 0 0
+empty ''
 )
 
 fread=: (1!:1 :: _1:) @ fboxname
@@ -147,7 +151,7 @@ headerinfo=: ''
 
 destroy=: 3 : 0
 y=. y.
-if. '' -.@-: openfilenum do. fclose"0 openfilenum end.
+if. '' -.@-: openfilenum do. fclose("0) openfilenum end.
 if. #headerinfo do. destroy__headerinfo '' end.
 codestroy ''
 )
@@ -213,8 +217,8 @@ NB. 1. get information about itself
 opps=. ugetnthpps ino ; rhinfo ; <bdata
 NB. 2. child
 if. dirpps__opps ~: _1 do.
-  radone=. >@{. ra=. ugetppstree dirpps__opps ; rhinfo ; bdata ; <radone
-  achildl=. >@{: ra
+  radone=. 0{::ra=. ugetppstree dirpps__opps ; rhinfo ; bdata ; <radone
+  achildl=. _1{::ra
   child__opps=: child__opps, achildl
 else.
   child__opps=: ''
@@ -222,13 +226,13 @@ end.
 NB. 3. previous, next ppss
 alist=. ''
 if. prevpps__opps ~: _1 do.
-  radone=. >@{. ra=. ugetppstree prevpps__opps ; rhinfo ; bdata ; <radone
-  alist=. >@{: ra
+  radone=. 0{::ra=. ugetppstree prevpps__opps ; rhinfo ; bdata ; <radone
+  alist=. _1{::ra
 end.
 alist=. alist, opps
 if. nextpps__opps ~: _1 do.
-  radone=. >@{. ra=. ugetppstree nextpps__opps ; rhinfo ; bdata ; <radone
-  alist=. alist, >@{: ra
+  radone=. 0{::ra=. ugetppstree nextpps__opps ; rhinfo ; bdata ; <radone
+  alist=. alist, _1{::ra
 end.
 radone ; <alist
 )
@@ -263,16 +267,16 @@ else.
 end.
 NB. 2. check child, previous, next ppss
 if. dirpps__opps ~: _1 do.
-  radone=. >@{. ra=. ugetppssearch dirpps__opps ; rhinfo ; raname ; bdata ; icase ; <radone
-  ares=. ares, >@{: ra
+  radone=. 0{::ra=. ugetppssearch dirpps__opps ; rhinfo ; raname ; bdata ; icase ; <radone
+  ares=. ares, _1{::ra
 end.
 if. prevpps__opps ~: _1 do.
-  radone=. >@{. ra=. ugetppssearch prevpps__opps ; rhinfo ; raname ; bdata ; icase ; <radone
-  ares=. ares, >@{: ra
+  radone=. 0{::ra=. ugetppssearch prevpps__opps ; rhinfo ; raname ; bdata ; icase ; <radone
+  ares=. ares, _1{::ra
 end.
 if. nextpps__opps ~: _1 do.
-  radone=. >@{. ra=. ugetppssearch nextpps__opps ; rhinfo ; raname ; bdata ; icase ; <radone
-  ares=. ares, >@{: ra
+  radone=. 0{::ra=. ugetppssearch nextpps__opps ; rhinfo ; raname ; bdata ; icase ; <radone
+  ares=. ares, _1{::ra
 end.
 radone ; <ares
 )
@@ -441,12 +445,12 @@ y=. y.
 if. 0= isnormalblock iblock do. '' return. end.
 irest=. isize
 sres=. ''
-akeys=. /:~ {."1 bbdinfo__rhinfo
+akeys=. /:~ {.("1) bbdinfo__rhinfo
 while. irest > 0 do.
   ares=. (akeys>:iblock)#akeys
   inkey=. {.ares
   i=. inkey - iblock
-  inext=. ({:"1 bbdinfo__rhinfo){~({."1 bbdinfo__rhinfo)i.inkey
+  inext=. ({:("1) bbdinfo__rhinfo){~({.("1) bbdinfo__rhinfo)i.inkey
   fp=. setfilepos iblock ; 0 ; <rhinfo
   igetsize=. irest <. bigblocksize__rhinfo * (i+1)
   sres=. sres, freadx fileh__rhinfo, fp, igetsize
@@ -460,8 +464,8 @@ NB.  getnextblockno
 getnextblockno=: 3 : 0
 y=. y.
 'iblockno rhinfo'=. y
-if. iblockno e. {."1 bbdinfo__rhinfo do.
-  ({:"1 bbdinfo__rhinfo){~({."1 bbdinfo__rhinfo)i.iblockno
+if. iblockno e. {.("1) bbdinfo__rhinfo do.
+  ({:("1) bbdinfo__rhinfo){~({.("1) bbdinfo__rhinfo)i.iblockno
 else.
   iblockno+1
 end.
@@ -769,9 +773,9 @@ NB. 1. make an array of pps  for save
 alist=. ''
 list=. 18!:5 ''
 if. bnoas do.
-  alist=. >@{. saveppssetpnt2 list ; alist ; <rhinfo
+  alist=. 0{::saveppssetpnt2 list ; alist ; <rhinfo
 else.
-  alist=. >@{. saveppssetpnt list ; alist ; <rhinfo
+  alist=. 0{::saveppssetpnt list ; alist ; <rhinfo
 end.
 'isbdcnt ibbcnt ippscnt'=. calcsize alist ; <rhinfo
 NB. 2.save header
@@ -811,7 +815,7 @@ ismalllen=. 0
 isbcnt=. 0
 for_opps. ralist do.
   if. type__opps=ppstypefile do.
-    size__opps=: datalen__opps''  NB. mod
+    size__opps=: datalen__opps ''  NB. mod
     if. size__opps < smallsize__rhinfo do.
       isbcnt=. isbcnt + >.size__opps % smallblocksize__rhinfo
     else.
@@ -901,7 +905,7 @@ ires=. 0
 NB. 1.write big (ge 16b1000)  data into block
 for_opps. ralist do.
   if. type__opps ~: ppstypedir do.
-    size__opps=: datalen__opps''   NB. mod
+    size__opps=: datalen__opps ''   NB. mod
     if. ((size__opps >: smallsize__rhinfo) +. ((type__opps = ppstyperoot) *. 0~:#data__opps)) do.
 NB. 1.1 write data
 NB. check for update
@@ -957,8 +961,8 @@ NB. 1.2 just only one
   no__l=: (#ralist) -1
   prevpps__l=: _1
   nextpps__l=: _1
-  ralist=. >@{. ra=. saveppssetpnt2 child__l ; ralist ; <rhinfo
-  dirpps__l=: >@{: ra
+  ralist=. 0{::ra=. saveppssetpnt2 child__l ; ralist ; <rhinfo
+  dirpps__l=: _1{::ra
   ralist ; no__l return.
 elseif. do.
 NB. 1.3 array
@@ -974,15 +978,15 @@ NB. 1.3.1 define center
     anext=. }.awk
   end.
   l=. ipos{athis
-  ralist=. >@{. ra=. saveppssetpnt2 aprev ; ralist ; <rhinfo
-  prevpps__l=: >@{: ra
+  ralist=. 0{::ra=. saveppssetpnt2 aprev ; ralist ; <rhinfo
+  prevpps__l=: _1{::ra
   ralist= ralist, l
   no__l=: (#ralist) -1
 NB. 1.3.2 devide a array into previous, next
-  ralist=. >@{. ra=. saveppssetpnt2 anext ; ralist ; <rhinfo
-  nextpps__l=: >@{: ra
-  ralist=. >@{. ra=. saveppssetpnt2 child__l ; ralist ; <rhinfo
-  dirpps__l=: >@{: ra
+  ralist=. 0{::ra=. saveppssetpnt2 anext ; ralist ; <rhinfo
+  nextpps__l=: _1{::ra
+  ralist=. 0{::ra=. saveppssetpnt2 child__l ; ralist ; <rhinfo
+  dirpps__l=: _1{::ra
   ralist ; no__l return.
 end.
 )
@@ -1001,8 +1005,8 @@ NB. 1.2 just only one
   no__l=: (#ralist) -1
   prevpps__l=: _1
   nextpps__l=: _1
-  ralist=. >@{. ra=. saveppssetpnt2 child__l ; ralist ; <rhinfo
-  dirpps__l=: >@{: ra
+  ralist=. 0{::ra=. saveppssetpnt2 child__l ; ralist ; <rhinfo
+  dirpps__l=: _1{::ra
   ralist ; no__l return.
 elseif. do.
 NB. 1.3 array
@@ -1015,12 +1019,12 @@ NB. 1.3.1 define center
 NB. 1.3.2 devide a array into previous, next
   aprev=. ipos{.awk
   anext=. (1+ipos)}.awk
-  ralist=. >@{. ra=. saveppssetpnt2 aprev ; ralist ; <rhinfo
-  prevpps__l=: >@{: ra
-  ralist=. >@{. ra=. saveppssetpnt2 anext ; ralist ; <rhinfo
-  nextpps__l=: >@{: ra
-  ralist=. >@{. ra=. saveppssetpnt2 child__l ; ralist ; <rhinfo
-  dirpps__l=: >@{: ra
+  ralist=. 0{::ra=. saveppssetpnt2 aprev ; ralist ; <rhinfo
+  prevpps__l=: _1{::ra
+  ralist=. 0{::ra=. saveppssetpnt2 anext ; ralist ; <rhinfo
+  nextpps__l=: _1{::ra
+  ralist=. 0{::ra=. saveppssetpnt2 child__l ; ralist ; <rhinfo
+  dirpps__l=: _1{::ra
   ralist ; no__l return.
 end.
 )
@@ -1038,8 +1042,8 @@ NB. 1.2 just only one
   no__l=: (#ralist) -1
   prevpps__l=: _1
   nextpps__l=: _1
-  ralist=. >@{. ra=. saveppssetpnt child__l ; ralist ; <rhinfo
-  dirpps__l=: >@{: ra
+  ralist=. 0{::ra=. saveppssetpnt child__l ; ralist ; <rhinfo
+  dirpps__l=: _1{::ra
   ralist ; no__l return.
 elseif. do.
 NB. 1.3 array
@@ -1052,12 +1056,12 @@ NB. 1.3.1 define center
 NB. 1.3.2 devide a array into previous, next
   aprev=. ipos{.awk
   anext=. (1+ipos)}.awk
-  ralist=. >@{. ra=. saveppssetpnt aprev ; ralist ; <rhinfo
-  prevpps__l=: >@{: ra
-  ralist=. >@{. ra=. saveppssetpnt anext ; ralist ; <rhinfo
-  nextpps__l=: >@{: ra
-  ralist=. >@{. ra=. saveppssetpnt child__l ; ralist ; <rhinfo
-  dirpps__l=: >@{: ra
+  ralist=. 0{::ra=. saveppssetpnt aprev ; ralist ; <rhinfo
+  prevpps__l=: _1{::ra
+  ralist=. 0{::ra=. saveppssetpnt anext ; ralist ; <rhinfo
+  nextpps__l=: _1{::ra
+  ralist=. 0{::ra=. saveppssetpnt child__l ; ralist ; <rhinfo
+  dirpps__l=: _1{::ra
   ralist ; no__l return.
 end.
 )
@@ -1075,8 +1079,8 @@ NB. 1.2 just only one
   no__l=: (#ralist) -1
   prevpps__l=: _1
   nextpps__l=: _1
-  ralist=. >@{. ra=. saveppssetpnt child__l ; ralist ; <rhinfo
-  dirpps__l=: >@{: ra
+  ralist=. 0{::ra=. saveppssetpnt child__l ; ralist ; <rhinfo
+  dirpps__l=: _1{::ra
   ralist ; no__l return.
 elseif. do.
 NB. 1.3 array
@@ -1089,12 +1093,12 @@ NB. 1.3.1 define center
 NB. 1.3.2 devide a array into previous, next
   aprev=. ipos{.awk
   anext=. (1+ipos)}.awk
-  ralist=. >@{. ra=. saveppssetpnt aprev ; ralist ; <rhinfo
-  prevpps__l=: >@{: ra
-  ralist=. >@{. ra=. saveppssetpnt anext ; ralist ; <rhinfo
-  nextpps__l=: >@{: ra
-  ralist=. >@{. ra=. saveppssetpnt child__l ; ralist ; <rhinfo
-  dirpps__l=: >@{: ra
+  ralist=. 0{::ra=. saveppssetpnt aprev ; ralist ; <rhinfo
+  prevpps__l=: _1{::ra
+  ralist=. 0{::ra=. saveppssetpnt anext ; ralist ; <rhinfo
+  nextpps__l=: _1{::ra
+  ralist=. 0{::ra=. saveppssetpnt child__l ; ralist ; <rhinfo
+  dirpps__l=: _1{::ra
   ralist ; no__l return.
 end.
 )

@@ -28,6 +28,7 @@ They have a lot of properties, some major properties/methods are:
   writedate        ... write date to cell
   writenumber      ... write number to cell
   writestring      ... write text to cell
+  writecomment     ... write comment to cell
 
   rgbcolor         ... choose color
 
@@ -38,7 +39,7 @@ They have a lot of properties, some major properties/methods are:
 
   addsheet         ... add a new worksheet
 
-  insertpicture    ... insert bmp picture
+  insertimage      ... insert bmp/jpeg/png image
 
   worksheet (class 'biffsheet')
   =============================
@@ -80,7 +81,7 @@ They have a lot of properties, some major properties/methods are:
                    0 general  1 left  2 center 3 left
   vertalgin      ... vertical alignment,
                    0 top  1 center  2 bottom
-  wraptext       ... wrap text
+  textwrap       ... wrap text
                    boolean
 
   leftlinestyle    ... cell border style

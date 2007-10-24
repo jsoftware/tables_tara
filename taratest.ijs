@@ -163,7 +163,9 @@ NB. Picture
 test10=: 3 : 0
 bi=. ('Courier New' ; 220) conew 'biffbook'
 writestring__bi 0 0 ; 'my picture'
-(0 4 ; 0 0 ; 1 1) insertpicture__bi <jpath '~addons/tables/tara/dora.bmp'  NB. row 0 col 4 scalex 1 scaley 1
+'my comment' writecomment__bi 0 0     NB. comment (note)
+(0  4 ; 0  0 ; 1  1) insertimage__bi <jpath '~addons/tables/tara/dora.png'  NB. row 0 col 4 scalex 1 scaley 1
+(4  0 ; 0  0 ; 2  2) insertimage__bi 1!:1 <jpath '~addons/tables/tara/dora.png'  NB. also accepts unboxed raw data
 save__bi jpath '~temp/tara10.xls'
 destroy__bi ''
 )

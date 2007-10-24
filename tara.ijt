@@ -170,6 +170,7 @@ First we summarise some properties/methods in the workbook and worksheet objects
   save             ... save workbook object to file
   writenumber      ... write number to cell
   writestring      ... write text to cell
+  writecomment     ... write comment to cell
 
   worksheet (class 'biffsheet')
   =============================
@@ -331,7 +332,7 @@ Alignment is relatively simple:
                    0 general  1 left  2 center 3 left
   vertalgin      ... vertical alignment,
                    0 top  1 center  2 bottom
-  wraptext       ... wrap text
+  textwrap       ... wrap text
                    boolean
 
 'general' is align left for text and right for others.
@@ -555,25 +556,27 @@ save__bi jpath '~temp/tara9.xls'
 destroy__bi ''
 
 NB. =========================================================
-Lab Section Picture
-Assuming you have the picture file '~addon/tara/dora.bmp', use 'insertpicture' in biffbook to insert a 24bit bitmap image in a worksheet.
+Lab Section Image
+Assuming you have the image file '~addon/tara/dora.png', use 'insertimage' in biffbook to insert a image into a worksheet.
 
 left argument
-  rowcol   cell that we are going to insert the bitmap into
-  xy       horizontal,vertical position (offset) of the image inside the cell.
-  scale_xy horizontal,vertical scale factor
+  rowcol    cell that we are going to insert the bitmap into
+  offset_xy horizontal,vertical position (offset) of the image inside the cell.
+  scale_xy  horizontal,vertical scale factor
 
 right argument
-  bitmap  The bitmap filename
+  bitmap    Boxed image filename or unboxed raw image data
 
-Note: insertpicture can only use a 24-bit bmp format image file. In the current system, the picture can only be viewed using MS Excel but not OpenOffice or GNumeric.
+Note: insertimage supports bmp/jpeg/png format image file in MS Excel, OpenOffice and GNumeric.  However GNumeric itself does not support bmp image format.
 
-Open tara10.xls with MS Excel
+Save and open tara10.xls
 )
 bi=: ('Courier New' ; 220) conew 'biffbook'
 
 writestring__bi 0 0 ; 'my picture'
-(0  4 ; 0  0 ; 1  1) insertpicture__bi <jpath '~addons/tables/tara/dora.bmp'  NB. row 0 col 4 scalex 1 scaley 1
+'my comment' writecomment__bi 0 0     NB. comment (note)
+(0  4 ; 0  0 ; 1  1) insertimage__bi <jpath '~addons/tables/tara/dora.png'  NB. row 0 col 4 scalex 1 scaley 1
+(4  0 ; 0  0 ; 2  2) insertimage__bi 1!:1 <jpath '~addons/tables/tara/dora.png'  NB. also accepts unboxed raw data
 save__bi jpath '~temp/tara10.xls'
 destroy__bi ''
 
@@ -592,9 +595,9 @@ destroy__bi ''
 NB. =========================================================
 Lab Section
 You will see some binary data here.
-  rc
+  _16]\ a.i. rc
 )
-rc
+_16]\ a.i. rc
 
 NB. =========================================================
 Lab Section Summary
@@ -626,6 +629,7 @@ They have a lot of properties, some major properties/methods are:
   writedate        ... write date to cell
   writenumber      ... write number to cell
   writestring      ... write text to cell
+  writecomment     ... write comment to cell
 
   rgbcolor         ... choose color
 
@@ -636,7 +640,7 @@ They have a lot of properties, some major properties/methods are:
 
   addsheet         ... add a new worksheet
 
-  insertpicture    ... insert bmp picture
+  insertimage      ... insert bmp/jpeg/png image
 
   worksheet (class 'biffsheet')
   =============================
@@ -678,7 +682,7 @@ They have a lot of properties, some major properties/methods are:
                    0 general  1 left  2 center 3 left
   vertalgin      ... vertical alignment,
                    0 top  1 center  2 bottom
-  wraptext       ... wrap text
+  textwrap       ... wrap text
                    boolean
 
   leftlinestyle    ... cell border style

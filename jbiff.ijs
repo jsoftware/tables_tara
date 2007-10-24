@@ -149,6 +149,100 @@ cellborder_medium_dash_dotted=: 10
 cellborder_thin_dash_dot_dotted=: 11
 cellborder_medium_dash_dot_dotted=: 12
 cellborder_slanted_medium_dash_dotted=: 13
+
+NB. ---------------------------------------------------------
+
+coinstance=: {. @ (18!:2 & boxxopen)
+
+NB. utility for writing continue record
+NB. biffappend
+NB.
+NB. General storage function
+NB.
+
+biffappend=: 3 : 0
+y=. y.
+
+0 biffappend y
+:
+y=. y. [ x=. x.
+
+if. RECORDLEN < #y do. x add_continue y else. y end.
+)
+
+NB. add_continue
+NB.
+NB. Excel limits the size of BIFF records. In Excel 5 the limit is 2084 bytes. In
+NB. Excel 97 the limit is 8228 bytes. Records that are longer than these limits
+NB. must be split up into CONTINUE blocks.
+NB.
+NB. This function take a long BIFF record and inserts CONTINUE records as
+NB. necessary.
+NB.
+NB. Some records have their own specialised Continue blocks so there is also an
+NB. option to bypass this function.
+NB.
+add_continue=: 4 : 0
+y=. y. [ x=. x.
+
+data=. y
+recordtype=. 16b003c NB. Record identifier
+
+NB. Skip this if another method handles the continue blocks.
+if. x do. data return. end.
+
+NB. The first 2080/8224 bytes remain intact. However, we have to change
+NB. the length field of the record.
+data=. RECORDLEN}.data [ tmp=. RECORDLEN{.data
+tmp=. (toWORD0 RECORDLEN-4) 2 3}tmp
+
+NB. Strip out chunks of 2080/8224 bytes +4 for the header.
+while. RECORDLEN < #data do.
+  tmp=. tmp, (RECORDLEN{.data),~ toHeader recordtype, RECORDLEN
+  data=. RECORDLEN}.data
+end.
+
+NB. Mop up the last of the data
+tmp=. tmp, data,~ toHeader recordtype, #data
+)
+
+NB. extend crc32 to 16 bytes to simulate md4
+biffcrc32=: 3 : 0
+y=. y.
+
+2&(3!:4) 4# (128!:3) y
+)
+
+biffmd4=: 3 : 0
+y=. y.
+
+md5bin_crypt_ y
+)
+
+NB. add_mso_generic
+NB.
+NB. Create a mso structure that is part of an Escher drawing object. These are
+NB. are used for images, comments and filters. This generic method is used by
+NB. other methods to create specific mso records.
+NB.
+NB. Returns the packed record.
+NB.
+add_mso_generic=: 4 : 0
+y=. y. [ x=. x.
+
+data=. x
+'type version instance length'=. y
+
+NB. The header contains version and instance info packed into 2 bytes.
+header=. version (23 b.) 4 (33 b.) instance
+
+record=. toWORD0 header, type
+record=. record, toDWORD0 length
+record, data
+)
+
+NB. ---------------------------------------------------------
+
 NB. biff record
 NB. a formula which was array-entered into a range of cells
 biff_array=: 3 : 0
@@ -629,13 +723,13 @@ NB. be held in a NUMBER cell
 biff_integer=: 4 : 0
 y=. y. [ x=. x.
 assert. 2=#y
-assert. 2=#>@{.y
-assert. 1 4 8 e.~ 3!:0 >1{y
+assert. 2=# 0{::y
+assert. 1 4 8 e.~ (3!:0) 1{::y
 recordtype=. 16b027e
 z=. ''
-z=. z, toWORD0 >@{.y
+z=. z, toWORD0 0{::y
 z=. z, toWORD0 x
-z=. z, toDWORD0 2b10 bitor 2 bitshl <. >1{y
+z=. z, toDWORD0 2b10 bitor 2 bitshl <. 1{::y
 z=. z,~ toHeader recordtype, #z
 )
 
@@ -652,14 +746,14 @@ NB. cell with a constant string of length
 biff_label=: 4 : 0
 y=. y. [ x=. x.
 assert. 2=#y
-assert. 2=#>@{.y
-assert. 2 131072 e.~ 3!:0 >1{y
-if. ''-:, >1{y do.
+assert. 2=# 0{::y
+assert. 2 131072 e.~ (3!:0) 1{::y
+if. ''-:, 1{::y do.
   x biff_blank {.y
 else.
   recordtype=. 16b00fd
   z=. ''
-  z=. z, toWORD0 >@{.y
+  z=. z, toWORD0 0{::y
   z=. z, toWORD0 x
   z=. z, toDWORD0 add2sst ,&.> 1{y
   z=. z,~ toHeader recordtype, #z
@@ -729,13 +823,13 @@ NB. IEEE 8-byte floating point format
 biff_number=: 4 : 0
 y=. y. [ x=. x.
 assert. 2=#y
-assert. 2=#>@{.y
-assert. 1 4 8 e.~ 3!:0 >1{y
+assert. 2=# 0{::y
+assert. 1 4 8 e.~ (3!:0) 1{::y
 recordtype=. 16b0203
 z=. ''
-z=. z, toWORD0 >@{.y
+z=. z, toWORD0 0{::y
 z=. z, toWORD0 x
-z=. z, toDouble0 >1{y
+z=. z, toDouble0 1{::y
 z=. z,~ toHeader recordtype, #z
 )
 
@@ -953,9 +1047,9 @@ y=. y. [ x=. x.
 recordtype=. 16b01ae
 z=. ''
 if. 'external'-:x do.
-  z=. z, toWORD0 #>{:y
-  z=. z, toUString16 >{.y
-  for_yi. >{:y do.
+  z=. z, toWORD0 # _1{::y
+  z=. z, toUString16 0{::y
+  for_yi. _1{::y do.
     z=. z, toUString16 >yi
   end.
 elseif. 'internal'-:x do.
@@ -1179,7 +1273,7 @@ n
 )
 
 NB. return xf in xfset row for an biffxf object
-NB. usage: getxfrow__xfo''
+NB. usage: getxfrow__xfo ''
 NB. font format typeprotparent align rotate indent used border linecolor color
 getxfrow=: 3 : 0
 y=. y.
@@ -1230,12 +1324,12 @@ bottomlinestyle=: _12 bitshl 16bf000 bitand border
 leftlinecolor=: _16 bitshl 16b7f0000 bitand border
 rightlinecolor=: _23 bitshl 16b3f800000 bitand border
 diagonaltopleft=: _30 bitshl 16b40000000 bitand border
-diagonalbottomleft=: _31 bitshl (dfhs '80000000') bitand border
+diagonalbottomleft=: _31 bitshl (DFH '0x80000000') bitand border
 toplinecolor=: 16b7f bitand linecolor
 bottomlinecolor=: _7 bitshl 16b3f80 bitand linecolor
 diagonalcolor=: _14 bitshl 16b1fc000 bitand linecolor
 diagonalstyle=: _21 bitshl 16b1e00000 bitand linecolor
-pattern=: _26 bitshl (dfhs 'fc000000') bitand linecolor
+pattern=: _26 bitshl (DFH '0xfc000000') bitand linecolor
 patterncolor=: 16b7f bitand color
 patternbgcolor=: _7 bitshl 16b3f80 bitand color
 )
@@ -1298,6 +1392,7 @@ destroy=: codestroy
 
 coxclass 'biffsheet'
 coxtend 'biff'
+
 NB. This verb use IMDATA record which has been obsoleted, only MS Excel can display it correct.
 NB. other Excel compatible program (open office calc, gnumeric can not display it.
 NB.   Insert a 24bit bitmap image in a worksheet.
@@ -1313,19 +1408,19 @@ NB.   bitmap  The bitmap filename
 insertpicture=: 4 : 0
 y=. y. [ x=. x.
 img=. y
-'rowcol xy scalexy'=. x
+'rowcol xyoffset scalexy'=. x
 if. 2 131072 e.~ 3!:0 rowcol do. rowcol=. A1toRC rowcol end.
 'row col'=. rowcol
-'x y'=. xy
+'x1 y1'=. xyoffset
 'scalex scaley'=. scalexy
 z=. processbitmap img
-if. _1=>@{.z do. z return. end.
+if. _1&= 0{::z do. z return. end.
 'width height size data'=. }.z
 NB. Scale the frame of the image.
 width=. width * scalex
 height=. height * scaley
 NB. Calculate the vertices of the image and write the OBJ record
-positionImage col ; row ; x ; y ; width ; height
+positionImage row, col, x1, y1, width, height
 NB. Write the IMDATA record to store the bitmap data
 record=. 16b007f
 if. RECORDLEN>:8 + size do.
@@ -1348,7 +1443,7 @@ else.
   a=. <.(#data) % RECORDLEN
   b=. RECORDLEN | #data
   if. #a do.
-    imdata=: imdata,, (toHeader 16b003c, RECORDLEN), "1 (a, RECORDLEN)$(a*RECORDLEN){.data
+    imdata=: imdata,, (toHeader 16b003c, RECORDLEN) ,("1) (a, RECORDLEN)$(a*RECORDLEN){.data
   end.
   if. #b do.
     imdata=: imdata, (toHeader 16b003c, b), (-b){.data
@@ -1400,16 +1495,17 @@ NB.                 H is the height of the cell
 NB.
 NB.   the SDK incorrectly states that the height should be expressed as a percentage of 1024.
 NB.
-NB.   col_start Col containing upper left corner of object
+NB.   notice relative ordering of row col x1 y1
 NB.   row_start Row containing top left corner of object
+NB.   col_start Col containing upper left corner of object
 NB.   x1        Distance to left side of object
 NB.   y1        Distance to top of object
 NB.   width     Width of image frame
 NB.   height    Height of image frame
 NB.
-positionImage=: 3 : 0
+position_object=: 3 : 0
 y=. y.
-'colstart rowstart x1 y1 width height'=. y
+'rowstart colstart x1 y1 width height'=. y
 NB. Initialise end cell to the same as the start cell
 colend=. colstart  NB. Col containing lower right corner of object
 rowend=. rowstart  NB. Row containing bottom right corner of object
@@ -1440,12 +1536,14 @@ x1=. <. 1024 * x1 % sizeCol colstart
 y1=. <. 256 * y1 % sizeRow rowstart
 x2=. <. 1024 * width % sizeCol colend NB. Distance to right side of object
 y2=. <. 256 * height % sizeRow rowend NB. Distance to bottom of object
-storeobjpicture colstart ; x1 ; rowstart ; y1 ; colend ; x2 ; rowend ; y2
+colstart , x1 , rowstart , y1 , colend , x2 , rowend , y2
 )
+
+positionImage=: storeobjpicture@:position_object
 
 getcolsizes=: 3 : 0
 y=. y.
-if. (#colsizes)= i=. y i.~ {."1 colsizes do.
+if. (#colsizes)= i=. y i.~ {.("1) colsizes do.
   _1
 else.
   {: i{colsizes
@@ -1454,7 +1552,7 @@ end.
 
 getrowsizes=: 3 : 0
 y=. y.
-if. (#rowsizes)= i=. y i.~ {."1 rowsizes do.
+if. (#rowsizes)= i=. y i.~ {.("1) rowsizes do.
   _1
 else.
   {: i{rowsizes
@@ -1663,7 +1761,7 @@ _1 ; raiseError
 insertbackground=: 3 : 0
 y=. y.
 z=. processbitmap y
-if. _1=>@{.z do. z return. end.
+if. _1&= 0{::z do. z return. end.
 'width height size data'=. }.z
 NB. Write the BITMAP record to store the bitmap data
 record=. 16b00e9
@@ -1687,7 +1785,7 @@ else.
   a=. <.(#data) % RECORDLEN
   b=. RECORDLEN | #data
   if. #a do.
-    imdata=: imdata,, (toHeader 16b003c, RECORDLEN), "1 (a, RECORDLEN)$(a*RECORDLEN){.data
+    imdata=: imdata,, (toHeader 16b003c, RECORDLEN) ,("1) (a, RECORDLEN)$(a*RECORDLEN){.data
   end.
   if. #b do.
     imdata=: imdata, (toHeader 16b003c, b), (-b){.data
@@ -1793,6 +1891,19 @@ imdata=: ''
 dvstream=: ''
 colsizes=: 0 2$''
 rowsizes=: 0 2$''
+NB. mso stuff
+sheetoffset=: 0
+object_ids=: 1024 0 0 1024
+images_array=: 0 0$''
+image_mso_size=: 0
+comments_array=: 0 0$''
+charts_array=: 0 0$''
+comments_author=: ''
+comments_visible=: 0
+filter_area=: ''
+filter_count=: 0
+filter_on=: 0
+filter_cols=: 0 0$''
 )
 
 writestream=: 3 : 0
@@ -1837,8 +1948,18 @@ p2=. #z
 z=. (toDWORD0 p2+y) (p1+16+i.4)}z
 z=. z, biff_defaultcolwidth defaultcolwidth
 for_item. colinfoset do. z=. z, ({.item) biff_colinfo }.item end.
+
+z=. z, store_filtermode ''
+z=. z, store_autofilterinfo ''
+z=. z, store_autofilters ''
+
 z=. z, biff_dimensions dimensions
 z=. z, stream, imdata
+z=. z, store_images ''
+z=. z, store_charts ''
+z=. z, store_filters ''
+z=. z, store_comments ''
+
 z=. z, biff_window2 window2
 z=. z, biff_scl sclnum, sclden
 if. #activepane do. z=. z, biff_pane (xsplit, ysplit) ; (topvis, leftvis) ; activepane end.
@@ -1849,7 +1970,7 @@ if. (2:~:$$) mergedcell do. mergedcell=: _4]\, mergedcell end.
 z=. z, biff_mergedcells mergedcell
 z=. z, biff_labelranges rowlabelrange ; collabelrange
 z=. z, condformatstream
-for_item. hlink do. z=. z, (>{.item) biff_hlink }.item end.
+for_item. hlink do. z=. z, (0{::item) biff_hlink }.item end.
 z=. z, dvstream
 z=. z, biff_eof ''
 )
@@ -1937,11 +2058,11 @@ wrtp=: 0 [ bufn=: RECORDLEN-8
 for_ix. sst do.
   oix=. >ix
   if. 131072= 3!:0 oix do.
-    if. bufn<5 do. wrtcont'' end.
+    if. bufn<5 do. wrtcont '' end.
     wrtn #oix
     wrtw oix
   else.
-    if. bufn<4 do. wrtcont'' end.
+    if. bufn<4 do. wrtcont '' end.
     wrtn #oix
     wrt oix
   end.
@@ -1962,7 +2083,7 @@ while. #y do.
     sstbuf=: sstbuf, (1{a.), toucode0 (<.-:bufn-1){.y
     y=. (<.-:bufn-1)}.y
     bufn=: bufn - 1+ 2*(<.-:bufn-1)
-    wrtcont''
+    wrtcont ''
   else.
     sstbuf=: sstbuf, (1{a.), toucode0 y
     bufn=: bufn - 1+2*#y
@@ -1978,7 +2099,7 @@ while. #y do.
     sstbuf=: sstbuf, (0{a.), (bufn-1){.y
     y=. (bufn-1)}.y
     bufn=: bufn - 1+ bufn-1
-    wrtcont''
+    wrtcont ''
   else.
     sstbuf=: sstbuf, (0{a.), y
     bufn=: bufn - 1+#y
@@ -2008,7 +2129,7 @@ date1904=: 0
 precision=: 1
 bookbool=: 1
 NB. height italic strike color weight script underline family charset fontname
-fontset=: 0 10$''
+fontset=: 0 0$''
 fontset=: fontset, fontsize ; 0 ; 0 ; colorfont ; 400 ; 0 ; 0 ; 0 ; 0 ; fontname     NB. 0
 fontset=: fontset, fontsize ; 0 ; 0 ; colorfont ; 400 ; 0 ; 0 ; 0 ; 0 ; fontname     NB. 1
 fontset=: fontset, fontsize ; 0 ; 0 ; colorfont ; 400 ; 0 ; 0 ; 0 ; 0 ; fontname     NB. 2
@@ -2124,6 +2245,13 @@ supbook=: ''
 externsheet=: 0 3$''
 extname=: ''
 refname=: ''
+NB. mso stuff
+datasize=: 0
+biffsize=: 0
+mso_size=: 0
+mso_clusters=: 0 5$''
+images_size=: 0
+images_data=: 0 0$''  NB. Store the data for MSODRAWINGGROUP.
 )
 
 addhlink=: 3 : 0
@@ -2208,7 +2336,7 @@ if. ''-:y do.
   sheetname=. 'Sheet1'
 else.
   'fontname fontsize'=: 2{.y
-  sheetname=. ('' -: sheetname) >@{ (sheetname=. >{.2}.y) ; 'Sheet1'
+  sheetname=. 0{:: (2}.y) , <'Sheet1'
 end.
 sstn=: #sst=: ''
 xfset=: sheet=: ''
@@ -2230,7 +2358,7 @@ NB. match color (red, green, blue) to internal color palette table
 NB. return color index
 rgbcolor=: 3 : 0
 y=. y.
-(i: <./) +/"1 | y -"1 RGBtuple colorset
+(i: <./) +/("1) | y -("1) RGBtuple colorset
 )
 
 NB. add new extended format
@@ -2246,7 +2374,7 @@ NB. return worksheet index
 NB. y sheet name or ''
 addsheet=: 3 : 0
 y=. y.
-sheet=: sheet, ((y-:'') >@{ y ; 'Sheet', ": >:#sheet) coxnew 'biffsheet'
+sheet=: sheet, ((y-:''){:: y ; 'Sheet', ": >:#sheet) coxnew 'biffsheet'
 sheeti=: <:#sheet
 )
 
@@ -2255,6 +2383,7 @@ NB. y  filename ('' if return character data)
 save=: 3 : 0
 y=. y.
 fn=. >y
+calc_mso_sizes ''
 z=. biff_bof 16b600, 5
 z=. z, fileprotectionstream
 z=. z, biff_codepage codepage
@@ -2272,19 +2401,24 @@ if. 164<#formatset do.
   for_i. i.164-~#formatset do. z=. z, biff_format (i+164) ; (i+164){formatset end.
 end.
 for_item. xfset do. z=. z, biff_xf item end.
-for_item. styleset do. z=. z, (>{.item) biff_style }.item end.
+for_item. styleset do. z=. z, (0{::item) biff_style }.item end.
 if. 8<#colorset do.
   z=. z, biff_palette 8}.colorset
 end.
 olesheet=. ''
 olehead=. z
 seekpoint=. #z
+
+NB. Calculate the offsets required by the BOUNDSHEET records
+NB. calc_sheet_offsets ''
+
 z=. ''
 for_item. sheet do.
   z=. z, a=. biff_boundsheet 0 ; 0 ; 0 ; sheetname__item
   seekpoint=. seekpoint, #a
 end.
 z=. z, biff_country country
+z=. z, add_mso_drawing_group ''
 z=. z, WriteSST ''
 if. #supbook do.
   for_item. supbook do.
@@ -2332,7 +2466,7 @@ cxf addcolinfo y
 y=. y. [ x=. x.
 'col1 col2 width hide level collapse'=. 6{.y
 l=. sheeti{sheet
-colsizes__l=: ~. colsizes__l, (col1 + i.>:col2-col1), "0 (0~:hide){width, 0
+colsizes__l=: ~. colsizes__l, (col1 + i.>:col2-col1) ,("0) (0~:hide){width, 0
 colinfoset__l=: colinfoset__l, (getxfidx x), col1, col2, width, hide, level, collapse
 ''
 )
@@ -2366,46 +2500,46 @@ cxf writestring y
 :
 y=. y. [ x=. x.
 assert. 2=#y
-assert. 1 2 4 8 131072 e.~ 3!:0 >@{.y
-assert. 2 32 131072 e.~ 3!:0 >1{y
-if. 2 131072 e.~ 3!:0 rc=. >@{.y do. y=. (<A1toRC rc) 0}y end.
+assert. 1 2 4 8 131072 e.~ (3!:0) 0{::y
+assert. 2 32 131072 e.~ (3!:0) 1{::y
+if. 2 131072 e.~ 3!:0 rc=. 0{::y do. y=. (<A1toRC rc) 0}y end.
 l=. sheeti{sheet
 xf=. getxfidx x
-if. (0=#@, yn) +. 2 131072 e.~ 3!:0 yn=. >1{y do.
+if. (0=#@, yn) +. 2 131072 e.~ 3!:0 yn=. 1{::y do.
   if. 2> $$yn do.
-    adjdim__l >@{.y
+    adjdim__l 0{::y
     stream__l=: stream__l, xf biff_label y
   elseif. 2=$$yn do.
-    'r c'=. >@{.y
+    'r c'=. 0{::y
     'nrow len'=. $yn
-    adjdim__l >@{.y
-    adjdim__l (nrow, 0)+>@{.y
+    adjdim__l 0{::y
+    adjdim__l (nrow, 0) + 0{::y
     if. 0=len do.
-      stream__l=: stream__l,, (toHeader 16b0201, 6), "1 (_2]\ toWORD0 r+i.nrow), "1 (_2]\ toWORD0 nrow#c), "1 (toWORD0 xf)
+      stream__l=: stream__l,, (toHeader 16b0201, 6) ,("1) (_2]\ toWORD0 r+i.nrow) ,("1) (_2]\ toWORD0 nrow#c) ,("1) (toWORD0 xf)
     else.
-      yn=. <"1 yn
+      yn=. <("1) yn
       sst=: sst, (~.yn) -. sst
       sstn=: sstn + #yn
-      stream__l=: stream__l,, (toHeader 16b00fd, 10), "1 (_2]\ toWORD0 r+i.nrow), "1 (_2]\ toWORD0 nrow#c), "1 (toWORD0 xf), "1 (_4]\ toDWORD0 sst i. yn)
+      stream__l=: stream__l,, (toHeader 16b00fd, 10) ,("1) (_2]\ toWORD0 r+i.nrow) ,("1) (_2]\ toWORD0 nrow#c) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 sst i. yn)
     end.
   elseif. do. 'unhandled exception' 13!:8 (3)
   end.
 elseif. 32 e.~ 3!:0 yn do.
   if. (0:=#), yn do. '' return.  NB. ignore null
   elseif. 1=#@, yn do.  NB. singleton
-    adjdim__l >@{.y
+    adjdim__l 0{::y
     stream__l=: stream__l, xf biff_label ({.y), <, >yn
   elseif. 3>$$yn do.
     if. 1=$$yn do. yn=. ,:yn end.
-    'r c'=. >@{.y
-    adjdim__l >@{.y
-    adjdim__l (s=. $yn)+>@{.y
+    'r c'=. 0{::y
+    adjdim__l 0{::y
+    adjdim__l (s=. $yn) + 0{::y
     if. #a=. I. > ''&-:&.> yn=. , yn do.
       yn=. ((#a)#<, ' ') a}yn   NB. biff8 cannot store empty string
     end.
     sst=: sst, (~.yn) -. sst
     sstn=: sstn + #yn
-    stream__l=: stream__l,, (toHeader 16b00fd, 10), "1 (_2]\ toWORD0 ({:s)#r+i.{.s), "1 (_2]\ toWORD0, ({.s)#,:c+i.{:s), "1 (toWORD0 xf), "1 (_4]\ toDWORD0 sst i. yn)
+    stream__l=: stream__l,, (toHeader 16b00fd, 10) ,("1) (_2]\ toWORD0 ({:s)#r+i.{.s) ,("1) (_2]\ toWORD0, ({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 sst i. yn)
   elseif. do. 'unhandled exception' 13!:8 (3)
   end.
 elseif. do. 'unhandled exception' 13!:8 (3)
@@ -2422,23 +2556,23 @@ cxf writeinteger y
 :
 y=. y. [ x=. x.
 assert. 2=#y
-assert. 1 2 4 8 131072 e.~ 3!:0 >@{.y
-assert. 1 4 8 e.~ 3!:0 >1{y
-if. 2 131072 e.~ 3!:0 rc=. >@{.y do. y=. (<A1toRC rc) 0}y end.
+assert. 1 2 4 8 131072 e.~ (3!:0) 0{::y
+assert. 1 4 8 e.~ (3!:0) 1{::y
+if. 2 131072 e.~ 3!:0 rc=. 0{::y do. y=. (<A1toRC rc) 0}y end.
 l=. sheeti{sheet
 xf=. getxfidx x
 NB. only 30 bit is used 536870911 = <:2^29
-if. 536870911 < >./ |, >1{y do. x writenumber y end.
-if. (0:=#), yn=. 2b10 bitor 2 bitshl <. >1{y do. '' return. end.  NB. ignore null
+if. 536870911 < >./ |, 1{::y do. x writenumber y end.
+if. (0:=#), yn=. 2b10 bitor 2 bitshl <. 1{::y do. '' return. end.  NB. ignore null
 if. 1=#@, yn do.  NB. singleton
-  adjdim__l >@{.y
-  stream__l=: stream__l, xf biff_integer ({.y), < {., >1{y
+  adjdim__l 0{::y
+  stream__l=: stream__l, xf biff_integer ({.y), < {., 1{::y
 elseif. 3>$$yn do.
   if. 1=$$yn do. yn=. ,:yn end.
-  'r c'=. >@{.y
-  adjdim__l >@{.y
-  adjdim__l (s=. $yn)+>@{.y
-  stream__l=: stream__l,, (toHeader 16b027e, 10), "1 (_2]\ toWORD0 ({:s)#r+i.{.s), "1 (_2]\ toWORD0, ({.s)#,:c+i.{:s), "1 (toWORD0 xf), "1 (_4]\ toDWORD0, yn)
+  'r c'=. 0{::y
+  adjdim__l 0{::y
+  adjdim__l (s=. $yn) + 0{::y
+  stream__l=: stream__l,, (toHeader 16b027e, 10) ,("1) (_2]\ toWORD0 ({:s)#r+i.{.s) ,("1) (_2]\ toWORD0, ({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0, yn)
 elseif. do. 'unhandled exception' 13!:8 (3)
 end.
 ''
@@ -2453,21 +2587,21 @@ cxf writenumber y
 :
 y=. y. [ x=. x.
 assert. 2=#y
-assert. 1 2 4 8 131072 e.~ 3!:0 >@{.y
-assert. 1 4 8 e.~ 3!:0 >1{y
-if. 2 131072 e.~ 3!:0 rc=. >@{.y do. y=. (<A1toRC rc) 0}y end.
+assert. 1 2 4 8 131072 e.~ (3!:0) 0{::y
+assert. 1 4 8 e.~ (3!:0) 1{::y
+if. 2 131072 e.~ 3!:0 rc=. 0{::y do. y=. (<A1toRC rc) 0}y end.
 l=. sheeti{sheet
 xf=. getxfidx x
-if. (0:=#), yn=. >1{y do. '' return. end.  NB. ignore null
+if. (0:=#), yn=. 1{::y do. '' return. end.  NB. ignore null
 if. 1=#@, yn do.  NB. singleton
-  adjdim__l >@{.y
+  adjdim__l 0{::y
   stream__l=: stream__l, xf biff_number ({.y), < {., yn
 elseif. 3>$$yn do.
   if. 1=$$yn do. yn=. ,:yn end.
-  'r c'=. >@{.y
-  adjdim__l >@{.y
-  adjdim__l (s=. $yn)+>@{.y
-  stream__l=: stream__l,, (toHeader 16b0203, 14), "1 (_2]\ toWORD0 ({:s)#r+i.{.s), "1 (_2]\ toWORD0, ({.s)#,:c+i.{:s), "1 (toWORD0 xf), "1 (_8]\ toDouble0, yn)
+  'r c'=. 0{::y
+  adjdim__l 0{::y
+  adjdim__l (s=. $yn) + 0{::y
+  stream__l=: stream__l,, (toHeader 16b0203, 14) ,("1) (_2]\ toWORD0 ({:s)#r+i.{.s) ,("1) (_2]\ toWORD0, ({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_8]\ toDouble0, yn)
 elseif. do. 'unhandled exception' 13!:8 (3)
 end.
 ''
@@ -2482,14 +2616,14 @@ cxf writenumber2 y
 :
 y=. y. [ x=. x.
 assert. 3=#y
-assert. 1 2 4 8 131072 e.~ 3!:0 >@{.y
-assert. 1 4 8 e.~ 3!:0 >1{y
-assert. 2 131072 e.~ 3!:0 >2{y
-if. 2 131072 e.~ 3!:0 rc=. >@{.y do. y=. (<A1toRC rc) 0}y end.
+assert. 1 2 4 8 131072 e.~ (3!:0) 0{::y
+assert. 1 4 8 e.~ (3!:0) 1{::y
+assert. 2 131072 e.~ (3!:0) 2{::y
+if. 2 131072 e.~ 3!:0 rc=. 0{::y do. y=. (<A1toRC rc) 0}y end.
 l=. getxfobj x
 t=. format__l
-format__l=: >{:y
-if. 8= 3!:0 >1{y do.
+format__l=: _1{::y
+if. 8= (3!:0) 1{::y do.
   l writenumber 2{.y
 else.
   l writeinteger 2{.y
@@ -2507,15 +2641,15 @@ cxf writedate y
 :
 y=. y. [ x=. x.
 assert. 2 3 e.~ #y
-assert. 1 2 4 8 131072 e.~ 3!:0 >@{.y
-assert. 1 4 8 e.~ 3!:0 >1{y
-if. 2 131072 e.~ 3!:0 rc=. >@{.y do. y=. (<A1toRC rc) 0}y end.
+assert. 1 2 4 8 131072 e.~ (3!:0) 0{::y
+assert. 1 4 8 e.~ (3!:0) 1{::y
+if. 2 131072 e.~ 3!:0 rc=. 0{::y do. y=. (<A1toRC rc) 0}y end.
 l=. getxfobj x
 t=. format__l
 if. 2=#y do. y=. y, <shortdatefmt end. NB. default date format
-assert. 2 131072 e.~ 3!:0 >2{y
-format__l=: >2{y
-l writenumber ({.y), <36522-~ >1{y
+assert. 2 131072 e.~ (3!:0) 2{::y
+format__l=: 2{::y
+l writenumber ({.y), <36522-~ 1{::y
 format__l=: t
 ''
 )
@@ -2678,9 +2812,9 @@ NB. dump records of workbook global to [bkbytes] with index held in [bkrecords]
   elseif. 16b0085=type do.  NB. boundsheet record
     if. 0={.fromBYTE 5{data=. (ptr+i.len){stream do.
       if. 16b500=biffver do.
-        worksheets=: worksheets, (>@{. 0 decodestring8 6}.data) ; {.(fromDWORD0 4{.data)
+        worksheets=: worksheets, (0 decodestring8 6}.data) ,< {.(fromDWORD0 4{.data)
       else.
-        worksheets=: worksheets, (>@{. 0 decodeustring8 6}.data) ; {.(fromDWORD0 4{.data)
+        worksheets=: worksheets, (0 decodeustring8 6}.data) ,< {.(fromDWORD0 4{.data)
       end.
     end.
   elseif. 16b00fc=type do.  NB. sst record
@@ -2922,8 +3056,8 @@ NB. dump records of worksheet to [bytes] with index held in [records]
     lc=. fromWORD0 _2{.data
     nc=. >:lc-{:rocol
     if. 0=x do.
-      v=. getrk ("1) _6]\ _2}.4}.data
-      for_rcl. rocol + ("1) 0, "0 i.nc do.
+      v=. getrk("1) _6]\ _2}.4}.data
+      for_rcl. rocol +("1) 0 ,("0) i.nc do.
         if. 8=3!:0 a=. >rcl_index{v do.
           rowcol8=. rowcol8, rcl
           cellval8=. cellval8, a
@@ -2933,8 +3067,8 @@ NB. dump records of worksheet to [bytes] with index held in [records]
         end.
       end.
     else.
-      rowcol=. rowcol, rocol + ("1) 0, "0 i.nc
-      cellval=. cellval, ; null&,@ (":(!.maxpp))&.> getrk ("1) _6]\ _2}.4}.data
+      rowcol=. rowcol, rocol +("1) 0 ,("0) i.nc
+      cellval=. cellval, ; null&,@ (":(!.maxpp))&.> getrk("1) _6]\ _2}.4}.data
     end.
   case. 16b0006 do. NB. formula, only cached result read
     data=. (ptr+i.len){stream
@@ -3040,10 +3174,10 @@ NB.     rocol=. fromWORD0 4{.data=. (ptr+i.len){stream
 NB.     lc=. fromWORD0 _2{.data
 NB.     nc=. >:lc-{:rocol
 NB.     if. 0=x do.
-NB.       rowcolc=. rowcolc, rocol + ("1) 0, "0 i.nc
+NB.       rowcolc=. rowcolc, rocol +("1) 0 ,("0) i.nc
 NB.       cellvalc=. cellvalc, nc#null
 NB.     else.
-NB.       rowcol=. rowcol, rocol + ("1) 0, "0 i.nc
+NB.       rowcol=. rowcol, rocol +("1) 0 ,("0) i.nc
 NB.       cellval=. cellval, nc#null
 NB.     end.
   case. 16b0004 do. NB. biff2 label, assume no continue record
@@ -3096,9 +3230,9 @@ NB. biff8 does not use rstring record, but excel will read it
   lookstr=. 0>.<:lookstr
 end.
 if. 0=x do.
-  (rowcol4, rowcol8, rowcolc, rowcolss) ; < (<"0 cellval4), (<"0 cellval8), ( <;._1 cellvalc), sst{~cellvalss
+  (rowcol4, rowcol8, rowcolc, rowcolss) (;<) (<("0) cellval4), (<("0) cellval8), ( <;._1 cellvalc), sst{~cellvalss
 else.
-  (rowcol, rowcolss) ; < ( <;._1 cellval), sst{~cellvalss
+  (rowcol, rowcolss) (;<) ( <;._1 cellval), sst{~cellvalss
 end.
 )
 
@@ -3108,12 +3242,12 @@ y=. y.
 if. 0=2 bitand d=. fromDWORD0 2}.y do. NB. double
   bigendian=: ({.a.)={. 1&(3!:4) 1  NB. 0 little endian   1 big endian
   if. 0=bigendian do.
-    rk=. fromDouble0 toDWORD0 0, d bitand dfhs 'fffffffc'
+    rk=. fromDouble0 toDWORD0 0, d bitand DFH '0xfffffffc'
   else.
-    rk=. fromDouble0 toDWORD0 0,~ d bitand dfhs 'fffffffc'
+    rk=. fromDouble0 toDWORD0 0,~ d bitand DFH '0xfffffffc'
   end.
 else.  NB. integer
-  rk=. _2 bitsha d bitand dfhs 'fffffffc'
+  rk=. _2 bitsha d bitand DFH '0xfffffffc'
 end.
 if. 1 bitand d do.  NB. scale factor
   rk=. rk%100
@@ -3142,7 +3276,7 @@ ex=. coxnew 'biffread'
 if. ''-.@-:wk do.
   0&create__ex data__wk
 NB. get worksheet location
-  if. 2 131072 e.~ 3!:0 x do. x=. (<x) i.~ {."1 worksheets__ex end.
+  if. 2 131072 e.~ 3!:0 x do. x=. (<x) i.~ {.("1) worksheets__ex end.
   assert. x<#worksheets__ex
   'name location'=. x{worksheets__ex
 else.
@@ -3159,7 +3293,7 @@ NB. transform cell records to matrix
 rcs=. (>./ >:@- <./) ix
 NB. store offset in static class variable if needed
 offset_biffread_=: off=. <./ ix
-m=. cell (<"1 ix-"1 off)}m=. rcs$a:
+m=. cell (<("1) ix -("1) off)}m=. rcs$a:
 NB. convert excel date
 NB. todate (+&36522) 38335 --> 2004 12 14
 )
@@ -3181,7 +3315,7 @@ ex=. coxnew 'biffread'
 if. ''-.@-:wk do.
   0&create__ex data__wk
 NB. get worksheet location
-  if. 2 131072 e.~ 3!:0 x do. x=. (<x) i.~ {."1 worksheets__ex end.
+  if. 2 131072 e.~ 3!:0 x do. x=. (<x) i.~ {.("1) worksheets__ex end.
   assert. x<#worksheets__ex
   'name location'=. x{worksheets__ex
 else.
@@ -3198,7 +3332,7 @@ NB. transform cell records to matrix
 rcs=. (>./ >:@- <./) ix
 NB. store offset in static class variable if needed
 offset_biffread_=: off=. <./ ix
-m=. cell (<"1 ix-"1 off)}m=. rcs$<''
+m=. cell (<("1) ix -("1) off)}m=. rcs$<''
 NB. convert excel date
 NB. todate (+&36522) 38335 --> 2004 12 14
 )
@@ -3223,7 +3357,7 @@ ex=. coxnew 'biffread'
 if. ''-.@-:wk do.
   1&create__ex data__wk       NB. 1=debug mode
 NB. get worksheet location
-  if. 2 131072 e.~ 3!:0 x do. x=. (<x) i.~ {."1 worksheets__ex end.
+  if. 2 131072 e.~ 3!:0 x do. x=. (<x) i.~ {.("1) worksheets__ex end.
   assert. x<#worksheets__ex
   'name location'=. x{worksheets__ex
 else.

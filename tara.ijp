@@ -5,6 +5,7 @@ coclass 'jproject'
 PRIMARYFILES=: 0 : 0
 ~Addons/tables/tara/jolew
 ~Addons/tables/tara/jbiff
+~Addons/tables/tara/jbiffmso
 )
 
 PRIMARYLIBS=: ''
@@ -19,7 +20,7 @@ OTHERFILES=: 0 : 0
 ~Addons/tables/tara/taradoc.txt
 ~Addons/tables/tara/taratest.ijs
 ~Addons/tables/tara/test.xls
-~Addons/tables/tara/dora.bmp
+~Addons/tables/tara/dora.png
 )
 
 TARGETFILE=: '~Addons/tables/tara/tara.ijs'
