@@ -128,8 +128,6 @@ fileh=: ''
 ppsfile=: ''
 )
 
-destroy=: codestroy
-
 coclass 'olestorage'
 coinsert 'oleutlfcn'
 ppstyperoot=: 5
@@ -146,7 +144,7 @@ headerinfo=: ''
 
 destroy=: 3 : 0
 if. '' -.@-: openfilenum do. fclose("0) openfilenum end.
-if. #headerinfo do. destroy__headerinfo '' end.
+if. '' -.@-: headerinfo do. destroy__headerinfo '' end.
 codestroy ''
 )
 
@@ -182,7 +180,7 @@ ugetnthpps ino ; rhinfo ; <bdata
 
 NB.  initparse:
 initparse=: 3 : 0
-if. #headerinfo do. headerinfo return. end.
+if. '' -.@-: headerinfo do. headerinfo return. end.
 NB. 1. sfile is a resource  hopefully a file resource
 if. 1 4 e.~ 3!:0 y do.
   oio=. y
@@ -203,7 +201,7 @@ end.
 radone=. radone, ino
 irootblock=. rootstart__rhinfo
 NB. 1. get information about itself
-opps=. ugetnthpps ino ; rhinfo ; <bdata
+if. ''-: opps=. ugetnthpps ino ; rhinfo ; <bdata do. radone ; <'' return. end.
 NB. 2. child
 if. dirpps__opps ~: _1 do.
   radone=. 0{::ra=. ugetppstree dirpps__opps ; rhinfo ; bdata ; <radone
@@ -235,36 +233,35 @@ if. '' -.@-: radone do.
   if. ino e. radone do. radone ; <'' return. end.
 end.
 radone=. radone, ino
-opps=. ugetnthpps ino ; rhinfo ; <0
-found=. 0
-NB. for_cmp. raname do.
-NB.   if. ((icase *. name__opps -:&toupper >cmp) +. name__opps-:>cmp) do.
-NB.     found=. 1 break.
-NB.   end.
-NB. end.
+ares=. ''
+if. ''-: opps=. ugetnthpps ino ; rhinfo ; <0 do. radone ; <'' return. end.
 if. ((icase *. name__opps -:&toupper raname) +. name__opps-:raname) do.
-  found=. 1
-end.
-if. found do.
   if. 1=bdata do.
-    opps=. ugetnthpps ino ; rhinfo ; <bdata
+    if. ''-: opps1=. ugetnthpps ino ; rhinfo ; <bdata do.
+      destroy__opps ''
+      ares=. opps=. ''
+    else.
+      destroy__opps ''
+      ares=. opps=. opps1
+    end.
+  else.
+    ares=. opps
   end.
-  ares=. opps
 else.
-  ares=. ''
-end.
 NB. 2. check child, previous, next ppss
-if. dirpps__opps ~: _1 do.
-  radone=. 0{::ra=. ugetppssearch dirpps__opps ; rhinfo ; raname ; bdata ; icase ; <radone
-  ares=. ares, _1{::ra
-end.
-if. prevpps__opps ~: _1 do.
-  radone=. 0{::ra=. ugetppssearch prevpps__opps ; rhinfo ; raname ; bdata ; icase ; <radone
-  ares=. ares, _1{::ra
-end.
-if. nextpps__opps ~: _1 do.
-  radone=. 0{::ra=. ugetppssearch nextpps__opps ; rhinfo ; raname ; bdata ; icase ; <radone
-  ares=. ares, _1{::ra
+  if. dirpps__opps ~: _1 do.
+    radone=. 0{::ra=. ugetppssearch dirpps__opps ; rhinfo ; raname ; bdata ; icase ; <radone
+    ares=. ares, _1{::ra
+  end.
+  if. prevpps__opps ~: _1 do.
+    radone=. 0{::ra=. ugetppssearch prevpps__opps ; rhinfo ; raname ; bdata ; icase ; <radone
+    ares=. ares, _1{::ra
+  end.
+  if. nextpps__opps ~: _1 do.
+    radone=. 0{::ra=. ugetppssearch nextpps__opps ; rhinfo ; raname ; bdata ; icase ; <radone
+    ares=. ares, _1{::ra
+  end.
+  destroy__opps ''
 end.
 radone ; <ares
 )
@@ -302,9 +299,10 @@ extrabbdcount__rhinfo=: iwk
 NB. get bbd info
 bbdinfo__rhinfo=: getbbdinfo rhinfo
 NB. get root pps
-oroot=. ugetnthpps 0 ; rhinfo ; <0
-sbstart__rhinfo=: startblock__oroot
-sbsize__rhinfo=: size__oroot
+if. ''-: opps=. ugetnthpps 0 ; rhinfo ; <0 do. '' [ destroy__rhinfo '' return. end.
+sbstart__rhinfo=: startblock__opps
+sbsize__rhinfo=: size__opps
+destroy__opps ''
 rhinfo
 )
 
@@ -498,13 +496,13 @@ createpps=: 3 : 0
 select. {.itype
 case. ppstyperoot do.
   p=. conew 'oleppsroot'
-  create__p ratime1st ; ratime2nd ; ''
+  create__p ratime1st ; ratime2nd ;< ''
 case. ppstypedir do.
   p=. conew 'oleppsdir'
-  create__p sname ; ratime1st ; ratime2nd ; ''
+  create__p sname ; ratime1st ; ratime2nd ;< ''
 case. ppstypefile do.
   p=. conew 'oleppsfile'
-  create__p sname ; sdata ; ''
+  create__p sname ; sdata ;< ''
 case. do.
   assert. 0
 end.
@@ -530,6 +528,7 @@ ppstypefile=: 2
 datasizesmall=: 16b1000
 longintsize=: 4
 ppssize=: 16b80
+child=: ''
 NB.  no
 NB.  name
 NB.  type
@@ -543,6 +542,12 @@ NB.  size
 NB.  data
 NB.  child
 NB.  ppsfile
+
+destroy=: 3 : 0
+for_pps. child do. destroy__child '' end.
+codestroy ''
+)
+
 fputs=: 3 : 0
 if. fileh-:'' do. data=: data, y else. fileh fappend~ y end.
 )
@@ -633,9 +638,9 @@ create=: 3 : 0
 no=: 0
 name=: u: sname
 type=: ppstypedir
-prevpps=: 0
-nextpps=: 0
-dirpps=: 0
+prevpps=: 0 ] _1
+nextpps=: 0 ] _1
+dirpps=: 0 ] _1
 time1st=: ratime1st
 time2nd=: ratime2nd
 startblock=: 0
@@ -646,8 +651,6 @@ fileh=: ''
 ppsfile=: ''
 )
 
-destroy=: codestroy
-
 coclass 'oleppsfile'
 coinsert 'olepps'
 create=: 3 : 0
@@ -655,16 +658,15 @@ create=: 3 : 0
 no=: 0
 name=: u: snm
 type=: ppstypefile
-prevpps=: 0
-nextpps=: 0
-dirpps=: 0
+prevpps=: 0 ] _1
+nextpps=: 0 ] _1
+dirpps=: 0 ] _1
 time1st=: 0
 time2nd=: 0
 startblock=: 0
 size=: 0
 data=: >(''-:sfile) { sdata ; ''
 child=: ''
-ppsfile=: ''
 fileh=: ''
 ppsfile=: ''
 if. '' -.@-: sfile do.
@@ -689,8 +691,6 @@ else.
 end.
 )
 
-destroy=: codestroy
-
 coclass 'oleppsroot'
 coinsert 'olepps'
 create=: 3 : 0
@@ -698,9 +698,9 @@ create=: 3 : 0
 no=: 0
 name=: u: 'Root Entry'
 type=: ppstyperoot
-prevpps=: 0
-nextpps=: 0
-dirpps=: 0
+prevpps=: 0 ] _1
+nextpps=: 0 ] _1
+dirpps=: 0 ] _1
 time1st=: ratime1st
 time2nd=: ratime2nd
 startblock=: 0
@@ -711,7 +711,6 @@ fileh=: ''
 ppsfile=: ''
 )
 
-destroy=: codestroy
 NB.  save  ole:
 save=: 3 : 0
 'sfile bnoas rhinfo'=. y
@@ -895,9 +894,7 @@ savepps=: 3 : 0
 'ralist rhinfo'=. y
 NB. 0. initial
 NB. 2. save pps
-for_oitem. ralist do.
-  saveppswk__oitem rhinfo
-end.
+for_pps. ralist do. saveppswk__pps rhinfo end.
 NB. 3. adjust for block
 icnt=. #ralist
 ibcnt=. <.bigblocksize__rhinfo % ppssize__rhinfo
@@ -1136,6 +1133,7 @@ end.
 NB. ---------------------------------------------------------
 NB. package for biff format
 coclass 'biff'
+coinsert 'oleutlfcn'
 shortdatefmt=: 'dd/mm/yyyy'
 RECORDLEN=: 8224   NB. BIFF5: 2080 bytes, BIFF8: 8224 bytes
 NB. Excel version BIFF version Document type File type
@@ -4230,8 +4228,8 @@ NB. 0 readexcel 'test.xls'
 readexcel=: 0&$: : (4 : 0)
 assert. fexist y
 ole=. (>y) conew 'olestorage'
-if. '' -: wk=: getppssearch__ole 'Workbook' ; 1 ; 1 do.              NB. biff8
-  if. '' -: wk=: getppssearch__ole 'Book' ; 1 ; 1 do.                NB. biff5/7
+if. '' -: wk=. getppssearch__ole 'Workbook' ; 1 ; 1 do.              NB. biff8
+  if. '' -: wk=. getppssearch__ole 'Book' ; 1 ; 1 do.                NB. biff5/7
     assert. 16b40009 16b60209 16b60409 e.~ fromDWORD0 freadx y;0 4  NB. biff2/3/4
   end.
 end.
@@ -4268,8 +4266,8 @@ NB. 0 readexcelstring 'test.xls'
 readexcelstring=: 0&$: : (4 : 0)
 assert. fexist y
 ole=. (>y) conew 'olestorage'
-if. '' -: wk=: getppssearch__ole 'Workbook' ; 1 ; 1 do.              NB. biff8
-  if. '' -: wk=: getppssearch__ole 'Book' ; 1 ; 1 do.                NB. biff5/7
+if. '' -: wk=. getppssearch__ole 'Workbook' ; 1 ; 1 do.              NB. biff8
+  if. '' -: wk=. getppssearch__ole 'Book' ; 1 ; 1 do.                NB. biff5/7
     assert. 16b40009 16b60209 16b60409 e.~ fromDWORD0 freadx y;0 4  NB. biff2/3/4
   end.
 end.
@@ -5443,9 +5441,9 @@ NB. Use the visible flag if set by the user or else use the worksheet value.
 NB. The flag is also set in store_mso_opt but with the opposite value.
 NB.
 if. _1~:visible do.
-  visible=. (0=visible) { 16b0002 16b0000
+  hidden=. (0=visible) { 16b0002 16b0000
 else.
-  visible=. (0=comments_visible) { 16b0002 16b0000
+  hidden=. (0=comments_visible) { 16b0002 16b0000
 end.
 
 NB. Get the number of chars in the author string (not bytes).
@@ -5455,7 +5453,7 @@ NB. Null terminate the author string.
 author=. author, {.a.
 
 NB. Pack the record.
-data=. toWORD0 rowcol, visible, obj_id, num_chars
+data=. toWORD0 rowcol, hidden, obj_id, num_chars
 if. 2= (3!:0) author do.
   data=. data, toBYTE 0
   z=. biffappend (data, author),~ toHeader recordtype, (#data) + #author

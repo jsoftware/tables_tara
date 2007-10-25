@@ -1,6 +1,7 @@
 NB. ---------------------------------------------------------
 NB. package for biff format
 coxclass 'biff'
+coxtend 'oleutlfcn'
 shortdatefmt=: 'dd/mm/yyyy'
 RECORDLEN=: 8224   NB. BIFF5: 2080 bytes, BIFF8: 8224 bytes
 NB. Excel version BIFF version Document type File type
@@ -3267,8 +3268,8 @@ readexcel=: 0&$: : (4 : 0)
 y=. y. [ x=. x.
 assert. fexist y
 ole=. (>y) coxnew 'olestorage'
-if. '' -: wk=: getppssearch__ole 'Workbook' ; 1 ; 1 do.              NB. biff8
-  if. '' -: wk=: getppssearch__ole 'Book' ; 1 ; 1 do.                NB. biff5/7
+if. '' -: wk=. getppssearch__ole 'Workbook' ; 1 ; 1 do.              NB. biff8
+  if. '' -: wk=. getppssearch__ole 'Book' ; 1 ; 1 do.                NB. biff5/7
     assert. 16b40009 16b60209 16b60409 e.~ fromDWORD0 freadx y;0 4  NB. biff2/3/4
   end.
 end.
@@ -3306,8 +3307,8 @@ readexcelstring=: 0&$: : (4 : 0)
 y=. y. [ x=. x.
 assert. fexist y
 ole=. (>y) coxnew 'olestorage'
-if. '' -: wk=: getppssearch__ole 'Workbook' ; 1 ; 1 do.              NB. biff8
-  if. '' -: wk=: getppssearch__ole 'Book' ; 1 ; 1 do.                NB. biff5/7
+if. '' -: wk=. getppssearch__ole 'Workbook' ; 1 ; 1 do.              NB. biff8
+  if. '' -: wk=. getppssearch__ole 'Book' ; 1 ; 1 do.                NB. biff5/7
     assert. 16b40009 16b60209 16b60409 e.~ fromDWORD0 freadx y;0 4  NB. biff2/3/4
   end.
 end.

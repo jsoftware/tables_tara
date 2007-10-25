@@ -132,8 +132,6 @@ fileh=: ''
 ppsfile=: ''
 )
 
-destroy=: codestroy
-
 coxclass 'olestorage'
 coxtend 'oleutlfcn'
 ppstyperoot=: 5
@@ -152,7 +150,7 @@ headerinfo=: ''
 destroy=: 3 : 0
 y=. y.
 if. '' -.@-: openfilenum do. fclose("0) openfilenum end.
-if. #headerinfo do. destroy__headerinfo '' end.
+if. '' -.@-: headerinfo do. destroy__headerinfo '' end.
 codestroy ''
 )
 
@@ -192,7 +190,7 @@ ugetnthpps ino ; rhinfo ; <bdata
 NB.  initparse:
 initparse=: 3 : 0
 y=. y.
-if. #headerinfo do. headerinfo return. end.
+if. '' -.@-: headerinfo do. headerinfo return. end.
 NB. 1. sfile is a resource  hopefully a file resource
 if. 1 4 e.~ 3!:0 y do.
   oio=. y
@@ -214,7 +212,7 @@ end.
 radone=. radone, ino
 irootblock=. rootstart__rhinfo
 NB. 1. get information about itself
-opps=. ugetnthpps ino ; rhinfo ; <bdata
+if. ''-: opps=. ugetnthpps ino ; rhinfo ; <bdata do. radone ; <'' return. end.
 NB. 2. child
 if. dirpps__opps ~: _1 do.
   radone=. 0{::ra=. ugetppstree dirpps__opps ; rhinfo ; bdata ; <radone
@@ -247,36 +245,35 @@ if. '' -.@-: radone do.
   if. ino e. radone do. radone ; <'' return. end.
 end.
 radone=. radone, ino
-opps=. ugetnthpps ino ; rhinfo ; <0
-found=. 0
-NB. for_cmp. raname do.
-NB.   if. ((icase *. name__opps -:&toupper >cmp) +. name__opps-:>cmp) do.
-NB.     found=. 1 break.
-NB.   end.
-NB. end.
+ares=. ''
+if. ''-: opps=. ugetnthpps ino ; rhinfo ; <0 do. radone ; <'' return. end.
 if. ((icase *. name__opps -:&toupper raname) +. name__opps-:raname) do.
-  found=. 1
-end.
-if. found do.
   if. 1=bdata do.
-    opps=. ugetnthpps ino ; rhinfo ; <bdata
+    if. ''-: opps1=. ugetnthpps ino ; rhinfo ; <bdata do.
+      destroy__opps ''
+      ares=. opps=. ''
+    else.
+      destroy__opps ''
+      ares=. opps=. opps1
+    end.
+  else.
+    ares=. opps
   end.
-  ares=. opps
 else.
-  ares=. ''
-end.
 NB. 2. check child, previous, next ppss
-if. dirpps__opps ~: _1 do.
-  radone=. 0{::ra=. ugetppssearch dirpps__opps ; rhinfo ; raname ; bdata ; icase ; <radone
-  ares=. ares, _1{::ra
-end.
-if. prevpps__opps ~: _1 do.
-  radone=. 0{::ra=. ugetppssearch prevpps__opps ; rhinfo ; raname ; bdata ; icase ; <radone
-  ares=. ares, _1{::ra
-end.
-if. nextpps__opps ~: _1 do.
-  radone=. 0{::ra=. ugetppssearch nextpps__opps ; rhinfo ; raname ; bdata ; icase ; <radone
-  ares=. ares, _1{::ra
+  if. dirpps__opps ~: _1 do.
+    radone=. 0{::ra=. ugetppssearch dirpps__opps ; rhinfo ; raname ; bdata ; icase ; <radone
+    ares=. ares, _1{::ra
+  end.
+  if. prevpps__opps ~: _1 do.
+    radone=. 0{::ra=. ugetppssearch prevpps__opps ; rhinfo ; raname ; bdata ; icase ; <radone
+    ares=. ares, _1{::ra
+  end.
+  if. nextpps__opps ~: _1 do.
+    radone=. 0{::ra=. ugetppssearch nextpps__opps ; rhinfo ; raname ; bdata ; icase ; <radone
+    ares=. ares, _1{::ra
+  end.
+  destroy__opps ''
 end.
 radone ; <ares
 )
@@ -315,9 +312,10 @@ extrabbdcount__rhinfo=: iwk
 NB. get bbd info
 bbdinfo__rhinfo=: getbbdinfo rhinfo
 NB. get root pps
-oroot=. ugetnthpps 0 ; rhinfo ; <0
-sbstart__rhinfo=: startblock__oroot
-sbsize__rhinfo=: size__oroot
+if. ''-: opps=. ugetnthpps 0 ; rhinfo ; <0 do. '' [ destroy__rhinfo '' return. end.
+sbstart__rhinfo=: startblock__opps
+sbsize__rhinfo=: size__opps
+destroy__opps ''
 rhinfo
 )
 
@@ -524,13 +522,13 @@ y=. y.
 select. {.itype
 case. ppstyperoot do.
   p=. coxnew 'oleppsroot'
-  create__p ratime1st ; ratime2nd ; ''
+  create__p ratime1st ; ratime2nd ;< ''
 case. ppstypedir do.
   p=. coxnew 'oleppsdir'
-  create__p sname ; ratime1st ; ratime2nd ; ''
+  create__p sname ; ratime1st ; ratime2nd ;< ''
 case. ppstypefile do.
   p=. coxnew 'oleppsfile'
-  create__p sname ; sdata ; ''
+  create__p sname ; sdata ;< ''
 case. do.
   assert. 0
 end.
@@ -556,6 +554,7 @@ ppstypefile=: 2
 datasizesmall=: 16b1000
 longintsize=: 4
 ppssize=: 16b80
+child=: ''
 NB.  no
 NB.  name
 NB.  type
@@ -569,6 +568,12 @@ NB.  size
 NB.  data
 NB.  child
 NB.  ppsfile
+
+destroy=: 3 : 0
+for_pps. child do. destroy__child '' end.
+codestroy ''
+)
+
 fputs=: 3 : 0
 y=. y.
 if. fileh-:'' do. data=: data, y else. fileh fappend~ y end.
@@ -664,9 +669,9 @@ y=. y.
 no=: 0
 name=: u: sname
 type=: ppstypedir
-prevpps=: 0
-nextpps=: 0
-dirpps=: 0
+prevpps=: 0 ] _1
+nextpps=: 0 ] _1
+dirpps=: 0 ] _1
 time1st=: ratime1st
 time2nd=: ratime2nd
 startblock=: 0
@@ -677,8 +682,6 @@ fileh=: ''
 ppsfile=: ''
 )
 
-destroy=: codestroy
-
 coxclass 'oleppsfile'
 coxtend 'olepps'
 create=: 3 : 0
@@ -687,16 +690,15 @@ y=. y.
 no=: 0
 name=: u: snm
 type=: ppstypefile
-prevpps=: 0
-nextpps=: 0
-dirpps=: 0
+prevpps=: 0 ] _1
+nextpps=: 0 ] _1
+dirpps=: 0 ] _1
 time1st=: 0
 time2nd=: 0
 startblock=: 0
 size=: 0
 data=: >(''-:sfile) { sdata ; ''
 child=: ''
-ppsfile=: ''
 fileh=: ''
 ppsfile=: ''
 if. '' -.@-: sfile do.
@@ -722,8 +724,6 @@ else.
 end.
 )
 
-destroy=: codestroy
-
 coxclass 'oleppsroot'
 coxtend 'olepps'
 create=: 3 : 0
@@ -732,9 +732,9 @@ y=. y.
 no=: 0
 name=: u: 'Root Entry'
 type=: ppstyperoot
-prevpps=: 0
-nextpps=: 0
-dirpps=: 0
+prevpps=: 0 ] _1
+nextpps=: 0 ] _1
+dirpps=: 0 ] _1
 time1st=: ratime1st
 time2nd=: ratime2nd
 startblock=: 0
@@ -745,7 +745,6 @@ fileh=: ''
 ppsfile=: ''
 )
 
-destroy=: codestroy
 NB.  save  ole:
 save=: 3 : 0
 y=. y.
@@ -935,9 +934,7 @@ y=. y.
 'ralist rhinfo'=. y
 NB. 0. initial
 NB. 2. save pps
-for_oitem. ralist do.
-  saveppswk__oitem rhinfo
-end.
+for_pps. ralist do. saveppswk__pps rhinfo end.
 NB. 3. adjust for block
 icnt=. #ralist
 ibcnt=. <.bigblocksize__rhinfo % ppssize__rhinfo

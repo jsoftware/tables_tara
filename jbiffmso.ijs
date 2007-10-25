@@ -1130,9 +1130,9 @@ NB. Use the visible flag if set by the user or else use the worksheet value.
 NB. The flag is also set in store_mso_opt but with the opposite value.
 NB.
 if. _1~:visible do.
-  visible=. (0=visible) { 16b0002 16b0000
+  hidden=. (0=visible) { 16b0002 16b0000
 else.
-  visible=. (0=comments_visible) { 16b0002 16b0000
+  hidden=. (0=comments_visible) { 16b0002 16b0000
 end.
 
 NB. Get the number of chars in the author string (not bytes).
@@ -1142,7 +1142,7 @@ NB. Null terminate the author string.
 author=. author, {.a.
 
 NB. Pack the record.
-data=. toWORD0 rowcol, visible, obj_id, num_chars
+data=. toWORD0 rowcol, hidden, obj_id, num_chars
 if. 2= (3!:0) author do.
   data=. data, toBYTE 0
   z=. biffappend (data, author),~ toHeader recordtype, (#data) + #author
