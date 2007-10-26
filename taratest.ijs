@@ -176,7 +176,7 @@ bi=. ('Courier New' ; 220) conew 'biffbook'
 writestring__bi 1 3 ; 'hello world'
 rc=. save__bi ''
 destroy__bi ''
-rc
+_16]\ a.i. rc
 )
 
 test1''

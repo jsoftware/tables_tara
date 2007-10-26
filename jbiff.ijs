@@ -3268,13 +3268,14 @@ readexcel=: 0&$: : (4 : 0)
 y=. y. [ x=. x.
 assert. fexist y
 ole=. (>y) coxnew 'olestorage'
-if. '' -: wk=. getppssearch__ole 'Workbook' ; 1 ; 1 do.              NB. biff8
-  if. '' -: wk=. getppssearch__ole 'Book' ; 1 ; 1 do.                NB. biff5/7
+if. 0=#wks=. getppssearch__ole 'Workbook' ; 1 ; 1 do.              NB. biff8
+  if. 0=#wks=. getppssearch__ole 'Book' ; 1 ; 1 do.                NB. biff5/7
     assert. 16b40009 16b60209 16b60409 e.~ fromDWORD0 freadx y;0 4  NB. biff2/3/4
   end.
 end.
 ex=. coxnew 'biffread'
-if. ''-.@-:wk do.
+if. #wks do.
+  wk=. {.wks
   0&create__ex data__wk
 NB. get worksheet location
   if. 2 131072 e.~ 3!:0 x do. x=. (<x) i.~ {.("1) worksheets__ex end.
@@ -3288,7 +3289,7 @@ NB. read worksheet
 'ix cell'=. 0&readsheet__ex location
 NB. housekeeping
 destroy__ex ''
-if. ''-.@-:wk do. destroy__wk '' end.
+for_wk. wks do. destroy__wk '' end.
 destroy__ole ''
 NB. transform cell records to matrix
 rcs=. (>./ >:@- <./) ix
@@ -3307,13 +3308,14 @@ readexcelstring=: 0&$: : (4 : 0)
 y=. y. [ x=. x.
 assert. fexist y
 ole=. (>y) coxnew 'olestorage'
-if. '' -: wk=. getppssearch__ole 'Workbook' ; 1 ; 1 do.              NB. biff8
-  if. '' -: wk=. getppssearch__ole 'Book' ; 1 ; 1 do.                NB. biff5/7
+if. 0=#wks=. getppssearch__ole 'Workbook' ; 1 ; 1 do.              NB. biff8
+  if. 0=#wks=. getppssearch__ole 'Book' ; 1 ; 1 do.                NB. biff5/7
     assert. 16b40009 16b60209 16b60409 e.~ fromDWORD0 freadx y;0 4  NB. biff2/3/4
   end.
 end.
 ex=. coxnew 'biffread'
-if. ''-.@-:wk do.
+if. #wks do.
+  wk=. {.wks
   0&create__ex data__wk
 NB. get worksheet location
   if. 2 131072 e.~ 3!:0 x do. x=. (<x) i.~ {.("1) worksheets__ex end.
@@ -3327,7 +3329,7 @@ NB. read worksheet
 'ix cell'=. 1&readsheet__ex location
 NB. housekeeping
 destroy__ex ''
-if. ''-.@-:wk do. destroy__wk '' end.
+for_wk. wks do. destroy__wk '' end.
 destroy__ole ''
 NB. transform cell records to matrix
 rcs=. (>./ >:@- <./) ix
@@ -3349,13 +3351,14 @@ dumpexcel=: 0&$: : (4 : 0)
 y=. y. [ x=. x.
 assert. fexist y
 ole=. (>y) coxnew 'olestorage'
-if. '' -: wk=: getppssearch__ole 'Workbook' ; 1 ; 1 do.              NB. biff8
-  if. '' -: wk=: getppssearch__ole 'Book' ; 1 ; 1 do.                NB. biff5/7
+if. 0=#wks=. getppssearch__ole 'Workbook' ; 1 ; 1 do.              NB. biff8
+  if. 0=#wks=. getppssearch__ole 'Book' ; 1 ; 1 do.                NB. biff5/7
     assert. 16b40009 16b60209 16b60409 e.~ fromDWORD0 freadx y;0 4  NB. biff2/3/4
   end.
 end.
 ex=. coxnew 'biffread'
-if. ''-.@-:wk do.
+if. #wks do.
+  wk=. {.wks
   1&create__ex data__wk       NB. 1=debug mode
 NB. get worksheet location
   if. 2 131072 e.~ 3!:0 x do. x=. (<x) i.~ {.("1) worksheets__ex end.
@@ -3377,7 +3380,7 @@ records__=: records__ex
 bytes__=: bytes__ex
 NB. housekeeping
 destroy__ex ''
-if. ''-.@-:wk do. destroy__wk '' end.
+for_wk. wks do. destroy__wk '' end.
 destroy__ole ''
 ''
 )

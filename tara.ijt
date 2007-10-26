@@ -556,18 +556,27 @@ save__bi jpath '~temp/tara9.xls'
 destroy__bi ''
 
 NB. =========================================================
-Lab Section Image
+Lab Section Image and Comment
 Assuming you have the image file '~addon/tara/dora.png', use 'insertimage' in biffbook to insert a image into a worksheet.
 
-left argument
+syntax: bitmap insertimage rowcol ; offset_xy ; scale_xy
+right argument
   rowcol    cell that we are going to insert the bitmap into
   offset_xy horizontal,vertical position (offset) of the image inside the cell.
   scale_xy  horizontal,vertical scale factor
-
-right argument
+left argument
   bitmap    Boxed image filename or unboxed raw image data
 
 Note: insertimage supports bmp/jpeg/png format image file in MS Excel, OpenOffice and GNumeric.  However GNumeric itself does not support bmp image format.
+
+
+syntax: string writecomment rowcol
+right argument
+  rowcol    cell that we are going to write the comment
+left argument
+  string    comment to be written
+
+Note: In current implementation, the comment always has clear background and uses font Courier New (i.e. the formatting set in the initial workbook).
 
 Save and open tara10.xls
 )

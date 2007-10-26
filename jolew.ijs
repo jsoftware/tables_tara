@@ -162,7 +162,7 @@ NB. 0.init
 rhinfo=. initparse sfile
 if. ''-:rhinfo do. '' return. end.
 NB. 1. get data
-(0&{ :: (''"_)) >@{: ugetppstree 0 ; rhinfo ; <bdata
+1{:: ugetppstree 0 ; rhinfo ; bdata ;< 0$0
 )
 
 NB.  getsearch:
@@ -173,10 +173,10 @@ NB. 0.init
 rhinfo=. initparse sfile
 if. ''-:rhinfo do. '' return. end.
 NB. 1. get data
-(0&{ :: (''"_)) >@{: ugetppssearch 0 ; rhinfo ; raname ; bdata ; <icase
+1{:: ugetppssearch 0 ; rhinfo ; raname ; bdata ; icase ;< 0$0
 )
 
-NB.  ugetnthpps:
+NB.  getnthpps:
 getnthpps=: 3 : 0
 y=. y.
 'ino bdata'=. y
@@ -184,7 +184,7 @@ NB. 0.init
 rhinfo=. initparse sfile
 if. ''-:rhinfo do. '' return. end.
 NB. 1. get data
-ugetnthpps ino ; rhinfo ; <bdata
+1{:: ugetnthpps ino ; rhinfo ; <bdata
 )
 
 NB.  initparse:
@@ -205,32 +205,34 @@ p
 NB.  ugetppstree:
 ugetppstree=: 3 : 0
 y=. y.
-'ino rhinfo bdata radone'=. 4{.y
-if. '' -.@-: radone do.
+'ino rhinfo bdata radone'=. y
+if. #radone do.
   if. ino e. radone do. radone ; <'' return. end.
 end.
-radone=. radone, ino
 irootblock=. rootstart__rhinfo
 NB. 1. get information about itself
 if. ''-: opps=. ugetnthpps ino ; rhinfo ; <bdata do. radone ; <'' return. end.
+radone=. radone, ino
 NB. 2. child
 if. dirpps__opps ~: _1 do.
-  radone=. 0{::ra=. ugetppstree dirpps__opps ; rhinfo ; bdata ; <radone
-  achildl=. _1{::ra
-  child__opps=: child__opps, achildl
+  'rad achild'=. ugetppstree dirpps__opps ; rhinfo ; bdata ; <radone
+  radone=. radone, rad
+  child__opps=: child__opps, achild
 else.
   child__opps=: ''
 end.
 NB. 3. previous, next ppss
 alist=. ''
 if. prevpps__opps ~: _1 do.
-  radone=. 0{::ra=. ugetppstree prevpps__opps ; rhinfo ; bdata ; <radone
-  alist=. _1{::ra
+  'rad achild'=. ugetppstree prevpps__opps ; rhinfo ; bdata ; <radone
+  radone=. radone, rad
+  alist=. alist, achild
 end.
 alist=. alist, opps
 if. nextpps__opps ~: _1 do.
-  radone=. 0{::ra=. ugetppstree nextpps__opps ; rhinfo ; bdata ; <radone
-  alist=. alist, _1{::ra
+  'rad achild'=. ugetppstree nextpps__opps ; rhinfo ; bdata ; <radone
+  radone=. radone, rad
+  alist=. alist, achild
 end.
 radone ; <alist
 )
@@ -238,44 +240,49 @@ radone ; <alist
 NB.  ugetppssearch:
 ugetppssearch=: 3 : 0
 y=. y.
-'ino rhinfo raname bdata icase radone'=. 6{.y
+'ino rhinfo raname bdata icase radone'=. y
 irootblock=. rootstart__rhinfo
 NB. 1. check it self
-if. '' -.@-: radone do.
+if. #radone do.
   if. ino e. radone do. radone ; <'' return. end.
 end.
-radone=. radone, ino
-ares=. ''
+alist=. ''
 if. ''-: opps=. ugetnthpps ino ; rhinfo ; <0 do. radone ; <'' return. end.
+found=. 0
 if. ((icase *. name__opps -:&toupper raname) +. name__opps-:raname) do.
   if. 1=bdata do.
     if. ''-: opps1=. ugetnthpps ino ; rhinfo ; <bdata do.
       destroy__opps ''
-      ares=. opps=. ''
+      radone ; <'' return.
     else.
       destroy__opps ''
-      ares=. opps=. opps1
+      alist=. opps=. opps1
+      radone=. radone, ino
     end.
   else.
-    ares=. opps
+    alist=. opps
+    radone=. radone, ino
   end.
-else.
-NB. 2. check child, previous, next ppss
-  if. dirpps__opps ~: _1 do.
-    radone=. 0{::ra=. ugetppssearch dirpps__opps ; rhinfo ; raname ; bdata ; icase ; <radone
-    ares=. ares, _1{::ra
-  end.
-  if. prevpps__opps ~: _1 do.
-    radone=. 0{::ra=. ugetppssearch prevpps__opps ; rhinfo ; raname ; bdata ; icase ; <radone
-    ares=. ares, _1{::ra
-  end.
-  if. nextpps__opps ~: _1 do.
-    radone=. 0{::ra=. ugetppssearch nextpps__opps ; rhinfo ; raname ; bdata ; icase ; <radone
-    ares=. ares, _1{::ra
-  end.
-  destroy__opps ''
+  found=. 1
 end.
-radone ; <ares
+NB. 2. check child, previous, next ppss
+if. dirpps__opps ~: _1 do.
+  'rad achild'=. ugetppssearch dirpps__opps ; rhinfo ; raname ; bdata ; icase ; <radone
+  radone=. radone, rad
+  alist=. alist, achild
+end.
+if. prevpps__opps ~: _1 do.
+  'rad achild'=. ugetppssearch prevpps__opps ; rhinfo ; raname ; bdata ; icase ; <radone
+  radone=. radone, rad
+  alist=. alist, achild
+end.
+if. nextpps__opps ~: _1 do.
+  'rad achild'=. ugetppssearch nextpps__opps ; rhinfo ; raname ; bdata ; icase ; <radone
+  radone=. radone, rad
+  alist=. alist, achild
+end.
+if. 0=found do. destroy__opps '' end.
+radone ; <alist
 )
 
 NB.  get header info  base informain about that file
@@ -555,6 +562,7 @@ datasizesmall=: 16b1000
 longintsize=: 4
 ppssize=: 16b80
 child=: ''
+adoptedchild=: ''
 NB.  no
 NB.  name
 NB.  type
@@ -570,7 +578,7 @@ NB.  child
 NB.  ppsfile
 
 destroy=: 3 : 0
-for_pps. child do. destroy__child '' end.
+for_pps. child -. adoptedchild do. destroy__pps '' end.
 codestroy ''
 )
 
@@ -678,6 +686,7 @@ startblock=: 0
 size=: 0
 data=: ''
 child=: rachild
+adoptedchild=: rachild
 fileh=: ''
 ppsfile=: ''
 )
@@ -741,6 +750,7 @@ startblock=: 0
 size=: 0
 data=: ''
 child=: rachild
+adoptedchild=: rachild
 fileh=: ''
 ppsfile=: ''
 )
