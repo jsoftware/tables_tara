@@ -1,4 +1,4 @@
-NB. built from project: ~addons/tables/tara/tara
+NB. built from project: ~user/jsrc/addons/tables/tara/tara
 NB. ---------------------------------------------------------
 NB.  jolew script for reading and writing ole2 storage
 NB.  portion based on ole::storage_lite by kawai takanori, kwitknr@cpan.org
@@ -4228,85 +4228,140 @@ end.
 )
 
 NB. ---------------------------------------------------------
-NB. static verb for reading Excel file
+NB.*readexcelsheets v Reads one or more sheets from an Excel file
 NB. read Excel Versions 5, 95, 97, 2000, XP, 2003
 NB. biff5  excel 5  biff7 excel 97   biff8 excel 97, xp, 2003
-NB. cover function to read worksheet
-NB. x sheet index or name
-NB. y Excel file name
-NB. 0 readexcel 'test.xls'
-readexcel=: 0&$: : (4 : 0)
-assert. fexist y
-ole=. (>y) conew 'olestorage'
-if. 0=#wks=. getppssearch__ole 'Workbook' ; 1 ; 1 do.              NB. biff8
-  if. 0=#wks=. getppssearch__ole 'Book' ; 1 ; 1 do.                NB. biff5/7
-    assert. 16b40009 16b60209 16b60409 e.~ fromDWORD0 freadx y;0 4  NB. biff2/3/4
+NB. returns 2-column matrix with a row for each sheet
+NB.         0{"1 boxed list of sheet names
+NB.         1{"1 boxed list of boxed matrices of sheet contents
+NB. y is 1 or 2-item boxed list:
+NB.     0{ filename of Excel workbook
+NB.     1{ [default 0] optional switch to return all cells contents as strings
+NB. x is one of [default is 0]:
+NB.      * numeric list of indicies of sheets to return
+NB.      * boxed list of sheet names to return
+NB.      * '' - return all sheets
+NB. EG: 0 readexcelsheets 'test.xls'
+readexcelsheets=: 3 : 0
+  0 readexcelsheets y
+:
+ try.
+  'fln strng'=. 2{.!.(<0) boxopen y
+  x=. boxopen x
+  locs=.'' NB. store locales created
+  (msg=.'file not found') assert fexist fln
+  locs=.locs,ole=. fln conew 'olestorage'
+  if. 0=#wks=. getppssearch__ole 'Workbook' ; 1 ; 1 do.              NB. biff8
+    if. 0=#wks=. getppssearch__ole 'Book' ; 1 ; 1 do.                NB. biff5/7
+      (msg=.'unknown Excel file format') assert 16b40009 16b60209 16b60409 e.~ fromDWORD0 freadx fln;0 4  NB. biff2/3/4
+    end.
   end.
-end.
-ex=. conew 'biffread'
-if. #wks do.
-  wk=. {.wks
-  0&create__ex data__wk
-NB. get worksheet location
-  if. 2 131072 e.~ 3!:0 x do. x=. (<x) i.~ {.("1) worksheets__ex end.
-  assert. x<#worksheets__ex
-  'name location'=. x{worksheets__ex
-else.
-  0&create__ex fread y
-  location=. x
-end.
-NB. read worksheet
-'ix cell'=. 0&readsheet__ex location
-NB. housekeeping
-destroy__ex ''
-for_wk. wks do. destroy__wk '' end.
-destroy__ole ''
-NB. transform cell records to matrix
-rcs=. (>./ >:@- <./) ix
-NB. store offset in static class variable if needed
-offset_biffread_=: off=. <./ ix
-m=. cell (<("1) ix -("1) off)}m=. rcs$a:
-NB. convert excel date
-NB. todate (+&36522) 38335 --> 2004 12 14
+  locs=. locs,wks
+  locs=.locs,ex=. conew 'biffread'
+  if. #wks do.
+    wk=. {.wks
+    0&create__ex data__wk
+  NB. get worksheet location
+    if. x-:<'' do.
+      x=. i.#worksheets__ex
+    elseif. -. */ 1 4 8 e.~ 3!:0 every x do.
+      x=. x i.~ {."1 worksheets__ex
+    elseif. do. x=. >x NB. unbox numeric list
+    end.
+    (msg=.'worksheet not found') assert x<#worksheets__ex
+    'name location'=. |: x{worksheets__ex
+  else.
+    0&create__ex fread fln
+    location=. {.>x
+  end.
+  'ix cell'=. <"1 |: ,:^:(1:=#@:$) strng&readsheet__ex"0 location NB. read worksheets
+  for_l. |.locs do. destroy__l '' end. NB. housekeeping
+  rcs=. (>./ >:@- <./) each ix   NB. transform cell records to matrix
+  offset_biffread_=: >{: off=. <./ each ix   NB. store offset in static class variable if needed
+  m=. 0$0
+  for_sht. cell do.
+    idx=. sht_index
+    n=. (idx{::rcs)$a:
+    n=. (>sht) (<"1 (idx{::ix) -"1 (idx{::off))}n
+    m=. m,<n
+  end.
+  (<@dtb"1 name) ,. m
+  NB. convert excel date
+  NB. todate (+&36522) 38335 --> 2004 12 14
+ catch.
+   for_l. |.locs do. destroy__l '' end.
+   smoutput 'readexcelsheets: ',msg
+ end.
 )
 
-NB. cover function to read worksheet, convert all number to string
-NB. x sheet index or name
-NB. y Excel file name
-NB. 0 readexcelstring 'test.xls'
-readexcelstring=: 0&$: : (4 : 0)
-assert. fexist y
-ole=. (>y) conew 'olestorage'
-if. 0=#wks=. getppssearch__ole 'Workbook' ; 1 ; 1 do.              NB. biff8
-  if. 0=#wks=. getppssearch__ole 'Book' ; 1 ; 1 do.                NB. biff5/7
-    assert. 16b40009 16b60209 16b60409 e.~ fromDWORD0 freadx y;0 4  NB. biff2/3/4
+NB.*readexcelsheetsstring v Reads contents of one or more sheets from an Excel file as strings
+NB. see readexcelsheets
+readexcelsheetsstring=: 3 : 0
+  0 readexcelsheetsstring y
+  :
+  y=. (boxopen y),<1  NB. add string specifier
+  x readexcelsheets y
+)
+
+NB.*readexcelworkbook v Reads all sheets from an Excel file
+NB. see readexcelsheets
+readexcelworkbook=: 3 : 0
+  '' readexcelsheets y
+)
+
+NB.*readexcel v Reads contents of a sheet from an Excel file
+NB. see readexcelsheets
+readexcel=: 3 : 0
+  0 readexcel y
+  :
+  x=. {.^:(3!:0~:2:) x NB. ensure single sheet
+  (<0 1){:: x readexcelsheets y
+)
+
+NB.*readexcelstring v Reads contents of a sheet from an Excel file as strings
+NB. see readexcelsheets
+readexcelstring=: 3 : 0
+  0 readexcelstring y
+  :
+  y=. (boxopen y),<1  NB. add string specifier
+  x readexcel y
+)
+
+NB. ---------------------------------------------------------
+NB.*readexcelsheetnames v Reads sheet names from Excel workbook
+NB. read Excel Versions 5, 95, 97, 2000, XP, 2003
+NB. biff5  excel 5  biff7 excel 97   biff8 excel 97, xp, 2003
+NB. returns boxed list of sheet names
+NB. y is Excel file name
+NB. EG: sheetnamesexcel 'test.xls'
+NB. added by Ric Sherlock, March 2008
+readexcelsheetnames=: 3 : 0
+ try.
+  fln=. boxopen y
+  locs=.'' NB. store locales created
+  (msg=.'file not found') assert fexist fln
+  locs=.locs,ole=. fln conew 'olestorage'
+  if. 0=#wks=. getppssearch__ole 'Workbook' ; 1 ; 1 do.              NB. biff8
+    if. 0=#wks=. getppssearch__ole 'Book' ; 1 ; 1 do.                NB. biff5/7
+      (msg=.'unknown Excel file format') assert 16b40009 16b60209 16b60409 e.~ fromDWORD0 freadx fln;0 4  NB. biff2/3/4
+    end.
   end.
-end.
-ex=. conew 'biffread'
-if. #wks do.
-  wk=. {.wks
-  0&create__ex data__wk
-NB. get worksheet location
-  if. 2 131072 e.~ 3!:0 x do. x=. (<x) i.~ {.("1) worksheets__ex end.
-  assert. x<#worksheets__ex
-  'name location'=. x{worksheets__ex
-else.
-  0&create__ex fread y
-  location=. x
-end.
-NB. read worksheet
-'ix cell'=. 1&readsheet__ex location
-NB. housekeeping
-destroy__ex ''
-for_wk. wks do. destroy__wk '' end.
-destroy__ole ''
-NB. transform cell records to matrix
-rcs=. (>./ >:@- <./) ix
-NB. store offset in static class variable if needed
-offset_biffread_=: off=. <./ ix
-m=. cell (<("1) ix -("1) off)}m=. rcs$<''
-NB. convert excel date
-NB. todate (+&36522) 38335 --> 2004 12 14
+  locs=. locs,wks
+  locs=.locs,ex=. conew 'biffread'
+  if. #wks do.
+    wk=. {.wks
+    0&create__ex data__wk
+  else.
+    0&create__ex fread y
+  end.
+  NB. read worksheet
+  nms=. {."1 worksheets__ex
+  for_l. |.locs do. destroy__l '' end. NB. housekeeping
+  nms
+ catch.
+   for_l. |.locs do. destroy__l '' end.
+   smoutput 'readexcelsheetnames: ',msg
+ end.
 )
 
 NB. cover function to dump worksheet
@@ -4357,6 +4412,10 @@ NB.  populate z locale
 readexcel_z_=: readexcel_biffread_
 readexcelstring_z_=: readexcelstring_biffread_
 dumpexcel_z_=: dumpexcel_biffread_
+readexcelsheetnames_z_=: readexcelsheetnames_biffread_
+readexcelsheets_z_=: readexcelsheets_biffread_
+readexcelsheetsstring_z_=: readexcelsheetsstring_biffread_
+readexcelworkbook_z_=: readexcelworkbook_biffread_
 
 
 NB. linux  openssl libmd4
