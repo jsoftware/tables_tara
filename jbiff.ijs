@@ -3319,6 +3319,7 @@ readexcelsheets=: 3 : 0
     n=. (>sht) (<"1^:(0:<#) sht_index{::ix)} n
     m=. m,<n
   end.
+  dtb=. #~ ([: +./\. ' '&~:)
   (<@dtb"1 name) ,. m
   NB. convert excel date
   NB. todate (+&36522) 38335 --> 2004 12 14
