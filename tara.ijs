@@ -4275,21 +4275,27 @@ readexcelsheets=: 3 : 0
     location=. {.>x
   end.
   'ix cell'=. <"1 |: ,:^:(1:=#@:$) strng&readsheet__ex"0 location NB. read worksheets
-  for_l. |.locs do. destroy__l '' end. NB. housekeeping
-  rcs=. (>./ >:@- <./) each ix   NB. transform cell records to matrix
+  for_l. |.locs do. NB. housekeeping
+    destroy__l ''
+    locs=. locs -. l
+  end. 
+  rcs=. 0&>.@(>./ >:@- <./) each ix   NB. transform cell records to matrix
   offset_biffread_=: >{: off=. <./ each ix   NB. store offset in static class variable if needed
+  ix=. ix -"1 each off
   m=. 0$0
   for_sht. cell do.
-    idx=. sht_index
-    n=. (idx{::rcs)$a:
-    n=. (>sht) (<"1 (idx{::ix) -"1 (idx{::off))}n
+    n=. (sht_index{::rcs)$a:
+    n=. (>sht) (<"1^:(0:<#) sht_index{::ix)} n
     m=. m,<n
   end.
   (<@dtb"1 name) ,. m
   NB. convert excel date
   NB. todate (+&36522) 38335 --> 2004 12 14
  catch.
-   for_l. |.locs do. destroy__l '' end.
+   for_l. |.locs do. NB. housekeeping
+     destroy__l '' 
+     locs=. locs -. l 
+   end.
    smoutput 'readexcelsheets: ',msg
  end.
 )
