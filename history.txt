@@ -1,0 +1,11 @@
+tables/tara - change history
+
+== 1.2.3 ==
+ * add: readexcelsheetnames to return all sheetnames in a workbook
+ * add: readexcelsheets to generalize reading multiple sheets
+ * add: readexcelsheetsstring to return sheets as strings
+ * add: readexcelworkbook to return all sheets in workbook
+ * chg: readexcel to use readexcelsheets
+
+== 1.2.2 ==
+ * pre-history.txt

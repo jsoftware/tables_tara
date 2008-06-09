@@ -1,4 +1,4 @@
-NB. project file: c:/jdev/addons/trunk/tables/tara
+NB. project file: ~Addons/tables/tara/tara
 
 coclass 'jproject'
 
@@ -15,12 +15,13 @@ DEVFILES=: ''
 DEVLIBS=: ''
 
 OTHERFILES=: 0 : 0
+~Addons/tables/tara/dora.png
+~Addons/tables/tara/history.txt
 ~Addons/tables/tara/manifest.ijs
 ~Addons/tables/tara/tara.ijt
 ~Addons/tables/tara/taradoc.txt
 ~Addons/tables/tara/taratest.ijs
 ~Addons/tables/tara/test.xls
-~Addons/tables/tara/dora.png
 )
 
 TARGETFILE=: '~Addons/tables/tara/tara.ijs'
