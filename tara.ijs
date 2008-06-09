@@ -4229,19 +4229,19 @@ end.
 
 NB. ---------------------------------------------------------
 NB.*readexcelsheets v Reads one or more sheets from an Excel file
-NB. read Excel Versions 5, 95, 97, 2000, XP, 2003
+NB. returns: 2-column matrix with a row for each sheet
+NB.       0{"1 boxed list of sheet names
+NB.       1{"1 boxed list of boxed matrices of sheet contents
+NB. y is: 1 or 2-item boxed list:
+NB.       0{ filename of Excel workbook
+NB.       1{ [default 0] optional switch to return all cells contents as strings
+NB. x is: one of [default is 0]:
+NB.       * numeric list of indicies of sheets to return
+NB.       * boxed list of sheet names to return
+NB.       * '' - return all sheets
+NB. EG:   0 readexcelsheets 'test.xls'
+NB. reads Excel Versions 5, 95, 97, 2000, XP, 2003
 NB. biff5  excel 5  biff7 excel 97   biff8 excel 97, xp, 2003
-NB. returns 2-column matrix with a row for each sheet
-NB.         0{"1 boxed list of sheet names
-NB.         1{"1 boxed list of boxed matrices of sheet contents
-NB. y is 1 or 2-item boxed list:
-NB.     0{ filename of Excel workbook
-NB.     1{ [default 0] optional switch to return all cells contents as strings
-NB. x is one of [default is 0]:
-NB.      * numeric list of indicies of sheets to return
-NB.      * boxed list of sheet names to return
-NB.      * '' - return all sheets
-NB. EG: 0 readexcelsheets 'test.xls'
 readexcelsheets=: 3 : 0
   0 readexcelsheets y
 :
@@ -4322,7 +4322,7 @@ readexcel=: 3 : 0
   0 readexcel y
   :
   x=. {.^:(3!:0~:2:) x NB. ensure single sheet
-  (<0 1){:: x readexcelsheets y
+  ;{:"1 x readexcelsheets y
 )
 
 NB.*readexcelstring v Reads contents of a sheet from an Excel file as strings
@@ -4336,12 +4336,11 @@ readexcelstring=: 3 : 0
 
 NB. ---------------------------------------------------------
 NB.*readexcelsheetnames v Reads sheet names from Excel workbook
+NB. returns: boxed list of sheet names
+NB. y is: Excel file name
+NB. eg: sheetnamesexcel 'test.xls'
 NB. read Excel Versions 5, 95, 97, 2000, XP, 2003
 NB. biff5  excel 5  biff7 excel 97   biff8 excel 97, xp, 2003
-NB. returns boxed list of sheet names
-NB. y is Excel file name
-NB. EG: sheetnamesexcel 'test.xls'
-NB. added by Ric Sherlock, March 2008
 readexcelsheetnames=: 3 : 0
  try.
   fln=. boxopen y
