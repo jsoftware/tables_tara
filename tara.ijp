@@ -1,10 +1,11 @@
-NB. project file: ~Addons/tables/tara/tara
+NB. project file: c:/users/rsherloc/documents/j602-user/jsrc/addons/tables/tara/tara
 
 coclass 'jproject'
 
 PRIMARYFILES=: 0 : 0
 ~Addons/tables/tara/jolew
 ~Addons/tables/tara/jbiff
+~Addons/tables/tara/jbiffwrite
 ~Addons/tables/tara/jbiffmso
 )
 

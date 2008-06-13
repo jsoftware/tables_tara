@@ -1,71 +1,11 @@
-NB. linux  openssl libmd4
-NB. win32  advapi32 Crypt..
 NB. other  crc32 128!:3
 coxclass 'biffmd4'
 
-PROV_RSA_FULL=: 1
-CRYPT_NEWKEYSET=: 8
-ALG_CLASS_HASH=: 32768
-ALG_TYPE_ANY=: 0
-ALG_SID_MD4=: 2
-ALG_SID_MD5=: 3
-CALG_MD4=: ALG_CLASS_HASH (23 b.) ALG_TYPE_ANY (23 b.) ALG_SID_MD4
-CALG_MD5=: ALG_CLASS_HASH (23 b.) ALG_TYPE_ANY (23 b.) ALG_SID_MD5
-HP_HASHVAL=: 2
-
-win_md4=: 3 : 0
+md4=: crc32_md4=: 3 : 0
 y=. y.
-if. 0~: c=. 'advapi32 CryptAcquireContextA x *x x x i i'&cd (,_1) ; 0 ; 0 ; PROV_RSA_FULL ; 0 do.
-  c=. {. 1{:: c
-else.
-  if. 0~: c=. 'advapi32 CryptAcquireContextA x *x x x i i'&cd (,_1) ; 0 ; 0 ; PROV_RSA_FULL ; CRYPT_NEWKEYSET do.
-    c=. {. 1{:: c
-  else.
-    'CryptAcquireContext Error' 13!:8 (3)
-  end.
-end.
-h=. {. _1{:: 'advapi32 CryptCreateHash x x i i i *x'&cd c ; CALG_MD4 ; 0 ; 0 ; (,_1)
-NB. h=. {. _1{:: 'advapi32 CryptCreateHash x x i i i *x'&cd c ; CALG_MD5 ; 0 ; 0 ; (,_1)
-'advapi32 CryptHashData x x *c i i'&cd h ; y ; (#y) ; 0
-z=. ((4&{::) {. 3&{::) 'advapi32 CryptGetHashParam x x i *c *i i'&cd h ; HP_HASHVAL ; (20#{.a.) ; (,20) ; 0
-'advapi32 CryptDestroyHash x x'&cd <h
-'advapi32 CryptReleaseContext x x i'&cd c ; 0
+z=. 2&(3!:4) 4{. 128!:3 y
+assert. 16=#z
 z
-)
-
-lnx_md4=: 3 : 0
-y=. y.
-
-3{:: (libmd4, ' MD4 x *c x *c')&cd y ; (#y) ; 16#{.a.
-)
-
-crc32_md4=: 3 : 0
-y=. y.
-
-2&(3!:4) 4{. 128!:3 y
-)
-
-3 : 0''
-if. IF64 do.
-NB. TODO: md4 library not yet tested on linux64/win64
-  md4=: crc32_md4
-else.
-  if. IFUNIX do.
-    try.
-      libmd4=: find_dll 'libmd4'
-      md4=: lnx_md4
-    catch.
-      md4=: crc32_md4
-    end.
-  elseif. IFWIN32 do.
-    md4=: win_md4
-  elseif. do.
-    md4=: crc32_md4
-  end.
-end.
-NB. if MD4 library does not work, de-comment the next line
-NB. md4=: crc32_md4
-''
 )
 
 coxclass 'biffsheet'

@@ -3257,6 +3257,10 @@ end.
 )
 
 NB. ---------------------------------------------------------
+NB. Covers for reading sheet(s) from an Excel workbook
+NB. redeveloped by Ric Sherlcok from original by bill lam
+NB. ---------------------------------------------------------
+
 NB.*readexcelsheets v Reads one or more sheets from an Excel file
 NB. returns: 2-column matrix with a row for each sheet
 NB.       0{"1 boxed list of sheet names
