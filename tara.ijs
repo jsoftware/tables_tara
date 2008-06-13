@@ -4447,18 +4447,29 @@ NB.     * boxed (numeric/literal/mixed) matrix (data to write to Sheet1)
 NB.     * 2-item/column vector/matrix,
 NB.          Sheetnames in 1st item/col (literal)
 NB.          Associated data formats (above) for sheetnames
-NB. if <sheetname(s)> not given then defaults used 
+NB. if <sheetname(s)> not given then defaults used
 writeexcelsheets=: 4 : 0
-  if. 0=#x do. empty'' return. end. NB. if empty xarg then return.
-  shts=. makexarg x
-  shtnme=. ((0 < #) {:: 'Sheet1'&;) (<0 0) {:: shts
-  bi=. ('Arial' ; 220 ; shtnme) conew 'biffbook'
-  shtdat=. (<0 1){:: shts
-  bi writeshtdat shtdat NB. write data for first worksheet
-  shts=. }.shts         NB. drop first sheet from list
-  bi addsheets"1 shts NB. add and write to rest of sheets
-  save__bi y
-  destroy__bi ''
+  try.
+    locs=. '' NB. store locales created
+    if. 0=#x do. empty'' return. end. NB. if empty xarg then return.
+    (msg=. 'too many levels of boxing') assert 2>:L. x
+    shts=. makexarg x
+    shtnme=. ((0 < #) {:: 'Sheet1'&;) (<0 0) {:: shts
+    locs=. locs,bi=. ('Arial';220;shtnme) conew 'biffbook'
+    shtdat=. (<0 1){:: shts
+    bi writeshtdat shtdat NB. write data for first worksheet
+    shts=. }.shts         NB. drop first sheet from list
+    bi addsheets"1 shts NB. add and write to rest of sheets
+    binary=. save__bi y
+    success=. destroy__bi ''
+    (*#binary){:: success;binary
+  catch.
+    for_l. |.locs do. NB. housekeeping
+      destroy__l ''
+      locs=. locs -. l
+    end.
+    smoutput 'writeexcelsheets: ',msg
+  end.
 )
 
 NB. ---------------------------------------------------------
@@ -4499,7 +4510,7 @@ makexarg=: 3 : 0
       upd=. ({."1 ,. <&.>@({:"1)) b#y NB. boxed versions
       y=. upd idx }y
     end.
-    if. #idx=. (I. b=.2> #@$&>{:"1 y) do.  NB. sheets with unboxed string data
+    if. #idx=. (I. b=. 2> #@$&>{:"1 y) do.  NB. sheets with unboxed string data
       upd=. ({."1 ,. mfva&.>@({:"1)) b#y NB. boxed versions
       y=. upd idx }y
     end.
@@ -4548,9 +4559,9 @@ x5=: 4 2$'abcd';54;'eiij';2;4.4 NB. boxed mixed array
 x6=: 'No name, single char' NB. literal
 x7=: 'data 1';'data 2'      NB. boxed char vector
 x8=: 5 8                    NB. int vector
-x9=: <"0 ]15.6 12.9 54.33   NB. boxed flt vector 
+x9=: <"0 ]15.6 12.9 54.33   NB. boxed flt vector
 x10=: 'Int array';x1      NB. With sheetnames
-x11=: 'Flt array';x2     
+x11=: 'Flt array';x2
 x12=: 'Box Int array';<x3
 x13=: 'Box Chr array';<x4
 x14=: 'Box Mix array';<x5
@@ -4558,7 +4569,7 @@ x15=: '';<x1              NB. empty sheetname
 x16=: ,.x2;<x3   NB. data column- flt and boxed int arrays
 x17=: (<x9),(<x7),(<x8),(<x5),(<x1),(<x4),x16 NB. data column
 x18=: x10 ,: 'Literal';x6
-x19=: (x10,x11,x12,x13,x14,x15)
+x19=: (x10,x11,x12,x13,x14,:x15)
 )
 
 Note 'tests for writeexcelsheets'
