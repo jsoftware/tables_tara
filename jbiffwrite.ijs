@@ -51,7 +51,7 @@ ischar=: 3!:0 e. 2 131072"_
 firstones=: > 0: , }:
 lastones=: > 0: ,~ }.
 NB. indices=: $ #: I.@,   NB. get row,.col indices of 1s in matrix
-indices=: 4$.$.       NB. get row,.col indices of 1s in matrix
+indices=: 4:$.$.       NB. get row,.col indices of 1s in matrix
 isrowblks=: >/@(+/^:(#&$)"_1) NB. are blocks row oriented
 
 NB. isdata v Verb decides on type of x argument to writesheets
