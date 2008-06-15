@@ -1,9 +1,9 @@
 NB. tara manifest
 
-CAPTION=: 'reads and writes Excel files'
+CAPTION=: 'Platform independent system for reading and writing Excel files'
 
 DESCRIPTION=: 0 : 0
-Tara reads and writes files in Excel format. It supports the biff8 format used in Excel 97/2000/xp/2003. It also reads older formats used in earlier versions of Excel. It can also work with spreadsheets like OpenOffice and Gnumeric that support Excel formats.
+Tara reads and writes files in Excel format. It supports the biff8 format used in Excel 97/2000/xp/2003. It also reads older formats used in earlier versions of Excel. It can also work with spreadsheets like OpenOffice and Gnumeric that support Excel formats. It runs on Windows, Linux and Mac OSX. MS Excel or OpenOffice is not required to use Tara.
 
 After it is installed, run lab 'Tara and Excel' for examples of using the system.
 
@@ -21,5 +21,6 @@ tara.ijs
 tara.ijt
 taradoc.txt
 taratest.ijs
+taratest2.ijs
 test.xls
 )

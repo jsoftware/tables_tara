@@ -15,6 +15,9 @@ localdate2ole=: 3 : 0
 a.{~(8#256)#: 10000000*x:86400*(y%86400000)+72682
 )
 
+NB. not defined in stdlib pre-J6
+Note=: 3 : '0 0 $ 0 : 0' : [
+
 NB. followings also defined in z locale
 NB. ---------------------------------------------------------
 NB. followings bit op require j5
@@ -3747,6 +3750,8 @@ formula__r=: (16b29{a.), (toWORD0@# , ]) ((a.{~16b3b 0 0), 0 0 0 0 cellrangeadr 
 x
 )
 
+
+
 NB. ---------------------------------------------------------
 NB. read numeric and string data from excel files
 NB. written by bill lam
@@ -4229,10 +4234,10 @@ end.
 
 NB. ---------------------------------------------------------
 NB. Covers for reading sheet(s) from an Excel workbook
-NB. redeveloped by Ric Sherlcok from original by bill lam
+NB. redeveloped by Ric Sherlock from original by bill lam
 NB. ---------------------------------------------------------
 
-NB.*readexcelsheets v Reads one or more sheets from an Excel file
+NB.*readxlsheets v Reads one or more sheets from an Excel file
 NB. returns: 2-column matrix with a row for each sheet
 NB.       0{"1 boxed list of sheet names
 NB.       1{"1 boxed list of boxed matrices of sheet contents
@@ -4243,11 +4248,11 @@ NB. x is: one of [default is 0]:
 NB.       * numeric list of indicies of sheets to return
 NB.       * boxed list of sheet names to return
 NB.       * '' - return all sheets
-NB. EG:   0 readexcelsheets 'test.xls'
+NB. EG:   0 readxlsheets 'test.xls'
 NB. reads Excel Versions 5, 95, 97, 2000, XP, 2003
 NB. biff5  excel 5  biff7 excel 97   biff8 excel 97, xp, 2003
-readexcelsheets=: 3 : 0
-  0 readexcelsheets y
+readxlsheets=: 3 : 0
+  0 readxlsheets y
 :
  try.
   'fln strng'=. 2{.!.(<0) boxopen y
@@ -4301,36 +4306,36 @@ readexcelsheets=: 3 : 0
      destroy__l '' 
      locs=. locs -. l 
    end.
-   smoutput 'readexcelsheets: ',msg
+   smoutput 'readxlsheets: ',msg
  end.
 )
 
-NB.*readexcelsheetsstring v Reads contents of one or more sheets from an Excel file as strings
-NB. see readexcelsheets
-readexcelsheetsstring=: 3 : 0
-  0 readexcelsheetsstring y
+NB.*readxlsheetsstring v Reads contents of one or more sheets from an Excel file as strings
+NB. see readxlsheets
+readxlsheetsstring=: 3 : 0
+  0 readxlsheetsstring y
   :
   y=. (boxopen y),<1  NB. add string specifier
-  x readexcelsheets y
+  x readxlsheets y
 )
 
-NB.*readexcelworkbook v Reads all sheets from an Excel file
-NB. see readexcelsheets
-readexcelworkbook=: 3 : 0
-  '' readexcelsheets y
+NB.*readxlworkbook v Reads all sheets from an Excel file
+NB. see readxlsheets
+readxlworkbook=: 3 : 0
+  '' readxlsheets y
 )
 
 NB.*readexcel v Reads contents of a sheet from an Excel file
-NB. see readexcelsheets
+NB. see readxlsheets
 readexcel=: 3 : 0
   0 readexcel y
   :
   x=. {.^:(3!:0~:2:) x NB. ensure single sheet
-  ;{:"1 x readexcelsheets y
+  ;{:"1 x readxlsheets y
 )
 
 NB.*readexcelstring v Reads contents of a sheet from an Excel file as strings
-NB. see readexcelsheets
+NB. see readxlsheets
 readexcelstring=: 3 : 0
   0 readexcelstring y
   :
@@ -4339,13 +4344,13 @@ readexcelstring=: 3 : 0
 )
 
 NB. ---------------------------------------------------------
-NB.*readexcelsheetnames v Reads sheet names from Excel workbook
+NB.*readxlsheetnames v Reads sheet names from Excel workbook
 NB. returns: boxed list of sheet names
 NB. y is: Excel file name
-NB. eg: sheetnamesexcel 'test.xls'
+NB. eg: readxlsheetnames 'test.xls'
 NB. read Excel Versions 5, 95, 97, 2000, XP, 2003
 NB. biff5  excel 5  biff7 excel 97   biff8 excel 97, xp, 2003
-readexcelsheetnames=: 3 : 0
+readxlsheetnames=: 3 : 0
  try.
   fln=. boxopen y
   locs=.'' NB. store locales created
@@ -4370,7 +4375,7 @@ readexcelsheetnames=: 3 : 0
   nms
  catch.
    for_l. |.locs do. destroy__l '' end.
-   smoutput 'readexcelsheetnames: ',msg
+   smoutput 'readxlsheetnames: ',msg
  end.
 )
 
@@ -4422,10 +4427,12 @@ NB.  populate z locale
 readexcel_z_=: readexcel_biffread_
 readexcelstring_z_=: readexcelstring_biffread_
 dumpexcel_z_=: dumpexcel_biffread_
-readexcelsheetnames_z_=: readexcelsheetnames_biffread_
-readexcelsheets_z_=: readexcelsheets_biffread_
-readexcelsheetsstring_z_=: readexcelsheetsstring_biffread_
-readexcelworkbook_z_=: readexcelworkbook_biffread_
+readxl_z_=: readexcel_biffread_
+readxlstring_z_=: readexcelstring_biffread_
+readxlsheetnames_z_=: readxlsheetnames_biffread_
+readxlsheets_z_=: readxlsheets_biffread_
+readxlsheetsstring_z_=: readxlsheetsstring_biffread_
+readxlworkbook_z_=: readxlworkbook_biffread_
 
 
 NB. =========================================================
@@ -4436,7 +4443,7 @@ coclass 'biffwrite'
 coinsert 'biffbook'
 
 NB. ---------------------------------------------------------
-NB.*writeexcelsheets v Write arrays to sheets of Excel workbook
+NB.*writexlsheets v Write arrays to sheets of Excel workbook
 NB. returns: numeric 1 if successful.
 NB. form: ([<sheetname(s)>],.<sheetcontent(s)>) writesheets <filename>
 NB. y is: literal filename of workbook to create
@@ -4448,17 +4455,20 @@ NB.     * 2-item/column vector/matrix,
 NB.          Sheetnames in 1st item/col (literal)
 NB.          Associated data formats (above) for sheetnames
 NB. if <sheetname(s)> not given then defaults used
-writeexcelsheets=: 4 : 0
+writexlsheets=: 4 : 0
   try.
     locs=. '' NB. store locales created
     if. 0=#x do. empty'' return. end. NB. if empty xarg then return.
     (msg=. 'too many levels of boxing') assert 2>:L. x
+    msg=. 'error in left argument'
     shts=. makexarg x
     shtnme=. ((0 < #) {:: 'Sheet1'&;) (<0 0) {:: shts
     locs=. locs,bi=. ('Arial';220;shtnme) conew 'biffbook'
     shtdat=. (<0 1){:: shts
+    msg=. 'error writing data for ',shtnme
     bi writeshtdat shtdat NB. write data for first worksheet
     shts=. }.shts         NB. drop first sheet from list
+    msg=. 'error creating/writing later sheets'
     bi addsheets"1 shts NB. add and write to rest of sheets
     binary=. save__bi y
     success=. destroy__bi ''
@@ -4468,7 +4478,7 @@ writeexcelsheets=: 4 : 0
       destroy__l ''
       locs=. locs -. l
     end.
-    smoutput 'writeexcelsheets: ',msg
+    smoutput 'writexlsheets: ',msg
   end.
 )
 
@@ -4537,7 +4547,7 @@ writeshtdat=: 4 : 0
     writenumber__x 0 0;y
   else.
     as=. ischar &> y
-    blks=. blocksx as
+    blks=. blocks2 as
     tls=. {.0 2|: blks
     dat=: blks <;.0 y NB. blocks of char
     writestring__x"1 (<"1 tls),.dat
@@ -4546,52 +4556,6 @@ writeshtdat=: 4 : 0
     dat=. blks ([:<>);.0 y  NB. blocks of non-char
     writenumber__x"1 (<"1 tls),.dat
   end.
-)
-
-NB. ---------------------------------------------------------
-NB. tests
-Note 'testargs'
-x1=: i.3 5                  NB. int array
-x2=: 9 15?.@$0              NB. float array
-x3=: <"0 i.12 20            NB. boxed int array
-x4=: 4 2$'abcd';'kdisd';'eiij asj' NB. boxed char array
-x5=: 4 2$'abcd';54;'eiij';2;4.4 NB. boxed mixed array
-x6=: 'No name, single char' NB. literal
-x7=: 'data 1';'data 2'      NB. boxed char vector
-x8=: 5 8                    NB. int vector
-x9=: <"0 ]15.6 12.9 54.33   NB. boxed flt vector
-x10=: 'Int array';x1      NB. With sheetnames
-x11=: 'Flt array';x2
-x12=: 'Box Int array';<x3
-x13=: 'Box Chr array';<x4
-x14=: 'Box Mix array';<x5
-x15=: '';<x1              NB. empty sheetname
-x16=: ,.x2;<x3   NB. data column- flt and boxed int arrays
-x17=: (<x9),(<x7),(<x8),(<x5),(<x1),(<x4),x16 NB. data column
-x18=: x10 ,: 'Literal';x6
-x19=: (x10,x11,x12,x13,x14,:x15)
-)
-
-Note 'tests for writeexcelsheets'
-x1 writexlsheets jpath '~temp/tarawsht1.xls'
-x2 writexlsheets jpath '~temp/tarawsht2.xls'
-x3 writexlsheets jpath '~temp/tarawsht3.xls'
-x4 writexlsheets jpath '~temp/tarawsht4.xls'
-x5 writexlsheets jpath '~temp/tarawsht5.xls'
-x6 writexlsheets jpath '~temp/tarawsht6.xls'
-x7 writexlsheets jpath '~temp/tarawsht7.xls'
-x8 writexlsheets jpath '~temp/tarawsht8.xls'
-x9 writexlsheets jpath '~temp/tarawsht9.xls'
-x10 writexlsheets jpath '~temp/tarawsht10.xls'
-x11 writexlsheets jpath '~temp/tarawsht11.xls'
-x12 writexlsheets jpath '~temp/tarawsht12.xls'
-x13 writexlsheets jpath '~temp/tarawsht13.xls'
-x14 writexlsheets jpath '~temp/tarawsht14.xls'
-x15 writexlsheets jpath '~temp/tarawsht15.xls'
-x16 writexlsheets jpath '~temp/tarawsht16.xls'
-x17 writexlsheets jpath '~temp/tarawsht17.xls'
-x18 writexlsheets jpath '~temp/tarawsht18.xls'
-x19 writexlsheets jpath '~temp/tarawsht19.xls'
 )
 
 NB. ---------------------------------------------------------
@@ -4620,32 +4584,35 @@ shapes=: [: >: brs - tls  NB. shapes of blocks of 1s
 blocks=: tls ,:"1 shapes  NB. blocks of 1s
 )
 
+NB. =========================================================
+NB. 2d version for creating blocks based on algorithm by RE Boss
+NB. http://www.jsoftware.com/pipermail/programming/2008-June/011057.html
+incgrp=: [:($$ [:+/\ ,) (1, }:~: }.)"1 NB. running sum of starts of connected 1s in each row
+rpl=: ] - (-/ , 0:)@[ {~ {.@[ i. ] NB. numeric replace (RMiller)
+
+hv=: *"_ _1 incgrp,: incgrp&.|:  NB. hor. & vert. connected 1s.
+rplhv=: (([:(,:|.) ,"_1) rpl"_1 ]) @: hv
+NB. rectgrps=: ({.@]($@[ $ ]) i.~@,.&,/) @: rplhv NB. rectangular groups of 1s
+rectgrps=: ({.@] ($@[ $ ]) }.@(i.~@(0&,@(,.&,/))))@:rplhv
+tlbr=: ($#: (](i.}.@,. i:) 0~.@,])@,) @: rectgrps NB. topleft and bottomright corners of each group
+blocks2=: ([,: (-~>:))/"_1 @: tlbr
+
 Note 'testing'
 tls tst1          NB. list of topleft of blocks of 1s
 tls -.tst1        NB. list of topleft of blocks of 0s
 
 (blocks ischar &> tsta) <;.0 tsta  NB. blocks of char (you will need to create a tsta to run this)
-(blocksx -.ischar &> tsta) <;.0 tsta  NB. blocks of non-char
+(blocks -.ischar &> tsta) <;.0 tsta  NB. blocks of char (you will need to create a tsta to run this)
+(blocksx ischar &> tsta) <;.0 tsta  NB. blocks of non-char
 (blocksx -.ischar &> tsta) ([:<>);.0 tsta  NB. blocks of non-char
+(blocks2 ischar &> tsta) <;.0 tsta  NB. blocks of non-char
+(blocks2 -.ischar &> tsta) ([:<>);.0 tsta  NB. blocks of non-char
 )
 
-NB. =========================================================
-NB. Attempt 2d version for creating blocks
-Note '2d version of blocks'
-tl=: (firstones *. firstones"1)  NB. topright
-br=: (lastones *. lastones"1)    NB. bottomleft
-
-tsta=: readexcel jpath '~temp/tararead.xls'
-tst1=: ischar every tsta
-
-('tst1';'firstones';'lastones';'firstones"1';'lastones"1'),:(;firstones;lastones;firstones"1;lastones"1) tst1
-indices tl tst1
-indices br tst1
-)
 
 NB. =========================================================
 NB.  publish in z locale
-writexlsheets_z_=: writeexcelsheets_biffwrite_
+writexlsheets_z_=: writexlsheets_biffwrite_
 
 NB. other  crc32 128!:3
 coclass 'biffmd4'

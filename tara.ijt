@@ -13,9 +13,13 @@ Compared with the OLE/COM interface, Tara is faster and is platform independent.
 
 NB. =========================================================
 Lab Section Installation
-Download tara.zip from http://www.jsoftware.com/jwiki/Packages/Tara. This lab requires you to unzip it in the J addons directory.
+As of J6.02 you can download the Tara addon from JAL using the Package Manager.
 
-Where is the addons directory? It can be found by using jpath. The file tara.ijs will be found there after a successful installation.
+For earlier versions of J:
+  * download the addon for your platform from     http://www.jsoftware.com/jal/. 
+  * Unzip it in the J addons directory.
+
+Where is your addons directory? It can be found by using jpath. The file tara.ijs will be found there after a successful installation.
 )
 jpath '~addons/tables/tara/tara.ijs'
 
@@ -38,7 +42,7 @@ NB. =========================================================
 Lab Section Load Tara package
 First load tara.ijs
 )
-load '~addons/tables/tara/tara.ijs'  
+load '~addons/tables/tara/tara.ijs'
 
 NB. =========================================================
 Lab Section Classes in Tara
@@ -49,10 +53,22 @@ Classes beginning with 'biff' are for biff8, while and beginning with 'ole' for 
 'bo' 18!:1 [0            NB. display classes in Tara
 
 NB. =========================================================
-Lab Section readexcel
+Lab Section Available verbs
 Tara provides verbs in the z locale for reading Excel files. They are:
 
-  readexcel, readexcelstring and dumpexcel
+  readexcel, readexcelstring and dumpexcel 
+    - all read contents of single worksheet
+
+  readxlsheets, readxlsheetsstring, readxlworkbooks
+    - all read name and content pairs of one or more sheets
+
+  readxlsheetnames
+    - reads all sheet names in a workbook
+)
+
+NB. =========================================================
+Lab Section readexcel
+readexcel (and its alias readxl) reads the contents of a sheet as a boxed matrix.
 
   left argument is worksheet index or name (0 if elided)
   right argument is file name      (eg. 'myfile.xls')
@@ -67,6 +83,35 @@ readexcelstring is same as readexcel except that all values will be converted to
 )
 ] b=. 'Sheet1' readexcelstring jpath '~addons/tables/tara/test.xls'  NB. worksheet by name
 3!:0&.> b
+
+NB. =========================================================
+Lab Section readxlsheets
+readxlsheets reads the name and content pairs of one or more sheets as a 2-column matrix
+
+  left argument is list of worksheet indices or names 
+                   (0 if elided and all if empty)
+  right argument is file name      
+                   (eg. 'myfile.xls')
+
+Now read the 1st and 3rd worksheets of the sample Excel file 'test.xls'. The result is a boxed matrix.
+)
+     0 2 readxlsheets jpath '~addons/tables/tara/test.xls'
+
+NB. =========================================================
+Lab Section readxlworkbook
+readxlworkbook <file> is an alias for:
+  '' readxlsheets <file>
+)
+readxlworkbook jpath '~addons/tables/tara/test.xls'
+
+NB. =========================================================
+Lab Section readxlsheetnames
+If you want to return the sheet names in a workbook without the overhead of reading the sheet contents as well, you can use readxlsheetnames.
+
+readxlsheetnames <file>
+       returns a boxed list of all the sheet names in a workbook.
+)
+readxlsheetnames jpath '~addons/tables/tara/test.xls'
 
 NB. =========================================================
 Lab Section Internal Structure of Excel File
@@ -117,13 +162,83 @@ bkbytes{~1185+i.26      NB. content of SST record
 a.i.bkbytes{~1185+i.26  NB. show unprintable data
 
 NB. =========================================================
-Lab Chapter Writing Excel Files
+Lab Chapter Writing simple Excel files
+NB. =========================================================
+Lab Section writexlsheets - numeric arrays
+Sometimes you just want to quickly write an array (or arrays) to an Excel workbook. The writexlsheets verb will help you do that. The format is:
+
+<array> writexlsheets <file>
+
+You can write numeric arrays that are either boxed or unboxed.
+)
+]x1=: i.3 5        NB. simple integer array
+x1 writexlsheets jpath '~temp/tarasmp1.xls'
+]x2=: <"0 ]3 4?.@$0  NB. boxed array of floats
+x2 writexlsheets jpath '~temp/tarasmp2.xls'
+
+NB. =========================================================
+Lab Section writexlsheets - char/mixed arrays
+writexlsheets can also write boxed arrays of literals(strings) and mixed type.
+
+(An unboxed literal will be written to cell A1 of the worksheet.)
+)
+]x3=: 2 4$'Lorem ipsum';'dolor sit';'Hi there!' NB. boxed char array
+x3 writexlsheets jpath '~temp/tarasmp3.xls'
+]x4=: 4 2$'consectetur';54;'Hi there!';2;4.4 
+x4 writexlsheets jpath '~temp/tarasmp4.xls'
+
+NB. =========================================================
+Lab Section writexlsheets - with sheet names
+You can give a sheet name for your array using the format:
+
+<shtnme>;<<array> writexlsheets <file>
+)
+('Integer array';x1)      writexlsheets jpath '~temp/tarasmp5.xls'
+('Boxed Mixed array';<x4) writexlsheets jpath '~temp/tarasmp6.xls'
+
+NB. =========================================================
+Lab Section writexlsheets - multiple sheets
+You can write multiple 2D arrays to different worksheets in the same workbook without sheetnames by giving them as a boxed column of arrays:
+  (,.<array1>;<<array2>) writexlsheets <file>
+)
+]x5=: ,.x1;x2;<x4
+x5 writexlsheets jpath '~temp/tarasmp7.xls'
+
+NB. =========================================================
+Lab Section
+You can give the sheets names by prepending a second column to the left argument.
+  ((<name1>;<<array1),(<name2>;<<array2)) writexlsheets <file>
+)
+]x6=: ('Numeric array';'';'Boxed Mixed array'),.x5
+x6 writexlsheets jpath '~temp/tarasmp8.xls'
+
+NB. =========================================================
+Lab Section writexlsheets - return contents
+You can return the content of the generated Excel file, instead of writing to a file.  This is useful for a J web server that provides a dynamically created Excel file to browsers.
+
+To do so, use '' as the file name during saving.
+)
+ xlfile=: ('Integer array';x1) writexlsheets jpath ''
+ xlfile NB. binary contents of Excel file.
+
+NB. =========================================================
+Lab Section writexlsheets - more examples
+For more examples of using writexlsheets, see the '~addons/tables/tara/taratest2.ijs' script.
+
+If you want more control over the writing and formating of your workbook, see the next Chapter:
+   Writing Excel files - fine control
+)
+open '~addons/tables/tara/taratest2.ijs'
+
+NB. =========================================================
+Lab Chapter Writing Excel Files - fine control
 NB. =========================================================
 Lab Section hello world
-Writing our first Excel file
+Tara gives you fine control over the creation and formatting of Excel files.
+The basic steps for creating an Excel file are:
 
-  1. create an workbook
-  2. write text in a cell
+  1. create a workbook
+  2. write contents to a cell
   3. save to a file
   4. destroy object (as a good habit)
 
@@ -137,7 +252,7 @@ bi=: '' conew 'biffbook'               NB. create an workbook
 writestring__bi 1 3 ; 'hello world'    NB. write text in a cell: rowcol ; text (rowcol is 0-based)
 writestring__bi 'C4' ; 'hello Tara'    NB. cell in "A1" mode
 save__bi jpath '~temp/tara1.xls'       NB. save to a file
-destroy__bi ''                         NB. destriy workbook object, NOT the Excel file
+destroy__bi ''                         NB. destroy workbook object, NOT the Excel file
 
 NB. =========================================================
 Lab Section Workbook and Worksheet

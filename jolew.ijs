@@ -15,6 +15,9 @@ y=. y.
 a.{~(8#256)#: 10000000*x:86400*(y%86400000)+72682
 )
 
+NB. not defined in stdlib pre-J6
+Note=: 3 : '0 0 $ 0 : 0' : [
+
 NB. followings also defined in z locale
 NB. ---------------------------------------------------------
 NB. followings bit op require j5

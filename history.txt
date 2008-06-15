@@ -1,5 +1,13 @@
 tables/tara - change history
 
+== 1.2.4 ==
+ * add: writexlsheetnames to write arrays to sheets of a workbook
+ * chg: naming of *new* verbs in 1.2.3 from readexcel... to readxl...
+ * add: alias readxl and readxlstring for readexcel and readexcelstring
+ * chg: simplify biffmd4 with single cross-platform solution
+ * chg: update documentation and lab
+ * add: definition of Note for pre J6 versions
+
 == 1.2.3 ==
  * add: readexcelsheetnames to return all sheetnames in a workbook
  * add: readexcelsheets to generalize reading multiple sheets
