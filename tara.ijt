@@ -191,7 +191,7 @@ NB. =========================================================
 Lab Section writexlsheets - with sheet names
 You can give a sheet name for your array using the format:
 
-<shtnme>;<<array> writexlsheets <file>
+<shtnme> ;< <array> writexlsheets <file>
 )
 ('Integer array';x1)      writexlsheets jpath '~temp/tarasmp5.xls'
 ('Boxed Mixed array';<x4) writexlsheets jpath '~temp/tarasmp6.xls'
@@ -199,7 +199,7 @@ You can give a sheet name for your array using the format:
 NB. =========================================================
 Lab Section writexlsheets - multiple sheets
 You can write multiple 2D arrays to different worksheets in the same workbook without sheetnames by giving them as a boxed column of arrays:
-  (,.<array1>;<<array2>) writexlsheets <file>
+  (,.<array1> ;< <array2>) writexlsheets <file>
 )
 ]x5=: ,.x1;x2;<x4
 x5 writexlsheets jpath '~temp/tarasmp7.xls'
@@ -207,7 +207,7 @@ x5 writexlsheets jpath '~temp/tarasmp7.xls'
 NB. =========================================================
 Lab Section
 You can give the sheets names by prepending a second column to the left argument.
-  ((<name1>;<<array1),(<name2>;<<array2)) writexlsheets <file>
+  ((<name1> ;< <array1),(<name2> ;< <array2)) writexlsheets <file>
 )
 ]x6=: ('Numeric array';'';'Boxed Mixed array'),.x5
 x6 writexlsheets jpath '~temp/tarasmp8.xls'
@@ -218,8 +218,8 @@ You can return the content of the generated Excel file, instead of writing to a 
 
 To do so, use '' as the file name during saving.
 )
- xlfile=: ('Integer array';x1) writexlsheets jpath ''
- xlfile NB. binary contents of Excel file.
+ xlfile=: ('Integer array';x1) writexlsheets ''
+ _16]\ a.i. xlfile NB. binary contents of Excel file.
 
 NB. =========================================================
 Lab Section writexlsheets - more examples
