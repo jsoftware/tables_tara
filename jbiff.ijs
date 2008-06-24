@@ -656,7 +656,7 @@ elseif. 'worksheet'-:linktype do. bit3=. 1
 end.
 flag=. #. bit8, bit7, bit6, bit5, bit4, bit3, bit2, bit1, bit0
 z=. z, toWORD0 rowcols  NB. rowcols is row1 row2 col1 col2
-z=. z, SString 16bd0 a.{~16bc9 16bea 16b79 16bf9 16bba 16bce 16b11 16b8c 16b82 16b00 16baa 16b00 16b4b 16ba9 16b0b
+z=. z, SString a.{~16bd0 16bc9 16bea 16b79 16bf9 16bba 16bce 16b11 16b8c 16b82 16b00 16baa 16b00 16b4b 16ba9 16b0b
 z=. z, toDWORD0 2
 z=. z, toDWORD0 flag
 if. #description do.
