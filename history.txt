@@ -1,5 +1,8 @@
 tables/tara - change history
 
+== 1.2.5 ==
+ * chg: writexlsheets uses more robust block finding algorithm
+
 == 1.2.4 ==
  * add: writexlsheets to write arrays to sheets of a workbook
  * chg: renaming of *new* verbs in 1.2.3 from readexcel... to readxl...
