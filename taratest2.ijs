@@ -1,5 +1,7 @@
 NB. ---------------------------------------------------------
 NB. Tests for writexlsheets
+cocurrent 'base'
+require '~addons/tables/tara/tara.ijs'
 
 NB. Test data
 x1=: i.3 5                  NB. int array
@@ -22,6 +24,10 @@ x17=: (<x9),(<x7),(<x8),(<x5),(<x1),(<x4),x16 NB. data column
 x18=: x10 ,: 'Literal';x6
 x19=: (x10,x11,x12,x13,x14,:x15)
 x20=: (,.5#<''),(4#<''),"1 x3 NB. offset topleft corner by 5 rows and 4 cols
+char=:('per Angusta';'ad Augusta'),~;:'Lorem ipsum dolor sit consectetur'
+idx =: 2 2;2 3;2 4;2 5;3 2;3 3;3 5;4 2;4 4;4 5;5 2;5 3;5 4;5 5
+x21=: 'Diff Mix array';<(14$char) idx} <"0 i.8 9
+
 
 fnme=: jpath '~temp/tarawsht'
 suff=: '.xls'
@@ -47,3 +53,4 @@ x17 writexlsheets fnme,'17',suff
 x18 writexlsheets fnme,'18',suff
 x19 writexlsheets fnme,'19',suff
 x20 writexlsheets fnme,'20',suff
+x21 writexlsheets fnme,'21',suff

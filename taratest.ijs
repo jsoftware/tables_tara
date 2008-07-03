@@ -1,5 +1,5 @@
 cocurrent 'base'
-load jpath '~addons\tables\tara\tara.ijs'
+load '~addons\tables\tara\tara.ijs'
 test1=: 3 : 0
 bi=. '' conew 'biffbook'               NB. create an workbook
 writestring__bi 1 3 ; 'hello world'    NB. write text in a cell: rowcol ; text (rowcol is 0-based)

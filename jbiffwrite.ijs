@@ -115,19 +115,22 @@ writeshtdat=: 4 : 0
     writenumber__x 0 0;y
   else.
     as=. ischar &> y
-    blks=. blocks2 as
+    blks=. blocks as
     tls=. {.0 2|: blks
-    dat=: blks <;.0 y NB. blocks of char
+    dat=. blks <;.0 y NB. blocks of char
     writestring__x"1 (<"1 tls),.dat
-    blks=. blocksx -.as
+    blks=. blocks -.as
     tls=. {.0 2|: blks
     dat=. blks ([:<>);.0 y  NB. blocks of non-char
     writenumber__x"1 (<"1 tls),.dat
   end.
 )
 
+NB. =========================================================
+NB. Finding rectangular blocks of same type.
+
 NB. ---------------------------------------------------------
-NB. working 1d solutions for creating blocks.
+NB. 1d solution
 
 NB. explicit solution (chooses best block orientation)
 blocksx=: 3 : 0
@@ -144,42 +147,28 @@ blocksx=: 3 : 0
 )
 
 NB. ---------------------------------------------------------
-Note 'tacit solution'
-NB. (works best for row-oriented blocks)
-tls=: [: indices firstones"1 NB. topleft index of blocks of 1s
-brs=: [: indices lastones"1  NB. bottomright index of blocks of 1s
+NB. 2d solution based on algorithm by RE Boss
+NB. http://www.jsoftware.com/pipermail/programming/2008-June/011077.html
 
-shapes=: [: >: brs - tls  NB. shapes of blocks of 1s
-blocks=: tls ,:"1 shapes  NB. blocks of 1s
+NB. blocks per row; top left in first and bottom right in last column!
+tlc=: [: I. firstones      NB. column indices of toplefts
+brc=: [: I. lastones       NB. column indices of bottomrights
+tlbrc=: <@(tlc ,. brc)"1   NB. box by row
+bpr=: i.@# ,:"0 1&.> tlbrc NB. laminate row indices
+
+mtch=: 4 : 0
+  's t'=. <"0 x (](#~; (#~-.)) e.~&:(<@{:"2))&> {.y
+  t=. t((,&.>{:)`[)@.(1=#@])y
+  s=. x([:(<@{:"2 ({:@{.@{:(<0 1)} {.)/.]) ,)&> s
+  s;t
 )
 
-NB. =========================================================
-NB. 2d version for creating blocks based on algorithm by RE Boss
-NB. http://www.jsoftware.com/pipermail/programming/2008-June/011057.html
-incgrp=: [:($$ [:+/\ ,) (1, }:~: }.)"1 NB. running sum of starts of connected 1s in each row
-rpl=: ] - (-/ , 0:)@[ {~ {.@[ i. ] NB. numeric replace (RMiller)
+NB. rowwise blocks (topleft,:bottomright)
+blcks=: [:|:"2 [:; [:mtch/ bpr
 
-hv=: *"_ _1 incgrp,: incgrp&.|:  NB. hor. & vert. connected 1s.
-rplhv=: (([:(,:|.) ,"_1) rpl"_1 ]) @: hv
-NB. rectgrps=: ({.@]($@[ $ ]) i.~@,.&,/) @: rplhv NB. rectangular groups of 1s
-rectgrps=: ({.@] ($@[ $ ]) }.@(i.~@(0&,@(,.&,/))))@:rplhv
-tlbr=: ($#: (](i.}.@,. i:) 0~.@,])@,) @: rectgrps NB. topleft and bottomright corners of each group
-blocks2=: ([,: (-~>:))/"_1 @: tlbr
-
-Note 'testing'
-tls tst1          NB. list of topleft of blocks of 1s
-tls -.tst1        NB. list of topleft of blocks of 0s
-
-(blocks ischar &> tsta) <;.0 tsta  NB. blocks of char (you will need to create a tsta to run this)
-(blocks -.ischar &> tsta) <;.0 tsta  NB. blocks of char (you will need to create a tsta to run this)
-(blocksx ischar &> tsta) <;.0 tsta  NB. blocks of non-char
-(blocksx -.ischar &> tsta) ([:<>);.0 tsta  NB. blocks of non-char
-(blocks2 ischar &> tsta) <;.0 tsta  NB. blocks of non-char
-(blocks2 -.ischar &> tsta) ([:<>);.0 tsta  NB. blocks of non-char
-)
-
+tlshape=: ([,: (-~>:))/"_1 NB. converts tl,:br to tl,:shape
+blocks=: tlshape@:blcks  NB. rowwise merged blocks
 
 NB. =========================================================
 NB.  publish in z locale
 writexlsheets_z_=: writexlsheets_biffwrite_
-
