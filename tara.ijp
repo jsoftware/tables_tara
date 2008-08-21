@@ -25,6 +25,7 @@ OTHERFILES=: 0 : 0
 ~Addons/tables/tara/taratest.ijs
 ~Addons/tables/tara/taratest2.ijs
 ~Addons/tables/tara/test.xls
+~Addons/tables/tara/test_tara.ijs
 )
 
 TARGETFILE=: '~Addons/tables/tara/tara.ijs'

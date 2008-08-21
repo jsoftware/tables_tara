@@ -1,4 +1,4 @@
-NB. built from project: ~user/jsrc/addons/tables/tara/tara
+NB. built from project: ~Addons/tables/tara/tara
 NB. ---------------------------------------------------------
 NB.  jolew script for reading and writing ole2 storage
 NB.  portion based on ole::storage_lite by kawai takanori, kwitknr@cpan.org
@@ -1751,26 +1751,26 @@ elseif. 'worksheet'-:linktype do. bit3=. 1
 end.
 flag=. #. bit8, bit7, bit6, bit5, bit4, bit3, bit2, bit1, bit0
 z=. z, toWORD0 rowcols  NB. rowcols is row1 row2 col1 col2
-z=. z, SString 16bd0 a.{~16bc9 16bea 16b79 16bf9 16bba 16bce 16b11 16b8c 16b82 16b00 16baa 16b00 16b4b 16ba9 16b0b
+z=. z, SString a.{~16bd0 16bc9 16bea 16b79 16bf9 16bba 16bce 16b11 16b8c 16b82 16b00 16baa 16b00 16b4b 16ba9 16b0b
 z=. z, toDWORD0 2
 z=. z, toDWORD0 flag
 if. #description do.
   z=. z, toDWORD0 1+#description
-  z=. z, UString description+{.a.
+  z=. z, UString description,{.a.
 end.
 if. #target do.
   z=. z, toDWORD0 1+#target
-  z=. z, UString target+{.a.
+  z=. z, UString target,{.a.
 end.
 if. 'url'-:linktype do.
   z=. z, SString a.{~16be0 16bc9 16bea 16b79 16bf9 16bba 16bce 16b11 16b8c 16b82 16b00 16baa 16b00 16b4b 16ba9 16b0b
   z=. z, toDWORD0 2*1+#link
-  z=. z, UString link+{.a.
+  z=. z, UString link,{.a.
 elseif. 'local'-:linktype do.
   z=. z, SString a.{~16b03 16b03 16b00 16b00 16b00 16b00 16b00 16b00 16bc0 16b00 16b00 16b00 16b00 16b00 16b00 16b46
   z=. z, toWORD0 uplevel
   z=. z, toDWORD0 1+#link
-  z=. z, SString link+{.a.
+  z=. z, SString link,{.a.
   z=. z, SString a.{~16bff 16bff 16bad 16bde, 20#0
   if. #elink do.
     z=. z, toDWORD0 10+2*#elink
@@ -1783,13 +1783,13 @@ elseif. 'local'-:linktype do.
 elseif. 'unc'-:linktype do.
   z=. z, SString a.{~16be0 16bc9 16bea 16b79 16bf9 16bba 16bce 16b11 16b8c 16b82 16b00 16baa 16b00 16b4b 16ba9 16b0b
   z=. z, toDWORD0 1+#link
-  z=. z, UString link+{.a.
+  z=. z, UString link,{.a.
 elseif. 'worksheet'-:linktype do.
   ''  NB. only textmark present
 end.
 if. #textmark do.
   z=. z, toDWORD0 1+#textmark
-  z=. z, UString textmark+{.a.
+  z=. z, UString textmark,{.a.
 end.
 z=. z,~ toHeader recordtype, #z
 )
@@ -2921,7 +2921,7 @@ mergedcell=: 0 4$''               NB. row1 row2 col1 col2
 rowlabelrange=: collabelrange=: 0 4$''
 condformatstream=: ''
 selection=: 0 5$''
-hlink=: ''
+hlink=: 0 2$''
 imdata=: ''
 dvstream=: ''
 colsizes=: 0 2$''
@@ -3004,7 +3004,7 @@ if. (2:~:$$) mergedcell do. mergedcell=: _4]\, mergedcell end.
 z=. z, biff_mergedcells mergedcell
 z=. z, biff_labelranges rowlabelrange ; collabelrange
 z=. z, condformatstream
-for_item. hlink do. z=. z, (0{::item) biff_hlink }.item end.
+for_item. hlink do. z=. z, (0{::item) biff_hlink 1{::item end.
 z=. z, dvstream
 z=. z, biff_eof ''
 )

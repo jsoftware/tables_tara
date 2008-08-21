@@ -1,5 +1,9 @@
 tables/tara - change history
 
+== 1.2.6 ==
+ * chg: standardize test scripts
+ * fix: fix hyperlink bug
+
 == 1.2.5 ==
  * chg: writexlsheets uses more robust block finding algorithm
 

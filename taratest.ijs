@@ -1,11 +1,20 @@
+NB. Test tara
+
+Note 'To run all tests:'
+  load 'tables/tara'
+  load 'tables/tara/taratest'
+)
+
 cocurrent 'base'
-load '~addons\tables\tara\tara.ijs'
+
 test1=: 3 : 0
 bi=. '' conew 'biffbook'               NB. create an workbook
 writestring__bi 1 3 ; 'hello world'    NB. write text in a cell: rowcol ; text (rowcol is 0-based)
 writestring__bi 'C4' ; 'hello Tara'    NB. cell in "A1" mode
 save__bi jpath '~temp/tara1.xls'       NB. save to a file
-destroy__bi ''                         NB. destriy workbook object, NOT the Excel file
+assert. destroy__bi ''                 NB. destriy workbook object, NOT the Excel file
+assert. fexist jpath '~temp/tara1.xls'
+ 'test1 passed'
 )
 
 NB. Row Height and Column Width
@@ -24,7 +33,9 @@ addrowinfo__bi 1 0 256 0 1000 1
 writestring__bi 1 3 ; 'hello world'
 writenumber__bi 'C3' ; o.1
 save__bi jpath '~temp/tara2.xls'
-destroy__bi ''
+assert. destroy__bi ''
+assert. fexist jpath '~temp/tara2.xls'
+ 'test2 passed'
 )
 
 NB. Default Font
@@ -34,7 +45,9 @@ writestring__bi 1 3 ; 'hello world'     NB. row col text
 writenumber__bi 2 4 ; o.1               NB. row col number
 writestring__bi 3 2 ; ":o.1
 save__bi jpath '~temp/tara3.xls'
-destroy__bi ''
+assert. destroy__bi ''
+assert. fexist jpath '~temp/tara3.xls'
+ 'test3 passed'
 )
 
 NB. xf object
@@ -57,7 +70,9 @@ patterncolor__xf=. rgbcolor__bi 3#16bcc  NB. gray
 pattern__xf=. 1                          NB. solid background
 writestring__bi 2 2 ; 'background'
 save__bi jpath '~temp/tara4.xls'
-destroy__bi ''
+assert. destroy__bi ''
+assert. fexist jpath '~temp/tara4.xls'
+ 'test4 passed'
 )
 
 NB. Number and Date Format
@@ -76,7 +91,9 @@ writenumber__bi 4 3 ; 74699-36522
 NB. another verb for date
 writedate__bi 5 3 ; 74699 ; 'd/m/yy'
 save__bi jpath '~temp/tara5.xls'
-destroy__bi ''
+assert. destroy__bi ''
+assert. fexist jpath '~temp/tara5.xls'
+ 'test5 passed'
 )
 
 NB. Alignment and Cell Border
@@ -112,7 +129,9 @@ writestring__bi 6 3 ; 'box style'
 l=. 0{sheet__bi           NB. worksheet object
 mergedcell__l=. 2 4 $ 3 4 2 4 4 5 0 1  NB. 2 sets of merge cells, ( row1 row2 col1 col2)
 save__bi jpath '~temp/tara6.xls'
-destroy__bi ''
+assert. destroy__bi ''
+assert. fexist jpath '~temp/tara6.xls'
+ 'test6 passed'
 )
 
 NB. Page Setup
@@ -132,7 +151,9 @@ header__l=. 'tara demo'
 footer__l=. 'Page &P of &N &F &D'   NB. Page 2 of 10 filename date, other commands see section 6.51
 _1 rowrepeat__bi 0 0 2  NB. repeat sheet(0) row 0 to row 2
 save__bi jpath '~temp/tara7.xls'
-destroy__bi ''
+assert. destroy__bi ''
+assert. fexist jpath '~temp/tara7.xls'
+ 'test7 passed'
 )
 
 NB. Adding New Worksheet
@@ -147,7 +168,9 @@ NB. switch to sheet1, (sheeti is 0-based)
 sheeti__bi=. 0
 writestring__bi 2 3 ; 'sheet1'
 save__bi jpath '~temp/tara8.xls'
-destroy__bi ''
+assert. destroy__bi ''
+assert. fexist jpath '~temp/tara8.xls'
+ 'test8 passed'
 )
 
 NB. large workbook > 10MB size
@@ -156,7 +179,9 @@ bi=. ('Courier New' ; 220) conew 'biffbook'
 writenumber__bi 0 0 ; i.6000 100
 writestring__bi 6000 0 ; < < ("1) 6000 100 7$'ABCDEFGHIJKLMNOPQRSTUVW'
 save__bi jpath '~temp/tara9.xls'
-destroy__bi ''
+assert. destroy__bi ''
+assert. fexist jpath '~temp/tara9.xls'
+ 'test9 passed'
 )
 
 NB. Picture
@@ -167,7 +192,9 @@ writestring__bi 0 0 ; 'my picture'
 (0  4 ; 0  0 ; 1  1) insertimage__bi <jpath '~addons/tables/tara/dora.png'  NB. row 0 col 4 scalex 1 scaley 1
 (4  0 ; 0  0 ; 2  2) insertimage__bi 1!:1 <jpath '~addons/tables/tara/dora.png'  NB. also accepts unboxed raw data
 save__bi jpath '~temp/tara10.xls'
-destroy__bi ''
+assert. destroy__bi ''
+assert. fexist jpath '~temp/tara10.xls'
+ 'test10 passed'
 )
 
 NB. Return Excel File as Noun
@@ -175,18 +202,20 @@ test11=: 3 : 0
 bi=. ('Courier New' ; 220) conew 'biffbook'
 writestring__bi 1 3 ; 'hello world'
 rc=. save__bi ''
-destroy__bi ''
-_16]\ a.i. rc
+assert. destroy__bi ''
+assert. 3584=$rc
+assert. 224 16= $ _16]\ a.i. rc
+ 'test11 passed'
 )
 
-test1''
-test2''
-test3''
-test4''
-test5''
-test6''
-test7''
-test8''
-test9''
-test10''
-test11''
+smoutput test1''
+smoutput test2''
+smoutput test3''
+smoutput test4''
+smoutput test5''
+smoutput test6''
+smoutput test7''
+smoutput test8''
+smoutput test9''
+smoutput test10''
+smoutput test11''
