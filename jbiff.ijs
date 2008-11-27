@@ -1863,7 +1863,9 @@ NB. read section 5.87 SETUP
 'setuppapersize setupscaling setupstartpage setupfitwidth setupfitheight setuprowmajor setupportrait setupinvalid setupblackwhite setupdraft setupcellnote setuporientinvalid setupusestartpage setupnoteatend setupprinterror setupdpi setupvdpi setupheadermargin setupfootermargin setupnumcopy'=: 0
 setuprowmajor=: 1
 setupportrait=: 1
-setupinvalid=: 1
+setupinvalid=: 0
+setupscaling=: 100
+setupdpi=: setupvdpi=: 600
 setupheadermargin=: 0.75
 setupfootermargin=: 0.75
 backgroundbitmap=: ''
