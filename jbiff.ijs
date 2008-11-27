@@ -605,7 +605,7 @@ z=. z,~ toHeader recordtype, #z
 
 biff_hcenter=: 3 : 0
 y=. y.
-recordtype=. 16b008d
+recordtype=. 16b0083
 z=. ''
 z=. z, toWORD0 0~:y
 z=. z,~ toHeader recordtype, #z
