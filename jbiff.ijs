@@ -2495,8 +2495,8 @@ stream__l=: stream__l, (getxfidx x) biff_row y
 NB. write string to the current worksheet
 NB. x xf
 NB. y row col ; text         (where 3>$$text)
-NB.    row col ; boxed text   (where 3>$$boxed text)
-NB.                           (always box last argument to make 2=#y)
+NB.   row col ; boxed text   (where 3>$$boxed text)
+NB.                          (always box last argument to make 2=#y)
 writestring=: 3 : 0
 y=. y.
 cxf writestring y
@@ -2509,6 +2509,7 @@ if. 2 131072 e.~ 3!:0 rc=. 0{::y do. y=. (<A1toRC rc) 0}y end.
 l=. sheeti{sheet
 xf=. getxfidx x
 if. (0=#@, yn) +. 2 131072 e.~ 3!:0 yn=. 1{::y do.
+  if. 0 e. $yn do. '' return. end.  NB. ignore null
   if. 2> $$yn do.
     adjdim__l 0{::y
     stream__l=: stream__l, xf biff_label y
@@ -2530,19 +2531,22 @@ if. (0=#@, yn) +. 2 131072 e.~ 3!:0 yn=. 1{::y do.
 elseif. 32 e.~ 3!:0 yn do.
   if. (0:=#), yn do. '' return.  NB. ignore null
   elseif. 1=#@, yn do.  NB. singleton
+    if. (0:=#), >yn do. '' return. end. NB. ignore null
     adjdim__l 0{::y
     stream__l=: stream__l, xf biff_label ({.y), <, >yn
   elseif. 3>$$yn do.
     if. 1=$$yn do. yn=. ,:yn end.
+    s=. $yn
     'r c'=. 0{::y
+NB. biff8 cannot store empty string
+    if. 0= +./ f=. (<'') = yn do. '' return. end.
     adjdim__l 0{::y
-    adjdim__l (s=. $yn) + 0{::y
-    if. #a=. I. > ''&-:&.> yn=. , yn do.
-      yn=. ((#a)#<, ' ') a}yn   NB. biff8 cannot store empty string
-    end.
-    sst=: sst, (~.yn) -. sst
-    sstn=: sstn + #yn
-    stream__l=: stream__l,, (toHeader 16b00fd, 10) ,("1) (_2]\ toWORD0 ({:s)#r+i.{.s) ,("1) (_2]\ toWORD0, ({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 sst i. yn)
+    mr=. 1 i.~ 1 e.("1) f
+    mc=. 1 i.~ 1 e.("1) |:f
+    adjdim__l (mr, mc) + 0{::y
+    sst=: sst, (~.,yn) -. sst
+    sstn=: sstn + +/f
+    stream__l=: stream__l,, (toHeader 16b00fd, 10) ,("1) (_2]\ toWORD0 f#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0, f#({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 sst i. f#,yn)
   elseif. do. 'unhandled exception' 13!:8 (3)
   end.
 elseif. do. 'unhandled exception' 13!:8 (3)
@@ -2552,13 +2556,14 @@ end.
 
 NB. write integer to the current worksheet
 NB. x xf
-NB. y row col ; integer   (where 3>$$integer)
+NB. y row col ; integer [ ; option ]  (where 3>$$number)
+NB. option 1: suppress zero
 writeinteger=: 3 : 0
 y=. y.
 cxf writeinteger y
 :
 y=. y. [ x=. x.
-assert. 2=#y
+assert. 2 3 e.~ #y
 assert. 1 2 4 8 131072 e.~ (3!:0) 0{::y
 assert. 1 4 8 e.~ (3!:0) 1{::y
 if. 2 131072 e.~ 3!:0 rc=. 0{::y do. y=. (<A1toRC rc) 0}y end.
@@ -2567,15 +2572,27 @@ xf=. getxfidx x
 NB. only 30 bit is used 536870911 = <:2^29
 if. 536870911 < >./ |, 1{::y do. x writenumber y end.
 if. (0:=#), yn=. 2b10 bitor 2 bitshl <. 1{::y do. '' return. end.  NB. ignore null
+if. 3=#y do. opt=. 2{::y else. opt=. 0 end.
 if. 1=#@, yn do.  NB. singleton
+  if. (1=opt) *. 0= <. 1{::y do. '' return. end.
   adjdim__l 0{::y
   stream__l=: stream__l, xf biff_integer ({.y), < {., 1{::y
 elseif. 3>$$yn do.
   if. 1=$$yn do. yn=. ,:yn end.
+  s=. $yn
   'r c'=. 0{::y
-  adjdim__l 0{::y
-  adjdim__l (s=. $yn) + 0{::y
-  stream__l=: stream__l,, (toHeader 16b027e, 10) ,("1) (_2]\ toWORD0 ({:s)#r+i.{.s) ,("1) (_2]\ toWORD0, ({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0, yn)
+  if. 1=opt do.
+    if. 0= +./ f=. 0~: , <. 1{::y do. '' return. end.
+    adjdim__l 0{::y
+    mr=. 1 i.~ 1 e.("1) f
+    mc=. 1 i.~ 1 e.("1) |:f
+    adjdim__l (mr, mc) + 0{::y
+    stream__l=: stream__l,, (toHeader 16b027e, 10) ,("1) (_2]\ toWORD0 f#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0, f#({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 f#,yn)
+  else.
+    adjdim__l 0{::y
+    adjdim__l s + 0{::y
+    stream__l=: stream__l,, (toHeader 16b027e, 10) ,("1) (_2]\ toWORD0 ({:s)#r+i.{.s) ,("1) (_2]\ toWORD0, ({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0, yn)
+  end.
 elseif. do. 'unhandled exception' 13!:8 (3)
 end.
 ''
@@ -2583,28 +2600,41 @@ end.
 
 NB. write number to the current worksheet
 NB. x xf
-NB. y row col ; number   (where 3>$$number)
+NB. y row col ; number [ ; option ]  (where 3>$$number)
+NB. option 1: suppress zero
 writenumber=: 3 : 0
 y=. y.
 cxf writenumber y
 :
 y=. y. [ x=. x.
-assert. 2=#y
+assert. 2 3 e.~ #y
 assert. 1 2 4 8 131072 e.~ (3!:0) 0{::y
 assert. 1 4 8 e.~ (3!:0) 1{::y
 if. 2 131072 e.~ 3!:0 rc=. 0{::y do. y=. (<A1toRC rc) 0}y end.
 l=. sheeti{sheet
 xf=. getxfidx x
 if. (0:=#), yn=. 1{::y do. '' return. end.  NB. ignore null
+if. 3=#y do. opt=. 2{::y else. opt=. 0 end.
 if. 1=#@, yn do.  NB. singleton
+  if. (1=opt) *. 0=1{::y do. '' return. end.
   adjdim__l 0{::y
   stream__l=: stream__l, xf biff_number ({.y), < {., yn
 elseif. 3>$$yn do.
   if. 1=$$yn do. yn=. ,:yn end.
+  s=. $yn
   'r c'=. 0{::y
-  adjdim__l 0{::y
-  adjdim__l (s=. $yn) + 0{::y
-  stream__l=: stream__l,, (toHeader 16b0203, 14) ,("1) (_2]\ toWORD0 ({:s)#r+i.{.s) ,("1) (_2]\ toWORD0, ({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_8]\ toDouble0, yn)
+  if. 1=opt do.
+    if. 0= +./ f=. 0~: , 1{::y do. '' return. end.
+    adjdim__l 0{::y
+    mr=. 1 i.~ 1 e.("1) f
+    mc=. 1 i.~ 1 e.("1) |:f
+    adjdim__l (mr, mc) + 0{::y
+    stream__l=: stream__l,, (toHeader 16b0203, 14) ,("1) (_2]\ toWORD0 f#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0, f#({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_8]\ toDouble0 f#,yn)
+  else.
+    adjdim__l 0{::y
+    adjdim__l s + 0{::y
+    stream__l=: stream__l,, (toHeader 16b0203, 14) ,("1) (_2]\ toWORD0 ({:s)#r+i.{.s) ,("1) (_2]\ toWORD0, ({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_8]\ toDouble0, yn)
+  end.
 elseif. do. 'unhandled exception' 13!:8 (3)
 end.
 ''
@@ -2612,24 +2642,24 @@ end.
 
 NB. write number to the current worksheet with format
 NB. x xf
-NB. y row col ; number ; format   (where 3>$$number)
+NB. y row col ; number ; format [ ; option ]   (where 3>$$number)
 writenumber2=: 3 : 0
 y=. y.
 cxf writenumber2 y
 :
 y=. y. [ x=. x.
-assert. 3=#y
+assert. 3 4 e.~ #y
 assert. 1 2 4 8 131072 e.~ (3!:0) 0{::y
 assert. 1 4 8 e.~ (3!:0) 1{::y
 assert. 2 131072 e.~ (3!:0) 2{::y
 if. 2 131072 e.~ 3!:0 rc=. 0{::y do. y=. (<A1toRC rc) 0}y end.
 l=. getxfobj x
 t=. format__l
-format__l=: _1{::y
+format__l=: 2{::y
 if. 8= (3!:0) 1{::y do.
-  l writenumber 2{.y
+  l writenumber (2{.y), (4=#y)#{:y
 else.
-  l writeinteger 2{.y
+  l writeinteger (2{.y), (4=#y)#{:y
 end.
 format__l=: t
 ''
