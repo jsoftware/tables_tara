@@ -65,9 +65,18 @@ Some major properties/methods are:
   rightmargin
   topmargin
   bottommargin
+  setupheadermargin
+  setupfootermargin
 
   header           ... worksheet header and footer
   footer               can use commands, eg. &P &N
+
+  setupportrait    ... boolean. Print portrait?
+
+  printgridlines   ... boolean. Print gridlines for sheet
+
+  vcenter          ... boolean. printed page contents
+  hcenter              centered vertically/horizontally
 
   sheetname        ... name of worksheet
 
