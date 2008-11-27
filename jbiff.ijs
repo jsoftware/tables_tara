@@ -909,6 +909,19 @@ z=. z, toWORD0 0~:y
 z=. z,~ toHeader recordtype, #z
 )
 
+NB. This record contains the cell range and text for a tool tip.
+NB. It occurs in conjunction with the HLINK record for hyperlinks in the Hyperlink Table.
+NB. This feature is only available in Excel 9.0 (Excel 2000) and later.
+biff_quicktip=: 3 : 0
+y=. y.
+recordtype=. 16b0800
+z=. ''
+'rowcols description'=. y
+z=. z, toWORD0 rowcols  NB. rowcols is row1 row2 col1 col2
+z=. z, UString description,{.a.
+z=. z,~ toHeader recordtype, #z
+)
+
 NB. set the cell reference mode as in Options->Desktop
 NB. sets the cell reference mode to
 NB. <letter><number>   like A1 or C3 -- you sank my battleship
@@ -2539,14 +2552,14 @@ elseif. 32 e.~ 3!:0 yn do.
     s=. $yn
     'r c'=. 0{::y
 NB. biff8 cannot store empty string
-    if. 0= +./ f=. (<'') = yn do. '' return. end.
+    if. 0= +./ ,f=. (<'') ~: yn do. '' return. end.
     adjdim__l 0{::y
     mr=. 1 i.~ 1 e.("1) f
     mc=. 1 i.~ 1 e.("1) |:f
     adjdim__l (mr, mc) + 0{::y
     sst=: sst, (~.,yn) -. sst
-    sstn=: sstn + +/f
-    stream__l=: stream__l,, (toHeader 16b00fd, 10) ,("1) (_2]\ toWORD0 f#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0, f#({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 sst i. f#,yn)
+    sstn=: sstn + +/f=. ,f
+    stream__l=: stream__l,, (toHeader 16b00fd, 10) ,("1) (_2]\ toWORD0 f#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 f#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 sst i. f#,yn)
   elseif. do. 'unhandled exception' 13!:8 (3)
   end.
 elseif. do. 'unhandled exception' 13!:8 (3)
@@ -2582,16 +2595,17 @@ elseif. 3>$$yn do.
   s=. $yn
   'r c'=. 0{::y
   if. 1=opt do.
-    if. 0= +./ f=. 0~: , <. 1{::y do. '' return. end.
+    if. 0= +./ ,f=. 0~: <. 1{::y do. '' return. end.
     adjdim__l 0{::y
     mr=. 1 i.~ 1 e.("1) f
     mc=. 1 i.~ 1 e.("1) |:f
+    f=. ,f
     adjdim__l (mr, mc) + 0{::y
-    stream__l=: stream__l,, (toHeader 16b027e, 10) ,("1) (_2]\ toWORD0 f#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0, f#({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 f#,yn)
+    stream__l=: stream__l,, (toHeader 16b027e, 10) ,("1) (_2]\ toWORD0 f#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 f#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 f#,yn)
   else.
     adjdim__l 0{::y
     adjdim__l s + 0{::y
-    stream__l=: stream__l,, (toHeader 16b027e, 10) ,("1) (_2]\ toWORD0 ({:s)#r+i.{.s) ,("1) (_2]\ toWORD0, ({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0, yn)
+    stream__l=: stream__l,, (toHeader 16b027e, 10) ,("1) (_2]\ toWORD0 ({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 ,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0, yn)
   end.
 elseif. do. 'unhandled exception' 13!:8 (3)
 end.
@@ -2624,16 +2638,17 @@ elseif. 3>$$yn do.
   s=. $yn
   'r c'=. 0{::y
   if. 1=opt do.
-    if. 0= +./ f=. 0~: , 1{::y do. '' return. end.
+    if. 0= +./ ,f=. 0~: 1{::y do. '' return. end.
     adjdim__l 0{::y
     mr=. 1 i.~ 1 e.("1) f
     mc=. 1 i.~ 1 e.("1) |:f
+    f=. ,f
     adjdim__l (mr, mc) + 0{::y
-    stream__l=: stream__l,, (toHeader 16b0203, 14) ,("1) (_2]\ toWORD0 f#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0, f#({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_8]\ toDouble0 f#,yn)
+    stream__l=: stream__l,, (toHeader 16b0203, 14) ,("1) (_2]\ toWORD0 f#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 f#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_8]\ toDouble0 f#,yn)
   else.
     adjdim__l 0{::y
     adjdim__l s + 0{::y
-    stream__l=: stream__l,, (toHeader 16b0203, 14) ,("1) (_2]\ toWORD0 ({:s)#r+i.{.s) ,("1) (_2]\ toWORD0, ({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_8]\ toDouble0, yn)
+    stream__l=: stream__l,, (toHeader 16b0203, 14) ,("1) (_2]\ toWORD0 ({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 ,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_8]\ toDouble0, yn)
   end.
 elseif. do. 'unhandled exception' 13!:8 (3)
 end.

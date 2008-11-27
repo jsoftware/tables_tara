@@ -243,7 +243,7 @@ NB. dump records of worksheet to [bytes] with index held in [records]
       cellval4=. cellval4, {.fromDWORD0 (2#{.a.),~ (7+i.2){data
     else.
       rowcol=. rowcol, fromWORD0 4{.data=. (ptr+i.len){stream
-      cellval=. cellval, null&,@ (":(!.maxpp)) {.fromDWORD0 (2#{.a.),~ (7+i.2){data
+      cellval=. cellval, null&,@": {.fromDWORD0 (2#{.a.),~ (7+i.2){data
     end.
   case. 16b0003 do. NB. number biff2
     if. 0=x do.
@@ -271,7 +271,7 @@ NB. dump records of worksheet to [bytes] with index held in [records]
         cellval4=. cellval4, ({.a.)~:7{data
       else.
         rowcol=. rowcol, fromWORD0 4{.data=. (ptr+i.len){stream
-        cellval=. cellval, null&,@ (":(!.maxpp)) ({.a.)~:7{data
+        cellval=. cellval, null&,@": ({.a.)~:7{data
       end.
     end.
   case. 16b0205 do. NB. boolerr
@@ -281,7 +281,7 @@ NB. dump records of worksheet to [bytes] with index held in [records]
         cellval4=. cellval4, ({.a.)~:6{data
       else.
         rowcol=. rowcol, fromWORD0 4{.data=. (ptr+i.len){stream
-        cellval=. cellval, null&,@ (":(!.maxpp)) ({.a.)~:6{data
+        cellval=. cellval, null&,@": ({.a.)~:6{data
       end.
     end.
   case. 16b00bd do. NB. multrk
@@ -316,7 +316,7 @@ NB. dump records of worksheet to [bytes] with index held in [records]
             cellval4=. cellval4, ({.a.)~:9{data
           else.
             rowcol=. rowcol, fromWORD0 4{.data
-            cellval=. cellval, null&,@ (":(!.maxpp)) ({.a.)~:9{data
+            cellval=. cellval, null&,@": ({.a.)~:9{data
           end.
         end.
       else.  NB. double
@@ -339,7 +339,7 @@ NB. dump records of worksheet to [bytes] with index held in [records]
             cellval4=. cellval4, ({.a.)~:8{data
           else.
             rowcol=. rowcol, fromWORD0 4{.data
-            cellval=. cellval, null&,@ (":(!.maxpp)) ({.a.)~:8{data
+            cellval=. cellval, null&,@": ({.a.)~:8{data
           end.
 NB. blank and multblank records may be ignore
 NB.       elseif. (3{a.)=6{data do.  NB. blank
@@ -508,34 +508,34 @@ NB. EG:   0 readxlsheets 'test.xls'
 NB. reads Excel Versions 5, 95, 97, 2000, XP, 2003
 NB. biff5  excel 5  biff7 excel 97   biff8 excel 97, xp, 2003
 readxlsheets=: 3 : 0
-  y=. y.
-  0 readxlsheets y
+y=. y.
+0 readxlsheets y
 :
-  y=. y. [ x=. x.
- try.
+y=. y. [ x=. x.
+try.
   'fln strng'=. 2{.!.(<0) boxopen y
   x=. boxopen x
-  locs=.'' NB. store locales created
-  (msg=.'file not found') assert fexist fln
-  locs=.locs,ole=. fln coxnew 'olestorage'
+  locs=. '' NB. store locales created
+  (msg=. 'file not found') assert fexist fln
+  locs=. locs,ole=. fln coxnew 'olestorage'
   if. 0=#wks=. getppssearch__ole 'Workbook' ; 1 ; 1 do.              NB. biff8
     if. 0=#wks=. getppssearch__ole 'Book' ; 1 ; 1 do.                NB. biff5/7
-      (msg=.'unknown Excel file format') assert 16b40009 16b60209 16b60409 e.~ fromDWORD0 freadx fln;0 4  NB. biff2/3/4
+      (msg=. 'unknown Excel file format') assert 16b40009 16b60209 16b60409 e.~ fromDWORD0 freadx fln;0 4  NB. biff2/3/4
     end.
   end.
   locs=. locs,wks
-  locs=.locs,ex=. coxnew 'biffread'
+  locs=. locs,ex=. coxnew 'biffread'
   if. #wks do.
     wk=. {.wks
     0&create__ex data__wk
-  NB. get worksheet location
+NB. get worksheet location
     if. x-:<'' do.
       x=. i.#worksheets__ex
     elseif. -. */ 1 4 8 e.~ 3!:0 every x do.
       x=. x i.~ {."1 worksheets__ex
     elseif. do. x=. >x NB. unbox numeric list
     end.
-    (msg=.'worksheet not found') assert x<#worksheets__ex
+    (msg=. 'worksheet not found') assert x<#worksheets__ex
     'name location'=. |: x{worksheets__ex
   else.
     0&create__ex fread fln
@@ -545,7 +545,7 @@ readxlsheets=: 3 : 0
   for_l. |.locs do. NB. housekeeping
     destroy__l ''
     locs=. locs -. l
-  end. 
+  end.
   rcs=. 0&>.@(>./ >:@- <./) each ix   NB. transform cell records to matrix
   offset_biffread_=: >{: off=. <./ each ix   NB. store offset in static class variable if needed
   ix=. ix -"1 each off
@@ -557,55 +557,55 @@ readxlsheets=: 3 : 0
   end.
   dtb=. #~ ([: +./\. ' '&~:)
   (<@dtb"1 name) ,. m
-  NB. convert excel date
-  NB. todate (+&36522) 38335 --> 2004 12 14
- catch.
-   for_l. |.locs do. NB. housekeeping
-     destroy__l '' 
-     locs=. locs -. l 
-   end.
-   smoutput 'readxlsheets: ',msg
- end.
+NB. convert excel date
+NB. todate (+&36522) 38335 --> 2004 12 14
+catch.
+  for_l. |.locs do. NB. housekeeping
+    destroy__l ''
+    locs=. locs -. l
+  end.
+  smoutput 'readxlsheets: ',msg
+end.
 )
 
 NB.*readxlsheetsstring v Reads contents of one or more sheets from an Excel file as strings
 NB. see readxlsheets
 readxlsheetsstring=: 3 : 0
-  y=. y.
-  0 readxlsheetsstring y
-  :
-  y=. y. [ x=. x.
-  y=. (boxopen y),<1  NB. add string specifier
-  x readxlsheets y
+y=. y.
+0 readxlsheetsstring y
+:
+y=. y. [ x=. x.
+y=. (boxopen y),<1  NB. add string specifier
+x readxlsheets y
 )
 
 NB.*readxlworkbook v Reads all sheets from an Excel file
 NB. see readxlsheets
 readxlworkbook=: 3 : 0
-  y=. y.
-  '' readxlsheets y
+y=. y.
+'' readxlsheets y
 )
 
 NB.*readexcel v Reads contents of a sheet from an Excel file
 NB. see readxlsheets
 readexcel=: 3 : 0
-  y=. y.
-  0 readexcel y
-  :
-  y=. y. [ x=. x.
-  x=. {.^:(3!:0~:2:) x NB. ensure single sheet
-  ;{:"1 x readxlsheets y
+y=. y.
+0 readexcel y
+:
+y=. y. [ x=. x.
+x=. {.^:(3!:0~:2:) x NB. ensure single sheet
+;{:"1 x readxlsheets y
 )
 
 NB.*readexcelstring v Reads contents of a sheet from an Excel file as strings
 NB. see readxlsheets
 readexcelstring=: 3 : 0
-  y=. y.
-  0 readexcelstring y
-  :
-  y=. y. [ x=. x.
-  y=. (boxopen y),<1  NB. add string specifier
-  x readexcel y
+y=. y.
+0 readexcelstring y
+:
+y=. y. [ x=. x.
+y=. (boxopen y),<1  NB. add string specifier
+x readexcel y
 )
 
 NB. ---------------------------------------------------------
@@ -616,33 +616,33 @@ NB. eg: readxlsheetnames 'test.xls'
 NB. read Excel Versions 5, 95, 97, 2000, XP, 2003
 NB. biff5  excel 5  biff7 excel 97   biff8 excel 97, xp, 2003
 readxlsheetnames=: 3 : 0
-  y=. y. [ x=. x.
- try.
+y=. y. [ x=. x.
+try.
   fln=. boxopen y
-  locs=.'' NB. store locales created
-  (msg=.'file not found') assert fexist fln
-  locs=.locs,ole=. fln conew 'olestorage'
+  locs=. '' NB. store locales created
+  (msg=. 'file not found') assert fexist fln
+  locs=. locs,ole=. fln conew 'olestorage'
   if. 0=#wks=. getppssearch__ole 'Workbook' ; 1 ; 1 do.              NB. biff8
     if. 0=#wks=. getppssearch__ole 'Book' ; 1 ; 1 do.                NB. biff5/7
-      (msg=.'unknown Excel file format') assert 16b40009 16b60209 16b60409 e.~ fromDWORD0 freadx fln;0 4  NB. biff2/3/4
+      (msg=. 'unknown Excel file format') assert 16b40009 16b60209 16b60409 e.~ fromDWORD0 freadx fln;0 4  NB. biff2/3/4
     end.
   end.
   locs=. locs,wks
-  locs=.locs,ex=. conew 'biffread'
+  locs=. locs,ex=. conew 'biffread'
   if. #wks do.
     wk=. {.wks
     0&create__ex data__wk
   else.
     0&create__ex fread y
   end.
-  NB. read worksheet
+NB. read worksheet
   nms=. {."1 worksheets__ex
   for_l. |.locs do. destroy__l '' end. NB. housekeeping
   nms
- catch.
-   for_l. |.locs do. destroy__l '' end.
-   smoutput 'readxlsheetnames: ',msg
- end.
+catch.
+  for_l. |.locs do. destroy__l '' end.
+  smoutput 'readxlsheetnames: ',msg
+end.
 )
 
 NB. cover function to dump worksheet

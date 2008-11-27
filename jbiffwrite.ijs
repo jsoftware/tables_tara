@@ -42,7 +42,7 @@ writexlsheets=: 4 : 0
       destroy__l ''
       locs=. locs -. l
     end.
-    smoutput 'writexlsheets: ',msg
+    0 [ smoutput 'writexlsheets: ',msg
   end.
 )
 
@@ -157,6 +157,7 @@ tlbrc=: <@(tlc ,. brc)"1   NB. box by row
 bpr=: i.@# ,:"0 1&.> tlbrc NB. laminate row indices
 
 mtch=: 4 : 0
+  y=. y. [ x=. x.
   's t'=. <"0 x (](#~; (#~-.)) e.~&:(<@{:"2))&> {.y
   t=. t((,&.>{:)`[)@.(1=#@])y
   s=. x([:(<@{:"2 ({:@{.@{:(<0 1)} {.)/.]) ,)&> s
