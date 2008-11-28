@@ -33,7 +33,7 @@ writexlsheets=: 4 : 0
     bi writeshtdat shtdat NB. write data for first worksheet
     shts=. }.shts         NB. drop first sheet from list
     msg=. 'error creating/writing later sheets'
-    bi addsheets"1 shts NB. add and write to rest of sheets
+    if. #shts do. bi addsheets"1 shts end. NB. add and write to rest of sheets
     binary=. save__bi y
     success=. destroy__bi ''
     (*#binary){:: success;binary

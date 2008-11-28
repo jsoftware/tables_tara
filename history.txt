@@ -1,8 +1,13 @@
 tables/tara - change history
 
 == 1.2.6 ==
+ * add: sheet properties hcenter, vcenter, setupportrait, printgridlines
+ * add: sheet properties setupheadermargin, setupfootermargin
+ * add: writenumber and writenumber2 have option to skip zero 
+ * chg: writestring skips null strings
  * chg: standardize test scripts
  * fix: fix hyperlink bug
+ * fix: writexlsheets does not write an extra empty sheet if given only one
 
 == 1.2.5 ==
  * chg: writexlsheets uses more robust block finding algorithm

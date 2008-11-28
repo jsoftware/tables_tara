@@ -73,10 +73,10 @@ Some major properties/methods are:
 
   setupportrait    ... boolean. Print portrait?
 
-  printgridlines   ... boolean. Print gridlines for sheet
+  printgridlines   ... boolean. Print gridlines for sheet?
 
-  vcenter          ... boolean. printed page contents
-  hcenter              centered vertically/horizontally
+  vcenter          ... boolean. Center printed page contents
+  hcenter              vertically?/horizontally?
 
   sheetname        ... name of worksheet
 

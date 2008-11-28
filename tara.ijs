@@ -1703,7 +1703,7 @@ z=. z,~ toHeader recordtype, #z
 )
 
 biff_hcenter=: 3 : 0
-recordtype=. 16b008d
+recordtype=. 16b0083
 z=. ''
 z=. z, toWORD0 0~:y
 z=. z,~ toHeader recordtype, #z
@@ -1983,6 +1983,18 @@ biff_protect=: 3 : 0
 recordtype=. 16b0012
 z=. ''
 z=. z, toWORD0 0~:y
+z=. z,~ toHeader recordtype, #z
+)
+
+NB. This record contains the cell range and text for a tool tip.
+NB. It occurs in conjunction with the HLINK record for hyperlinks in the Hyperlink Table.
+NB. This feature is only available in Excel 9.0 (Excel 2000) and later.
+biff_quicktip=: 3 : 0
+recordtype=. 16b0800
+z=. ''
+'rowcols description'=. y
+z=. z, toWORD0 rowcols  NB. rowcols is row1 row2 col1 col2
+z=. z, UString description,{.a.
 z=. z,~ toHeader recordtype, #z
 )
 
@@ -2897,7 +2909,9 @@ NB. read section 5.87 SETUP
 'setuppapersize setupscaling setupstartpage setupfitwidth setupfitheight setuprowmajor setupportrait setupinvalid setupblackwhite setupdraft setupcellnote setuporientinvalid setupusestartpage setupnoteatend setupprinterror setupdpi setupvdpi setupheadermargin setupfootermargin setupnumcopy'=: 0
 setuprowmajor=: 1
 setupportrait=: 1
-setupinvalid=: 1
+setupinvalid=: 0
+setupscaling=: 100
+setupdpi=: setupvdpi=: 600
 setupheadermargin=: 0.75
 setupfootermargin=: 0.75
 backgroundbitmap=: ''
@@ -3493,8 +3507,8 @@ stream__l=: stream__l, (getxfidx x) biff_row y
 NB. write string to the current worksheet
 NB. x xf
 NB. y row col ; text         (where 3>$$text)
-NB.    row col ; boxed text   (where 3>$$boxed text)
-NB.                           (always box last argument to make 2=#y)
+NB.   row col ; boxed text   (where 3>$$boxed text)
+NB.                          (always box last argument to make 2=#y)
 writestring=: 3 : 0
 cxf writestring y
 :
@@ -3505,6 +3519,7 @@ if. 2 131072 e.~ 3!:0 rc=. 0{::y do. y=. (<A1toRC rc) 0}y end.
 l=. sheeti{sheet
 xf=. getxfidx x
 if. (0=#@, yn) +. 2 131072 e.~ 3!:0 yn=. 1{::y do.
+  if. 0 e. $yn do. '' return. end.  NB. ignore null
   if. 2> $$yn do.
     adjdim__l 0{::y
     stream__l=: stream__l, xf biff_label y
@@ -3526,19 +3541,22 @@ if. (0=#@, yn) +. 2 131072 e.~ 3!:0 yn=. 1{::y do.
 elseif. 32 e.~ 3!:0 yn do.
   if. (0:=#), yn do. '' return.  NB. ignore null
   elseif. 1=#@, yn do.  NB. singleton
+    if. (0:=#), >yn do. '' return. end. NB. ignore null
     adjdim__l 0{::y
     stream__l=: stream__l, xf biff_label ({.y), <, >yn
   elseif. 3>$$yn do.
     if. 1=$$yn do. yn=. ,:yn end.
+    s=. $yn
     'r c'=. 0{::y
+NB. biff8 cannot store empty string
+    if. 0= +./ ,f=. (<'') ~: yn do. '' return. end.
     adjdim__l 0{::y
-    adjdim__l (s=. $yn) + 0{::y
-    if. #a=. I. > ''&-:&.> yn=. , yn do.
-      yn=. ((#a)#<, ' ') a}yn   NB. biff8 cannot store empty string
-    end.
-    sst=: sst, (~.yn) -. sst
-    sstn=: sstn + #yn
-    stream__l=: stream__l,, (toHeader 16b00fd, 10) ,("1) (_2]\ toWORD0 ({:s)#r+i.{.s) ,("1) (_2]\ toWORD0, ({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 sst i. yn)
+    mr=. 1 i.~ 1 e.("1) f
+    mc=. 1 i.~ 1 e.("1) |:f
+    adjdim__l (mr, mc) + 0{::y
+    sst=: sst, (~.,yn) -. sst
+    sstn=: sstn + +/f=. ,f
+    stream__l=: stream__l,, (toHeader 16b00fd, 10) ,("1) (_2]\ toWORD0 f#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 f#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 sst i. f#,yn)
   elseif. do. 'unhandled exception' 13!:8 (3)
   end.
 elseif. do. 'unhandled exception' 13!:8 (3)
@@ -3548,11 +3566,12 @@ end.
 
 NB. write integer to the current worksheet
 NB. x xf
-NB. y row col ; integer   (where 3>$$integer)
+NB. y row col ; integer [ ; option ]  (where 3>$$number)
+NB. option 1: suppress zero
 writeinteger=: 3 : 0
 cxf writeinteger y
 :
-assert. 2=#y
+assert. 2 3 e.~ #y
 assert. 1 2 4 8 131072 e.~ (3!:0) 0{::y
 assert. 1 4 8 e.~ (3!:0) 1{::y
 if. 2 131072 e.~ 3!:0 rc=. 0{::y do. y=. (<A1toRC rc) 0}y end.
@@ -3561,15 +3580,28 @@ xf=. getxfidx x
 NB. only 30 bit is used 536870911 = <:2^29
 if. 536870911 < >./ |, 1{::y do. x writenumber y end.
 if. (0:=#), yn=. 2b10 bitor 2 bitshl <. 1{::y do. '' return. end.  NB. ignore null
+if. 3=#y do. opt=. 2{::y else. opt=. 0 end.
 if. 1=#@, yn do.  NB. singleton
+  if. (1=opt) *. 0= <. 1{::y do. '' return. end.
   adjdim__l 0{::y
   stream__l=: stream__l, xf biff_integer ({.y), < {., 1{::y
 elseif. 3>$$yn do.
   if. 1=$$yn do. yn=. ,:yn end.
+  s=. $yn
   'r c'=. 0{::y
-  adjdim__l 0{::y
-  adjdim__l (s=. $yn) + 0{::y
-  stream__l=: stream__l,, (toHeader 16b027e, 10) ,("1) (_2]\ toWORD0 ({:s)#r+i.{.s) ,("1) (_2]\ toWORD0, ({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0, yn)
+  if. 1=opt do.
+    if. 0= +./ ,f=. 0~: <. 1{::y do. '' return. end.
+    adjdim__l 0{::y
+    mr=. 1 i.~ 1 e.("1) f
+    mc=. 1 i.~ 1 e.("1) |:f
+    f=. ,f
+    adjdim__l (mr, mc) + 0{::y
+    stream__l=: stream__l,, (toHeader 16b027e, 10) ,("1) (_2]\ toWORD0 f#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 f#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 f#,yn)
+  else.
+    adjdim__l 0{::y
+    adjdim__l s + 0{::y
+    stream__l=: stream__l,, (toHeader 16b027e, 10) ,("1) (_2]\ toWORD0 ({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 ,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0, yn)
+  end.
 elseif. do. 'unhandled exception' 13!:8 (3)
 end.
 ''
@@ -3577,26 +3609,40 @@ end.
 
 NB. write number to the current worksheet
 NB. x xf
-NB. y row col ; number   (where 3>$$number)
+NB. y row col ; number [ ; option ]  (where 3>$$number)
+NB. option 1: suppress zero
 writenumber=: 3 : 0
 cxf writenumber y
 :
-assert. 2=#y
+assert. 2 3 e.~ #y
 assert. 1 2 4 8 131072 e.~ (3!:0) 0{::y
 assert. 1 4 8 e.~ (3!:0) 1{::y
 if. 2 131072 e.~ 3!:0 rc=. 0{::y do. y=. (<A1toRC rc) 0}y end.
 l=. sheeti{sheet
 xf=. getxfidx x
 if. (0:=#), yn=. 1{::y do. '' return. end.  NB. ignore null
+if. 3=#y do. opt=. 2{::y else. opt=. 0 end.
 if. 1=#@, yn do.  NB. singleton
+  if. (1=opt) *. 0=1{::y do. '' return. end.
   adjdim__l 0{::y
   stream__l=: stream__l, xf biff_number ({.y), < {., yn
 elseif. 3>$$yn do.
   if. 1=$$yn do. yn=. ,:yn end.
+  s=. $yn
   'r c'=. 0{::y
-  adjdim__l 0{::y
-  adjdim__l (s=. $yn) + 0{::y
-  stream__l=: stream__l,, (toHeader 16b0203, 14) ,("1) (_2]\ toWORD0 ({:s)#r+i.{.s) ,("1) (_2]\ toWORD0, ({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_8]\ toDouble0, yn)
+  if. 1=opt do.
+    if. 0= +./ ,f=. 0~: 1{::y do. '' return. end.
+    adjdim__l 0{::y
+    mr=. 1 i.~ 1 e.("1) f
+    mc=. 1 i.~ 1 e.("1) |:f
+    f=. ,f
+    adjdim__l (mr, mc) + 0{::y
+    stream__l=: stream__l,, (toHeader 16b0203, 14) ,("1) (_2]\ toWORD0 f#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 f#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_8]\ toDouble0 f#,yn)
+  else.
+    adjdim__l 0{::y
+    adjdim__l s + 0{::y
+    stream__l=: stream__l,, (toHeader 16b0203, 14) ,("1) (_2]\ toWORD0 ({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 ,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_8]\ toDouble0, yn)
+  end.
 elseif. do. 'unhandled exception' 13!:8 (3)
 end.
 ''
@@ -3604,22 +3650,22 @@ end.
 
 NB. write number to the current worksheet with format
 NB. x xf
-NB. y row col ; number ; format   (where 3>$$number)
+NB. y row col ; number ; format [ ; option ]   (where 3>$$number)
 writenumber2=: 3 : 0
 cxf writenumber2 y
 :
-assert. 3=#y
+assert. 3 4 e.~ #y
 assert. 1 2 4 8 131072 e.~ (3!:0) 0{::y
 assert. 1 4 8 e.~ (3!:0) 1{::y
 assert. 2 131072 e.~ (3!:0) 2{::y
 if. 2 131072 e.~ 3!:0 rc=. 0{::y do. y=. (<A1toRC rc) 0}y end.
 l=. getxfobj x
 t=. format__l
-format__l=: _1{::y
+format__l=: 2{::y
 if. 8= (3!:0) 1{::y do.
-  l writenumber 2{.y
+  l writenumber (2{.y), (4=#y)#{:y
 else.
-  l writeinteger 2{.y
+  l writeinteger (2{.y), (4=#y)#{:y
 end.
 format__l=: t
 ''
@@ -3988,7 +4034,7 @@ NB. dump records of worksheet to [bytes] with index held in [records]
       cellval4=. cellval4, {.fromDWORD0 (2#{.a.),~ (7+i.2){data
     else.
       rowcol=. rowcol, fromWORD0 4{.data=. (ptr+i.len){stream
-      cellval=. cellval, null&,@ (":(!.maxpp)) {.fromDWORD0 (2#{.a.),~ (7+i.2){data
+      cellval=. cellval, null&,@": {.fromDWORD0 (2#{.a.),~ (7+i.2){data
     end.
   case. 16b0003 do. NB. number biff2
     if. 0=x do.
@@ -4016,7 +4062,7 @@ NB. dump records of worksheet to [bytes] with index held in [records]
         cellval4=. cellval4, ({.a.)~:7{data
       else.
         rowcol=. rowcol, fromWORD0 4{.data=. (ptr+i.len){stream
-        cellval=. cellval, null&,@ (":(!.maxpp)) ({.a.)~:7{data
+        cellval=. cellval, null&,@": ({.a.)~:7{data
       end.
     end.
   case. 16b0205 do. NB. boolerr
@@ -4026,7 +4072,7 @@ NB. dump records of worksheet to [bytes] with index held in [records]
         cellval4=. cellval4, ({.a.)~:6{data
       else.
         rowcol=. rowcol, fromWORD0 4{.data=. (ptr+i.len){stream
-        cellval=. cellval, null&,@ (":(!.maxpp)) ({.a.)~:6{data
+        cellval=. cellval, null&,@": ({.a.)~:6{data
       end.
     end.
   case. 16b00bd do. NB. multrk
@@ -4061,7 +4107,7 @@ NB. dump records of worksheet to [bytes] with index held in [records]
             cellval4=. cellval4, ({.a.)~:9{data
           else.
             rowcol=. rowcol, fromWORD0 4{.data
-            cellval=. cellval, null&,@ (":(!.maxpp)) ({.a.)~:9{data
+            cellval=. cellval, null&,@": ({.a.)~:9{data
           end.
         end.
       else.  NB. double
@@ -4084,7 +4130,7 @@ NB. dump records of worksheet to [bytes] with index held in [records]
             cellval4=. cellval4, ({.a.)~:8{data
           else.
             rowcol=. rowcol, fromWORD0 4{.data
-            cellval=. cellval, null&,@ (":(!.maxpp)) ({.a.)~:8{data
+            cellval=. cellval, null&,@": ({.a.)~:8{data
           end.
 NB. blank and multblank records may be ignore
 NB.       elseif. (3{a.)=6{data do.  NB. blank
@@ -4252,32 +4298,32 @@ NB. EG:   0 readxlsheets 'test.xls'
 NB. reads Excel Versions 5, 95, 97, 2000, XP, 2003
 NB. biff5  excel 5  biff7 excel 97   biff8 excel 97, xp, 2003
 readxlsheets=: 3 : 0
-  0 readxlsheets y
+0 readxlsheets y
 :
- try.
+try.
   'fln strng'=. 2{.!.(<0) boxopen y
   x=. boxopen x
-  locs=.'' NB. store locales created
-  (msg=.'file not found') assert fexist fln
-  locs=.locs,ole=. fln conew 'olestorage'
+  locs=. '' NB. store locales created
+  (msg=. 'file not found') assert fexist fln
+  locs=. locs,ole=. fln conew 'olestorage'
   if. 0=#wks=. getppssearch__ole 'Workbook' ; 1 ; 1 do.              NB. biff8
     if. 0=#wks=. getppssearch__ole 'Book' ; 1 ; 1 do.                NB. biff5/7
-      (msg=.'unknown Excel file format') assert 16b40009 16b60209 16b60409 e.~ fromDWORD0 freadx fln;0 4  NB. biff2/3/4
+      (msg=. 'unknown Excel file format') assert 16b40009 16b60209 16b60409 e.~ fromDWORD0 freadx fln;0 4  NB. biff2/3/4
     end.
   end.
   locs=. locs,wks
-  locs=.locs,ex=. conew 'biffread'
+  locs=. locs,ex=. conew 'biffread'
   if. #wks do.
     wk=. {.wks
     0&create__ex data__wk
-  NB. get worksheet location
+NB. get worksheet location
     if. x-:<'' do.
       x=. i.#worksheets__ex
     elseif. -. */ 1 4 8 e.~ 3!:0 every x do.
       x=. x i.~ {."1 worksheets__ex
     elseif. do. x=. >x NB. unbox numeric list
     end.
-    (msg=.'worksheet not found') assert x<#worksheets__ex
+    (msg=. 'worksheet not found') assert x<#worksheets__ex
     'name location'=. |: x{worksheets__ex
   else.
     0&create__ex fread fln
@@ -4287,7 +4333,7 @@ readxlsheets=: 3 : 0
   for_l. |.locs do. NB. housekeeping
     destroy__l ''
     locs=. locs -. l
-  end. 
+  end.
   rcs=. 0&>.@(>./ >:@- <./) each ix   NB. transform cell records to matrix
   offset_biffread_=: >{: off=. <./ each ix   NB. store offset in static class variable if needed
   ix=. ix -"1 each off
@@ -4299,48 +4345,48 @@ readxlsheets=: 3 : 0
   end.
   dtb=. #~ ([: +./\. ' '&~:)
   (<@dtb"1 name) ,. m
-  NB. convert excel date
-  NB. todate (+&36522) 38335 --> 2004 12 14
- catch.
-   for_l. |.locs do. NB. housekeeping
-     destroy__l '' 
-     locs=. locs -. l 
-   end.
-   smoutput 'readxlsheets: ',msg
- end.
+NB. convert excel date
+NB. todate (+&36522) 38335 --> 2004 12 14
+catch.
+  for_l. |.locs do. NB. housekeeping
+    destroy__l ''
+    locs=. locs -. l
+  end.
+  smoutput 'readxlsheets: ',msg
+end.
 )
 
 NB.*readxlsheetsstring v Reads contents of one or more sheets from an Excel file as strings
 NB. see readxlsheets
 readxlsheetsstring=: 3 : 0
-  0 readxlsheetsstring y
-  :
-  y=. (boxopen y),<1  NB. add string specifier
-  x readxlsheets y
+0 readxlsheetsstring y
+:
+y=. (boxopen y),<1  NB. add string specifier
+x readxlsheets y
 )
 
 NB.*readxlworkbook v Reads all sheets from an Excel file
 NB. see readxlsheets
 readxlworkbook=: 3 : 0
-  '' readxlsheets y
+'' readxlsheets y
 )
 
 NB.*readexcel v Reads contents of a sheet from an Excel file
 NB. see readxlsheets
 readexcel=: 3 : 0
-  0 readexcel y
-  :
-  x=. {.^:(3!:0~:2:) x NB. ensure single sheet
-  ;{:"1 x readxlsheets y
+0 readexcel y
+:
+x=. {.^:(3!:0~:2:) x NB. ensure single sheet
+;{:"1 x readxlsheets y
 )
 
 NB.*readexcelstring v Reads contents of a sheet from an Excel file as strings
 NB. see readxlsheets
 readexcelstring=: 3 : 0
-  0 readexcelstring y
-  :
-  y=. (boxopen y),<1  NB. add string specifier
-  x readexcel y
+0 readexcelstring y
+:
+y=. (boxopen y),<1  NB. add string specifier
+x readexcel y
 )
 
 NB. ---------------------------------------------------------
@@ -4351,32 +4397,32 @@ NB. eg: readxlsheetnames 'test.xls'
 NB. read Excel Versions 5, 95, 97, 2000, XP, 2003
 NB. biff5  excel 5  biff7 excel 97   biff8 excel 97, xp, 2003
 readxlsheetnames=: 3 : 0
- try.
+try.
   fln=. boxopen y
-  locs=.'' NB. store locales created
-  (msg=.'file not found') assert fexist fln
-  locs=.locs,ole=. fln conew 'olestorage'
+  locs=. '' NB. store locales created
+  (msg=. 'file not found') assert fexist fln
+  locs=. locs,ole=. fln conew 'olestorage'
   if. 0=#wks=. getppssearch__ole 'Workbook' ; 1 ; 1 do.              NB. biff8
     if. 0=#wks=. getppssearch__ole 'Book' ; 1 ; 1 do.                NB. biff5/7
-      (msg=.'unknown Excel file format') assert 16b40009 16b60209 16b60409 e.~ fromDWORD0 freadx fln;0 4  NB. biff2/3/4
+      (msg=. 'unknown Excel file format') assert 16b40009 16b60209 16b60409 e.~ fromDWORD0 freadx fln;0 4  NB. biff2/3/4
     end.
   end.
   locs=. locs,wks
-  locs=.locs,ex=. conew 'biffread'
+  locs=. locs,ex=. conew 'biffread'
   if. #wks do.
     wk=. {.wks
     0&create__ex data__wk
   else.
     0&create__ex fread y
   end.
-  NB. read worksheet
+NB. read worksheet
   nms=. {."1 worksheets__ex
   for_l. |.locs do. destroy__l '' end. NB. housekeeping
   nms
- catch.
-   for_l. |.locs do. destroy__l '' end.
-   smoutput 'readxlsheetnames: ',msg
- end.
+catch.
+  for_l. |.locs do. destroy__l '' end.
+  smoutput 'readxlsheetnames: ',msg
+end.
 )
 
 NB. cover function to dump worksheet
@@ -4469,7 +4515,7 @@ writexlsheets=: 4 : 0
     bi writeshtdat shtdat NB. write data for first worksheet
     shts=. }.shts         NB. drop first sheet from list
     msg=. 'error creating/writing later sheets'
-    bi addsheets"1 shts NB. add and write to rest of sheets
+    if. #shts do. bi addsheets"1 shts end. NB. add and write to rest of sheets
     binary=. save__bi y
     success=. destroy__bi ''
     (*#binary){:: success;binary
@@ -4478,7 +4524,7 @@ writexlsheets=: 4 : 0
       destroy__l ''
       locs=. locs -. l
     end.
-    smoutput 'writexlsheets: ',msg
+    0 [ smoutput 'writexlsheets: ',msg
   end.
 )
 
