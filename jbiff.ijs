@@ -630,17 +630,16 @@ z=. z, toWORD0 y
 z=. z,~ toHeader recordtype, #z
 )
 
-biff_hlink=: 4 : 0
-y=. y. [ x=. x.
+biff_hlink=: 3 : 0
+y=. y.
 recordtype=. 16b01b8
 z=. ''
-linktype=. x
-if. 'url'-:linktype do. 'rowcols link textmark target description'=. y
-elseif. 'local'-:linktype do. 'rowcols link elink uplevel textmark target description'=. y
-elseif. 'unc'-:linktype do. 'rowcols link textmark target description'=. y
-elseif. 'worksheet'-:linktype do. 'rowcols textmark target description'=. y
-elseif. do. 'unhandled exception' 13!:8 (3)
-end.
+NB. 'url'       'linktype rowcols link dummy dummy   textmark target description'
+NB. 'local'     'linktype rowcols link elink uplevel textmark target description'
+NB. 'unc'       'linktype rowcols link dummy dummy   textmark target description'
+NB. 'worksheet' 'linktype rowcols dummy dummy dummy  textmark target description'
+
+'linktype rowcols link elink uplevel textmark target description'=. y
 bit8=. bit7=. bit6=. bit5=. bit4=. bit3=. bit2=. bit1=. bit0=. 0
 if. #target do. bit7=. 1 end.
 if. #description do. bit2=. bit4=. 1 end.
@@ -1902,7 +1901,7 @@ mergedcell=: 0 4$''               NB. row1 row2 col1 col2
 rowlabelrange=: collabelrange=: 0 4$''
 condformatstream=: ''
 selection=: 0 5$''
-hlink=: 0 2$''
+hlink=: 0 8$''
 imdata=: ''
 dvstream=: ''
 colsizes=: 0 2$''
@@ -1986,7 +1985,7 @@ if. (2:~:$$) mergedcell do. mergedcell=: _4]\, mergedcell end.
 z=. z, biff_mergedcells mergedcell
 z=. z, biff_labelranges rowlabelrange ; collabelrange
 z=. z, condformatstream
-for_item. hlink do. z=. z, (0{::item) biff_hlink 1{::item end.
+for_item. hlink do. z=. z, biff_hlink item end.
 z=. z, dvstream
 z=. z, biff_eof ''
 )
