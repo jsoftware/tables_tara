@@ -1,5 +1,8 @@
 tables/tara - change history
 
+== 1.2.7 ==
+ * fix: correctly writes boxed array of strings that includes empty string(s)
+
 == 1.2.6 ==
  * add: sheet properties hcenter, vcenter, setupportrait, printgridlines
  * add: sheet properties setupheadermargin, setupfootermargin

@@ -10,6 +10,7 @@ x1=: i.3 5                  NB. int array
 x2=: 9 15?.@$0              NB. float array
 x3=: <"0 i.12 20            NB. boxed int array
 x4=: 4 2$'abcd';'kdisd';'eiij asj' NB. boxed char array
+x4a=: 4 2$'abcd';'';'eiij asj' NB. boxed char array with empty
 x5=: 4 2$'abcd';54;'eiij';2;4.4 NB. boxed mixed array
 x6=: 'No name, single char' NB. literal
 x7=: 'data 1';'data 2'      NB. boxed char vector
@@ -40,6 +41,7 @@ test2=: 3 : 0
   assert. x2 writexlsheets fnme,'2',suff
   assert. x3 writexlsheets fnme,'3',suff
   assert. x4 writexlsheets fnme,'4',suff
+  assert. x4a writexlsheets fnme,'4a',suff
   assert. x5 writexlsheets fnme,'5',suff
   assert. x6 writexlsheets fnme,'6',suff
   assert. x7 writexlsheets fnme,'7',suff

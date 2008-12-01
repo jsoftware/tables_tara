@@ -2557,7 +2557,7 @@ NB. biff8 cannot store empty string
     mr=. 1 i.~ 1 e.("1) f
     mc=. 1 i.~ 1 e.("1) |:f
     adjdim__l (mr, mc) + 0{::y
-    sst=: sst, (~.,yn) -. sst
+    sst=: sst, (~.(,f)#,yn) -. sst
     sstn=: sstn + +/f=. ,f
     stream__l=: stream__l,, (toHeader 16b00fd, 10) ,("1) (_2]\ toWORD0 f#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 f#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 sst i. f#,yn)
   elseif. do. 'unhandled exception' 13!:8 (3)
