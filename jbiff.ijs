@@ -2530,14 +2530,10 @@ if. (0=#@, yn) +. 2 131072 e.~ 3!:0 yn=. 1{::y do.
     'nrow len'=. $yn
     adjdim__l 0{::y
     adjdim__l (nrow, 0) + 0{::y
-    if. 0=len do.
-      stream__l=: stream__l,, (toHeader 16b0201, 6) ,("1) (_2]\ toWORD0 r+i.nrow) ,("1) (_2]\ toWORD0 nrow#c) ,("1) (toWORD0 xf)
-    else.
-      yn=. <("1) yn
-      sst=: sst, (~.yn) -. sst
-      sstn=: sstn + #yn
-      stream__l=: stream__l,, (toHeader 16b00fd, 10) ,("1) (_2]\ toWORD0 r+i.nrow) ,("1) (_2]\ toWORD0 nrow#c) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 sst i. yn)
-    end.
+    yn=. <("1) yn
+    sst=: sst, (~.yn) -. sst
+    sstn=: sstn + #yn
+    stream__l=: stream__l,, (toHeader 16b00fd, 10) ,("1) (_2]\ toWORD0 r+i.nrow) ,("1) (_2]\ toWORD0 nrow#c) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 sst i. yn)
   elseif. do. 'unhandled exception' 13!:8 (3)
   end.
 elseif. 32 e.~ 3!:0 yn do.
@@ -2563,6 +2559,28 @@ NB. biff8 cannot store empty string
   end.
 elseif. do. 'unhandled exception' 13!:8 (3)
 end.
+''
+)
+
+NB. write blank to the current worksheet
+NB. x xf
+NB. y row col [ row col ... ]
+NB.   _2]\ row col [ row col ... ]
+writeblank=: 3 : 0
+y=. y.
+cxf writeblank y
+:
+y=. y. [ x=. x.
+assert. 1 2 4 8 131072 e.~ (3!:0) y
+if. 2 131072 e.~ 3!:0 y do. y=. A1toRC y end.
+assert. 0=2|#,y
+if. 0=#,y do. '' return. end.  NB. ignore null
+'r c'=. |: _2]\ ,y
+l=. sheeti{sheet
+xf=. getxfidx x
+adjdim__l (<./r), <./c
+adjdim__l (>./r), >./c
+stream__l=: stream__l,, (toHeader 16b0201, 6) ,("1) (_2]\ toWORD0 r) ,("1) (_2]\ toWORD0 c) ,("1) (toWORD0 xf)
 ''
 )
 
