@@ -2272,7 +2272,7 @@ images_data=: 0 0$''  NB. Store the data for MSODRAWINGGROUP.
 addhlink=: 3 : 0
 y=. y.
 l=. sheeti{sheet
-hlink__l=: hlink__l, y
+hlink__l=: hlink__l, 8{.y
 )
 
 writefileprotection=: 3 : 0
