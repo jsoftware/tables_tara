@@ -593,7 +593,7 @@ y=. y.
 0 readexcel y
 :
 y=. y. [ x=. x.
-x=. {.^:(3!:0~:2:) x NB. ensure single sheet
+x=. {.^:(3!:0 e.~ 2 131072"_) x NB. ensure single sheet
 ;{:"1 x readxlsheets y
 )
 
@@ -605,7 +605,7 @@ y=. y.
 :
 y=. y. [ x=. x.
 y=. (boxopen y),<1  NB. add string specifier
-x readexcel y
+(boxopen^:(3!:0 e. 2 131072"_) x) readexcel y
 )
 
 NB. ---------------------------------------------------------
