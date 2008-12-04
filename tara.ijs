@@ -1726,16 +1726,15 @@ z=. z, toWORD0 y
 z=. z,~ toHeader recordtype, #z
 )
 
-biff_hlink=: 4 : 0
+biff_hlink=: 3 : 0
 recordtype=. 16b01b8
 z=. ''
-linktype=. x
-if. 'url'-:linktype do. 'rowcols link textmark target description'=. y
-elseif. 'local'-:linktype do. 'rowcols link elink uplevel textmark target description'=. y
-elseif. 'unc'-:linktype do. 'rowcols link textmark target description'=. y
-elseif. 'worksheet'-:linktype do. 'rowcols textmark target description'=. y
-elseif. do. 'unhandled exception' 13!:8 (3)
-end.
+NB. 'url'       'linktype rowcols link dummy dummy   textmark target description'
+NB. 'local'     'linktype rowcols link elink uplevel textmark target description'
+NB. 'unc'       'linktype rowcols link dummy dummy   textmark target description'
+NB. 'worksheet' 'linktype rowcols dummy dummy dummy  textmark target description'
+
+'linktype rowcols link elink uplevel textmark target description'=. y
 bit8=. bit7=. bit6=. bit5=. bit4=. bit3=. bit2=. bit1=. bit0=. 0
 if. #target do. bit7=. 1 end.
 if. #description do. bit2=. bit4=. 1 end.
@@ -2935,7 +2934,7 @@ mergedcell=: 0 4$''               NB. row1 row2 col1 col2
 rowlabelrange=: collabelrange=: 0 4$''
 condformatstream=: ''
 selection=: 0 5$''
-hlink=: 0 2$''
+hlink=: 0 8$''
 imdata=: ''
 dvstream=: ''
 colsizes=: 0 2$''
@@ -3018,7 +3017,7 @@ if. (2:~:$$) mergedcell do. mergedcell=: _4]\, mergedcell end.
 z=. z, biff_mergedcells mergedcell
 z=. z, biff_labelranges rowlabelrange ; collabelrange
 z=. z, condformatstream
-for_item. hlink do. z=. z, (0{::item) biff_hlink 1{::item end.
+for_item. hlink do. z=. z, biff_hlink item end.
 z=. z, dvstream
 z=. z, biff_eof ''
 )
@@ -3293,7 +3292,7 @@ images_data=: 0 0$''  NB. Store the data for MSODRAWINGGROUP.
 
 addhlink=: 3 : 0
 l=. sheeti{sheet
-hlink__l=: hlink__l, y
+hlink__l=: hlink__l, 8{.y
 )
 
 writefileprotection=: 3 : 0
@@ -3506,68 +3505,92 @@ stream__l=: stream__l, (getxfidx x) biff_row y
 
 NB. write string to the current worksheet
 NB. x xf
-NB. y row col ; text         (where 3>$$text)
-NB.   row col ; boxed text   (where 3>$$boxed text)
-NB.                          (always box last argument to make 2=#y)
+NB. y row col ; text  [ ; option ]         (where 4>$$text)
+NB.   row col ; boxed text  [ ; option ]   (where 3>$$boxed text)
+NB.            (always box text argument to make 2 3 e.~ #y)
+NB. option 1: write format for empty string cells
 writestring=: 3 : 0
 cxf writestring y
 :
-assert. 2=#y
+assert. 2 3 e.~ #y
 assert. 1 2 4 8 131072 e.~ (3!:0) 0{::y
 assert. 2 32 131072 e.~ (3!:0) 1{::y
 if. 2 131072 e.~ 3!:0 rc=. 0{::y do. y=. (<A1toRC rc) 0}y end.
 l=. sheeti{sheet
 xf=. getxfidx x
-if. (0=#@, yn) +. 2 131072 e.~ 3!:0 yn=. 1{::y do.
-  if. 0 e. $yn do. '' return. end.  NB. ignore null
+if. 3=#y do. opt=. 2{::y else. opt=. 0 end.
+if. 0 e. $yn=. 1{::y do. '' return. end.  NB. ignore null
+if. 2 131072 e.~ 3!:0 yn do.
   if. 2> $$yn do.
     adjdim__l 0{::y
     stream__l=: stream__l, xf biff_label y
+    '' return.
   elseif. 2=$$yn do.
-    'r c'=. 0{::y
-    'nrow len'=. $yn
-    adjdim__l 0{::y
-    adjdim__l (nrow, 0) + 0{::y
-    if. 0=len do.
-      stream__l=: stream__l,, (toHeader 16b0201, 6) ,("1) (_2]\ toWORD0 r+i.nrow) ,("1) (_2]\ toWORD0 nrow#c) ,("1) (toWORD0 xf)
-    else.
-      yn=. <("1) yn
-      sst=: sst, (~.yn) -. sst
-      sstn=: sstn + #yn
-      stream__l=: stream__l,, (toHeader 16b00fd, 10) ,("1) (_2]\ toWORD0 r+i.nrow) ,("1) (_2]\ toWORD0 nrow#c) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 sst i. yn)
-    end.
+    yn=. ,. <@dtb("1) yn    NB. column vector, yn may contain <'' here
+  elseif. 3=$$yn do.
+    yn=. <@dtb("1) yn       NB. yn may contain <'' here
   elseif. do. 'unhandled exception' 13!:8 (3)
   end.
-elseif. 32 e.~ 3!:0 yn do.
-  if. (0:=#), yn do. '' return.  NB. ignore null
-  elseif. 1=#@, yn do.  NB. singleton
-    if. (0:=#), >yn do. '' return. end. NB. ignore null
-    adjdim__l 0{::y
-    stream__l=: stream__l, xf biff_label ({.y), <, >yn
-  elseif. 3>$$yn do.
-    if. 1=$$yn do. yn=. ,:yn end.
-    s=. $yn
-    'r c'=. 0{::y
+elseif. -. 32 e.~ 3!:0 yn do.
+  'unhandled exception' 13!:8 (3)
+end.
+NB. yn is now box array
+if. 1=#@, yn do.  NB. singleton
+  if. (0=opt) *. (0:=#), >yn do. '' return. end. NB. ignore null
+  adjdim__l 0{::y
+  stream__l=: stream__l, xf biff_label ({.y), <, >yn
+elseif. 3>$$yn do.
+  if. 1=$$yn do. yn=. ,:yn end.
+  s=. $yn
+  'r c'=. 0{::y
 NB. biff8 cannot store empty string
-    if. 0= +./ ,f=. (<'') ~: yn do. '' return. end.
-    adjdim__l 0{::y
+  if. (0=opt) *. 0= +./ f1=. ,f=. (<'') ~: yn do. '' return. end.
+  if. 0=opt do.
     mr=. 1 i.~ 1 e.("1) f
     mc=. 1 i.~ 1 e.("1) |:f
     adjdim__l (mr, mc) + 0{::y
-    sst=: sst, (~.(,f)#,yn) -. sst
-    sstn=: sstn + +/f=. ,f
-    stream__l=: stream__l,, (toHeader 16b00fd, 10) ,("1) (_2]\ toWORD0 f#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 f#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 sst i. f#,yn)
-  elseif. do. 'unhandled exception' 13!:8 (3)
+    mr=. 1 i:~ 1 e.("1) f
+    mc=. 1 i:~ 1 e.("1) |:f
+    adjdim__l (mr, mc) + 0{::y
+  else.
+    adjdim__l 0{::y
+    adjdim__l (<:s) + 0{::y
+  end.
+  sst=: sst, (~.f1#,yn) -. sst
+  sstn=: sstn + +/f1
+  stream__l=: stream__l,, (toHeader 16b00fd, 10) ,("1) (_2]\ toWORD0 f1#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 f1#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 sst i. f1#,yn)
+  if. (1=opt) *. 0 e. f1 do.
+    stream__l=: stream__l,, (toHeader 16b0201, 6) ,("1) (_2]\ toWORD0 (-.f1)#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 (-.f1)#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf)
   end.
 elseif. do. 'unhandled exception' 13!:8 (3)
 end.
 ''
 )
 
+NB. write blank to the current worksheet
+NB. x xf
+NB. y row col [ row col ... ]
+NB.   _2]\ row col [ row col ... ]
+writeblank=: 3 : 0
+cxf writeblank y
+:
+assert. 1 2 4 8 131072 e.~ (3!:0) y
+if. 2 131072 e.~ 3!:0 y do. y=. A1toRC y end.
+assert. 0=2|#,y
+if. 0=#,y do. '' return. end.  NB. ignore null
+'r c'=. |: _2]\ ,y
+l=. sheeti{sheet
+xf=. getxfidx x
+adjdim__l (<./r), <./c
+adjdim__l (>./r), >./c
+stream__l=: stream__l,, (toHeader 16b0201, 6) ,("1) (_2]\ toWORD0 r) ,("1) (_2]\ toWORD0 c) ,("1) (toWORD0 xf)
+''
+)
+
 NB. write integer to the current worksheet
 NB. x xf
 NB. y row col ; integer [ ; option ]  (where 3>$$number)
-NB. option 1: suppress zero
+NB. option 1: suppress zero   2: suppress zero but not format
 writeinteger=: 3 : 0
 cxf writeinteger y
 :
@@ -3589,18 +3612,27 @@ elseif. 3>$$yn do.
   if. 1=$$yn do. yn=. ,:yn end.
   s=. $yn
   'r c'=. 0{::y
-  if. 1=opt do.
-    if. 0= +./ ,f=. 0~: <. 1{::y do. '' return. end.
-    adjdim__l 0{::y
-    mr=. 1 i.~ 1 e.("1) f
-    mc=. 1 i.~ 1 e.("1) |:f
-    f=. ,f
-    adjdim__l (mr, mc) + 0{::y
-    stream__l=: stream__l,, (toHeader 16b027e, 10) ,("1) (_2]\ toWORD0 f#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 f#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 f#,yn)
+  if. 0~:opt do.
+    if. (1=opt) *. 0= +./ f1=. ,f=. 0~: <. 1{::y do. '' return. end.
+    if. 1=opt do.
+      mr=. 1 i.~ 1 e.("1) f
+      mc=. 1 i.~ 1 e.("1) |:f
+      adjdim__l (mr, mc) + 0{::y
+      mr=. 1 i:~ 1 e.("1) f
+      mc=. 1 i:~ 1 e.("1) |:f
+      adjdim__l (mr, mc) + 0{::y
+    else.
+      adjdim__l 0{::y
+      adjdim__l (<:s) + 0{::y
+    end.
+    stream__l=: stream__l,, (toHeader 16b027e, 10) ,("1) (_2]\ toWORD0 f1#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 f1#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 f1#,yn)
+    if. 2=opt do.
+      stream__l=: stream__l,, (toHeader 16b0201, 6) ,("1) (_2]\ toWORD0 (-.f1)#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 (-.f1)#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf)
+    end.
   else.
     adjdim__l 0{::y
-    adjdim__l s + 0{::y
-    stream__l=: stream__l,, (toHeader 16b027e, 10) ,("1) (_2]\ toWORD0 ({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 ,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0, yn)
+    adjdim__l (<:s) + 0{::y
+    stream__l=: stream__l,, (toHeader 16b027e, 10) ,("1) (_2]\ toWORD0 ({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 ,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 ,yn)
   end.
 elseif. do. 'unhandled exception' 13!:8 (3)
 end.
@@ -3610,7 +3642,7 @@ end.
 NB. write number to the current worksheet
 NB. x xf
 NB. y row col ; number [ ; option ]  (where 3>$$number)
-NB. option 1: suppress zero
+NB. option 1: suppress zero   2: suppress zero but not format
 writenumber=: 3 : 0
 cxf writenumber y
 :
@@ -3630,18 +3662,27 @@ elseif. 3>$$yn do.
   if. 1=$$yn do. yn=. ,:yn end.
   s=. $yn
   'r c'=. 0{::y
-  if. 1=opt do.
-    if. 0= +./ ,f=. 0~: 1{::y do. '' return. end.
-    adjdim__l 0{::y
-    mr=. 1 i.~ 1 e.("1) f
-    mc=. 1 i.~ 1 e.("1) |:f
-    f=. ,f
-    adjdim__l (mr, mc) + 0{::y
-    stream__l=: stream__l,, (toHeader 16b0203, 14) ,("1) (_2]\ toWORD0 f#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 f#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_8]\ toDouble0 f#,yn)
+  if. 0~:opt do.
+    if. (1=opt) *. 0= +./ f1=. ,f=. 0~: <. 1{::y do. '' return. end.
+    if. 1=opt do.
+      mr=. 1 i.~ 1 e.("1) f
+      mc=. 1 i.~ 1 e.("1) |:f
+      adjdim__l (mr, mc) + 0{::y
+      mr=. 1 i:~ 1 e.("1) f
+      mc=. 1 i:~ 1 e.("1) |:f
+      adjdim__l (mr, mc) + 0{::y
+    else.
+      adjdim__l 0{::y
+      adjdim__l (<:s) + 0{::y
+    end.
+    stream__l=: stream__l,, (toHeader 16b0203, 14) ,("1) (_2]\ toWORD0 f1#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 f1#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_8]\ toDouble0 f1#,yn)
+    if. 2=opt do.
+      stream__l=: stream__l,, (toHeader 16b0201, 6) ,("1) (_2]\ toWORD0 (-.f1)#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 (-.f1)#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf)
+    end.
   else.
     adjdim__l 0{::y
     adjdim__l s + 0{::y
-    stream__l=: stream__l,, (toHeader 16b0203, 14) ,("1) (_2]\ toWORD0 ({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 ,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_8]\ toDouble0, yn)
+    stream__l=: stream__l,, (toHeader 16b0203, 14) ,("1) (_2]\ toWORD0 ({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 ,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_8]\ toDouble0 ,yn)
   end.
 elseif. do. 'unhandled exception' 13!:8 (3)
 end.
@@ -4376,7 +4417,7 @@ NB. see readxlsheets
 readexcel=: 3 : 0
 0 readexcel y
 :
-x=. {.^:(3!:0~:2:) x NB. ensure single sheet
+x=. {.^:(3!:0 -.@e. 2 131072"_) x NB. ensure single sheet
 ;{:"1 x readxlsheets y
 )
 
