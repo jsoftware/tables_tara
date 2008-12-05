@@ -48,7 +48,7 @@ NB. =========================================================
 Lab Section Classes in Tara
 The Tara package contains many classes.  In this lab, we will use the terms 'class', 'object', 'locale' loosely to mean more or less the same thing.
 
-Classes beginning with 'biff' are for biff8, while and beginning with 'ole' for ole2 storage.  But you may ignore most of them.
+Classes beginning with 'biff' are for biff8, while any beginning with 'ole' for ole2 storage.  But you may ignore most of them.
 )
 'bo' 18!:1 [0            NB. display classes in Tara
 
@@ -142,7 +142,7 @@ Lab Section
 bkrecords contains an integer matrix, where the first column is the record type of biff8 records.
 eg.
   first  item    2057 (16b809)   : BOF (Beginning of File)
-  last-2 item     252 (16bfc)    : SST (Shared String Table)
+  last-3 item     252 (16bfc)    : SST (Shared String Table)
 )
 bkrecords
 
@@ -150,16 +150,16 @@ NB. =========================================================
 Lab Section
 The content of records can be found in (bk)bytes array.  
 
-  Eg. the SST record (252 1185  26)
-      content is bkbytes{~1185+i.26
+  Eg. the SST record (252 1544  26)
+      content is bkbytes{~1544+i.26
 
 Please refer to "Microsoft Excel File Format" (download at http://sc.openoffice.org/excelfileformat.pdf) for details.  Warning: it is difficult to read.
 
 This is the end of reading Excel files.
 )
-bkbytes{~1185+i.26      NB. content of SST record
+bkbytes{~1544+i.26      NB. content of SST record
 
-a.i.bkbytes{~1185+i.26  NB. show unprintable data
+a.i.bkbytes{~1544+i.26  NB. show unprintable data
 
 NB. =========================================================
 Lab Chapter Writing simple Excel files
@@ -310,11 +310,11 @@ NB. set default row height
 defaultrowheight__l=: 400    NB. twip
 
 NB. set individual column width
-NB. y. is firstcol lastcol width(in 1/256 character)
+NB. y is firstcol lastcol width(in 1/256 character)
 addcolinfo__bi 2 6, 256*10
 
 NB. set individual row height
-NB. y. is rownumber firstcol lastcol+1 usedefaultheight rowheight(in twip) heightnotmatch ...
+NB. y is rownumber firstcol lastcol+1 usedefaultheight rowheight(in twip) heightnotmatch ...
 addrowinfo__bi 1 0 256 0 1000 1
 
 NB. =========================================================
@@ -486,7 +486,7 @@ writestring__bi 4 0 ; 'merge 2'
 
 NB. =========================================================
 Lab Section Cell Border
-Setting cell border is troublesome.  You cannot specify a block of cells and set their top border or outline border. Instead your have to write string/number/blank to each cell individually to set the cell border and content in the same 'writestring'/'writenumber'.
+Setting cell border is troublesome.  You cannot specify a block of cells and set their top border or outline border. Instead you have to write string/number/blank to each cell individually to set the cell border and content in the same 'writestring'/'writenumber'.
 
   leftlinestyle    ... cell border style
   rightlinestyle
