@@ -150,16 +150,16 @@ NB. =========================================================
 Lab Section
 The content of records can be found in (bk)bytes array.  
 
-  Eg. the SST record (252 1544  26)
-      content is bkbytes{~1544+i.26
+  Eg. the SST record (252 1544  126)
+      content is bkbytes{~1544+i.126
 
 Please refer to "Microsoft Excel File Format" (download at http://sc.openoffice.org/excelfileformat.pdf) for details.  Warning: it is difficult to read.
 
 This is the end of reading Excel files.
 )
-bkbytes{~1544+i.26      NB. content of SST record
+bkbytes{~1544+i.126      NB. content of SST record
 
-a.i.bkbytes{~1544+i.26  NB. show unprintable data
+a.i.bkbytes{~1544+i.126  NB. show unprintable data
 
 NB. =========================================================
 Lab Chapter Writing simple Excel files
