@@ -594,7 +594,7 @@ y=. y.
 :
 y=. y. [ x=. x.
 x=. {.^:(3!:0 -.@e. 2 131072"_) x NB. ensure single sheet
-;{:"1 x readxlsheets y
+>@{:@{. x readxlsheets y
 )
 
 NB.*readexcelstring v Reads contents of a sheet from an Excel file as strings
@@ -604,8 +604,8 @@ y=. y.
 0 readexcelstring y
 :
 y=. y. [ x=. x.
-y=. (boxopen y),<1  NB. add string specifier
-x readexcel y
+y=. ({.boxopen y),<1  NB. ensure single sheet, add string specifier
+>@{:@{. x readxlsheets y
 )
 
 NB. ---------------------------------------------------------
