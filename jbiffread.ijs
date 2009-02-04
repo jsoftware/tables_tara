@@ -532,7 +532,7 @@ NB. get worksheet location
     if. x-:<'' do.
       x=. i.#worksheets__ex
     elseif. -. */ 1 4 8 e.~ 3!:0 every x do.
-      x=. x i.&(tolower&.>)~ {."1 worksheets__ex   NB. case insensitive worksheet name
+      x=. x i.&(tolower&.>"_)~ {."1 worksheets__ex   NB. case insensitive worksheet name
     elseif. do. x=. >x NB. unbox numeric list
     end.
     (msg=. 'worksheet not found') assert x<#worksheets__ex
