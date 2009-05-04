@@ -616,7 +616,7 @@ NB. eg: readxlsheetnames 'test.xls'
 NB. read Excel Versions 5, 95, 97, 2000, XP, 2003
 NB. biff5  excel 5  biff7 excel 97   biff8 excel 97, xp, 2003
 readxlsheetnames=: 3 : 0
-y=. y. [ x=. x.
+y=. y.
 try.
   fln=. boxopen y
   locs=. '' NB. store locales created
