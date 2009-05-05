@@ -62,7 +62,7 @@ NB. cell ref 'AA5' => 4 26
 A1toRC=: 3 : 0
 y=. y.
 assert. y e. '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-(26 #. (0 _1)+ _2&{. ' ABCDEFGHIJKLMNOPQRSTUVWXYZ'&i. c),~ <: 1&". y -. c=. y -. '0123456789'
+(<: 26 #. ' ABCDEFGHIJKLMNOPQRSTUVWXYZ'&i. _5&{. c),~ <: 1&". y -. c=. y -. '0123456789'
 )
 
 toHeader=: toWORD0
