@@ -58,6 +58,9 @@ colorset0n=: 8   NB. reserved by excel
 colorborder=: 16b40
 colorpattern=: 16b41
 colorfont=: 16b7fff
+NB. for debug
+DEBUG=: 1
+
 NB. cell ref 'AA5' => 4 26
 A1toRC=: 3 : 0
 y=. y.
@@ -1919,6 +1922,8 @@ filter_area=: ''
 filter_count=: 0
 filter_on=: 0
 filter_cols=: 0 0$''
+NB. for debug
+rowcolused=: 0 2$0
 )
 
 writestream=: 3 : 0
@@ -2272,7 +2277,7 @@ images_data=: 0 0$''  NB. Store the data for MSODRAWINGGROUP.
 addhlink=: 3 : 0
 y=. y.
 l=. sheeti{sheet
-hlink__l=: hlink__l, 8{.y
+hlink__l=: hlink__l, y
 )
 
 writefileprotection=: 3 : 0
@@ -2347,7 +2352,7 @@ newcrn__l y
 create=: 3 : 0
 y=. y.
 if. ''-:y do.
-  'fontname fontsize'=: 'Courier New' ; 220
+  'fontname fontsize'=: ((IFUNIX+IFWINE){::'Courier New' ; 'Monospace') ; 220
   sheetname=. 'Sheet1'
 else.
   'fontname fontsize'=: 2{.y
@@ -2362,7 +2367,16 @@ cxf=: addxfobj 15{xfset  NB. predefined cell style
 
 destroy=: 3 : 0
 y=. y.
-for_l. sheet do. destroy__l '' end.
+if. DEBUG do.
+for_l. sheet do. 
+  if. n=. #rowcolused__l do.
+     if. n ~: # a=. ~.rowcolused__l do.
+       1!:2&2 sheetname__l, ' duplicated cell'
+       1!:2&2 (1 < rowcolused__l #/. rowcolused__l) # a
+     end.
+  end.
+end.
+end.  for_l. sheet do. destroy__l '' end.
 for_l. biffxfset do. destroy__l '' end.
 for_l. supbook do. destroy__l '' end.
 for_l. refname do. destroy__l '' end.
@@ -2522,11 +2536,14 @@ if. 2 131072 e.~ 3!:0 rc=. 0{::y do. y=. (<A1toRC rc) 0}y end.
 l=. sheeti{sheet
 xf=. getxfidx x
 if. 3=#y do. opt=. 2{::y else. opt=. 0 end.
-if. 0 e. $yn=. 1{::y do. '' return. end.  NB. ignore null
+if. (0=opt) *. 0 e. $yn=. 1{::y do. '' return. end.  NB. ignore null
 if. 2 131072 e.~ 3!:0 yn do.
   if. 2> $$yn do.
     adjdim__l 0{::y
-    stream__l=: stream__l, xf biff_label y
+    stream__l=: stream__l, xf biff_label 2{.y
+    if. DEBUG do.
+      rowcolused__l=: rowcolused__l, ,0{::y 
+    end.
     '' return.
   elseif. 2=$$yn do.
     yn=. ,. <@dtb("1) yn    NB. column vector, yn may contain <'' here
@@ -2542,6 +2559,9 @@ if. 1=#@, yn do.  NB. singleton
   if. (0=opt) *. (0:=#), >yn do. '' return. end. NB. ignore null
   adjdim__l 0{::y
   stream__l=: stream__l, xf biff_label ({.y), <, >yn
+  if. DEBUG do.
+    rowcolused__l=: rowcolused__l, ,0{::y 
+  end.
 elseif. 3>$$yn do.
   if. 1=$$yn do. yn=. ,:yn end.
   s=. $yn
@@ -2562,6 +2582,9 @@ NB. biff8 cannot store empty string
   sst=: sst, (~.f1#,yn) -. sst
   sstn=: sstn + +/f1
   stream__l=: stream__l,, (toHeader 16b00fd, 10) ,("1) (_2]\ toWORD0 f1#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 f1#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 sst i. f1#,yn)
+  if. DEBUG do.
+    rowcolused__l=: rowcolused__l, (f1#({:s)#r+i.{.s) ,. f1#,({.s)#,:c+i.{:s
+  end.
   if. (1=opt) *. 0 e. f1 do.
     stream__l=: stream__l,, (toHeader 16b0201, 6) ,("1) (_2]\ toWORD0 (-.f1)#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 (-.f1)#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf)
   end.
@@ -2589,6 +2612,9 @@ xf=. getxfidx x
 adjdim__l (<./r), <./c
 adjdim__l (>./r), >./c
 stream__l=: stream__l,, (toHeader 16b0201, 6) ,("1) (_2]\ toWORD0 r) ,("1) (_2]\ toWORD0 c) ,("1) (toWORD0 xf)
+if. DEBUG do.
+  rowcolused__l=: rowcolused__l, r ,. c
+end.
 ''
 )
 
@@ -2615,6 +2641,9 @@ if. 1=#@, yn do.  NB. singleton
   if. (1=opt) *. 0= <. 1{::y do. '' return. end.
   adjdim__l 0{::y
   stream__l=: stream__l, xf biff_integer ({.y), < {., 1{::y
+  if. DEBUG do.
+    rowcolused__l=: rowcolused__l, ,0{::y 
+  end.
 elseif. 3>$$yn do.
   if. 1=$$yn do. yn=. ,:yn end.
   s=. $yn
@@ -2633,6 +2662,9 @@ elseif. 3>$$yn do.
       adjdim__l (<:s) + 0{::y
     end.
     stream__l=: stream__l,, (toHeader 16b027e, 10) ,("1) (_2]\ toWORD0 f1#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 f1#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 f1#,yn)
+    if. DEBUG do.
+      rowcolused__l=: rowcolused__l, (f1#({:s)#r+i.{.s) ,. f1#,({.s)#,:c+i.{:s
+    end.
     if. 2=opt do.
       stream__l=: stream__l,, (toHeader 16b0201, 6) ,("1) (_2]\ toWORD0 (-.f1)#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 (-.f1)#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf)
     end.
@@ -2640,6 +2672,9 @@ elseif. 3>$$yn do.
     adjdim__l 0{::y
     adjdim__l (<:s) + 0{::y
     stream__l=: stream__l,, (toHeader 16b027e, 10) ,("1) (_2]\ toWORD0 ({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 ,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 ,yn)
+    if. DEBUG do.
+      rowcolused__l=: rowcolused__l, (({:s)#r+i.{.s) ,. ,({.s)#,:c+i.{:s
+    end.
   end.
 elseif. do. 'unhandled exception' 13!:8 (3)
 end.
@@ -2667,6 +2702,9 @@ if. 1=#@, yn do.  NB. singleton
   if. (1=opt) *. 0=1{::y do. '' return. end.
   adjdim__l 0{::y
   stream__l=: stream__l, xf biff_number ({.y), < {., yn
+  if. DEBUG do.
+    rowcolused__l=: rowcolused__l, ,0{::y 
+  end.
 elseif. 3>$$yn do.
   if. 1=$$yn do. yn=. ,:yn end.
   s=. $yn
@@ -2685,6 +2723,9 @@ elseif. 3>$$yn do.
       adjdim__l (<:s) + 0{::y
     end.
     stream__l=: stream__l,, (toHeader 16b0203, 14) ,("1) (_2]\ toWORD0 f1#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 f1#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_8]\ toDouble0 f1#,yn)
+    if. DEBUG do.
+      rowcolused__l=: rowcolused__l, (f1#({:s)#r+i.{.s) ,. f1#,({.s)#,:c+i.{:s
+    end.
     if. 2=opt do.
       stream__l=: stream__l,, (toHeader 16b0201, 6) ,("1) (_2]\ toWORD0 (-.f1)#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 (-.f1)#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf)
     end.
@@ -2692,6 +2733,9 @@ elseif. 3>$$yn do.
     adjdim__l 0{::y
     adjdim__l s + 0{::y
     stream__l=: stream__l,, (toHeader 16b0203, 14) ,("1) (_2]\ toWORD0 ({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 ,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_8]\ toDouble0 ,yn)
+    if. DEBUG do.
+      rowcolused__l=: rowcolused__l, (({:s)#r+i.{.s) ,. ,({.s)#,:c+i.{:s
+    end.
   end.
 elseif. do. 'unhandled exception' 13!:8 (3)
 end.
