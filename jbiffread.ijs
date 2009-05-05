@@ -568,44 +568,26 @@ catch.
 end.
 )
 
+NB. stringtype v Ensures string type returned by appending <1 filename
+stringtype=:  (<1) ,~ [: {. boxopen  
+NB. firstsheet v Returns the first reference to a worksheet in x, or in the worksheet if no x.
+firstsheet=: 0: :({.^:(3!:0 -.@e. 2 131072"_)@[) NB. 
+
 NB.*readxlsheetsstring v Reads contents of one or more sheets from an Excel file as strings
 NB. see readxlsheets
-readxlsheetsstring=: 3 : 0
-y=. y.
-0 readxlsheetsstring y
-:
-y=. y. [ x=. x.
-y=. (boxopen y),<1  NB. add string specifier
-x readxlsheets y
-)
+readxlsheetsstring=: 0&$: : ([ readxlsheets stringtype@])
 
 NB.*readxlworkbook v Reads all sheets from an Excel file
 NB. see readxlsheets
-readxlworkbook=: 3 : 0
-y=. y.
-'' readxlsheets y
-)
+readxlworkbook=: ''&readxlsheets
 
 NB.*readexcel v Reads contents of a sheet from an Excel file
 NB. see readxlsheets
-readexcel=: 3 : 0
-y=. y.
-0 readexcel y
-:
-y=. y. [ x=. x.
-x=. {.^:(3!:0 -.@e. 2 131072"_) x NB. ensure single sheet
->{:{. x readxlsheets y
-)
+readexcel=: 0 _1 {:: firstsheet readxlsheets ]
 
 NB.*readexcelstring v Reads contents of a sheet from an Excel file as strings
 NB. see readxlsheets
-readexcelstring=: 3 : 0
-y=. y.
-0 readexcelstring y
-:
-y=. y. [ x=. x.
-x readexcel (boxopen y),<1   NB. add string specifier
-)
+readexcelstring=: 0 _1 {:: firstsheet readxlsheets stringtype@]
 
 NB. ---------------------------------------------------------
 NB.*readxlsheetnames v Reads sheet names from Excel workbook
