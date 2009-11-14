@@ -11,9 +11,9 @@ z
 coxclass 'biffsheet'
 coxtend 'biff'
 
-NB. ========================================================
+NB. =========================================================
 NB. Methods related to comments and MSO objects.
-NB. ported from CPAN Spreadsheet::WriteExcel 
+NB. ported from CPAN Spreadsheet::WriteExcel
 NB. portion Copyrighted by John McNamara, jmcnamara@cpan.org
 NB.
 
@@ -54,7 +54,6 @@ end.
 ''
 )
 
-
 NB. string writecomment rowcol ; opt_name ; opt_value .....
 NB.
 NB. Write a comment to the specified row and column (zero indexed).
@@ -65,8 +64,8 @@ NB. start_cell _1 _1
 NB. start_col _1
 NB. start_row _1
 NB. visible _1
-NB. width 129
-NB. height 75
+NB. width 128
+NB. height 74
 NB. x_offset _1
 NB. x_scale 1
 NB. y_offset _1
@@ -140,7 +139,6 @@ NB. TODO
 store_filtermode=: ''"_
 store_autofilterinfo=: ''"_
 store_autofilters=: ''"_
-
 
 NB.
 NB. store_images
@@ -297,7 +295,7 @@ NB. TODO. Won't work for external data refs. Also should use a more direct
 NB.       method.
 NB.
 formula=. '=', sheetname, '!A1'
-NB. TODO: formula
+NB. TODO formula
 NB. store_formula formula
 
 object_ids=: spid 0}object_ids
@@ -420,7 +418,7 @@ for_i. i.#comments_array do.
   formats=. 0 5 ,: (#str), 0
   if. (0=i) *. 0=num_objects do.
 NB. Write the parent MSODRAWIING record.
-    dg_length=.  72 + 92* #comments_array
+    dg_length=. 72 + 92* #comments_array
     spgr_length=. 48 + 92* #comments_array
 
     data=. store_mso_dg_container dg_length
@@ -1100,8 +1098,8 @@ start_cell _1 _1
 start_col _1
 start_row _1
 visible _1
-width 129
-height 75
+width 128
+height 74
 x_offset _1
 x_scale 1
 y_offset _1
@@ -1125,8 +1123,8 @@ nm=. (<'params_'),&.> {.("1) nmv=. (_2]\ 2}.y),~ ;:;._2 defcommentparams
 (, (1&u: :: ])&.> nm)=. ".&.>{:("1) nmv
 
 NB. Ensure that a width and height have been set.
-params_width=. (0<:params_width){ params_width, 129
-params_height=. (0<:params_height){ params_height, 75
+params_width=. (0<:params_width){ params_width, 128
+params_height=. (0<:params_height){ params_height, 74
 
 NB. Limit the string to the max number of chars (not bytes).
 max_len=. 32767
@@ -1184,16 +1182,13 @@ if. _1=params_x_offset do.
   end.
 end.
 
-NB. Scale the size of the comment box if required. We scale the width and
-NB. height using the relationship d2 =(d1 -1)*s +1, where d is dimension
-NB. and s is scale. This gives values that match Excel's behaviour.
-NB.
+NB. Scale the size of the comment box if required.
 if. params_x_scale do.
-  params_width=. <. ((params_width -1) * params_x_scale) +1
+  params_width=. <. params_width * params_x_scale
 end.
 
 if. params_y_scale do.
-  params_height=. <. ((params_height -1) * params_y_scale) +1
+  params_height=. <. params_height * params_y_scale
 end.
 
 NB. Calculate the positions of comment object.
@@ -1247,8 +1242,8 @@ NB. start_cell _1 _1
 NB. start_col _1
 NB. start_row _1
 NB. visible _1
-NB. width 129
-NB. height 75
+NB. width 128
+NB. height 74
 NB. x_offset _1
 NB. x_scale 1
 NB. y_offset _1
@@ -1844,4 +1839,4 @@ type, width, height
 
 NB.
 NB. end of Methods related to comments and MSO objects.
-NB. ========================================================
+NB. =========================================================

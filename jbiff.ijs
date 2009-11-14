@@ -1530,8 +1530,8 @@ rowend=. rowstart  NB. Row containing bottom right corner of object
 NB. Zero the specified offset if greater than the cell dimensions
 if. x1 >: sizeCol colstart do. x1=. 0 end.
 if. y1 >: sizeRow rowstart do. y1=. 0 end.
-width=. width + x1 -1
-height=. height + y1 -1
+width=. width + x1
+height=. height + y1
 NB. Subtract the underlying cell widths to find the end cell of the image
 while. width >: sizeCol colend do.
   width=. width - sizeCol colend
@@ -2158,7 +2158,7 @@ fontset=: fontset, fontsize ; 0 ; 0 ; colorfont ; 400 ; 0 ; 0 ; 0 ; 0 ; fontname
 fontset=: fontset, fontsize ; 0 ; 0 ; colorfont ; 400 ; 0 ; 0 ; 0 ; 0 ; fontname     NB. 3
 fontset=: fontset, fontsize ; 0 ; 0 ; colorfont ; 400 ; 0 ; 0 ; 0 ; 0 ; fontname     NB. 4 (missing)
 fontset=: fontset, fontsize ; 0 ; 0 ; colorfont ; 400 ; 0 ; 0 ; 0 ; 0 ; fontname     NB. 5
-formatset=: format0n#a:
+formatset=: format0n$<''
 NB. format 0-22
 formatset=: ('General';'0';'0.00';'#,##0';'#,##0.00';'"$"#,##0_); ("$"#,##0)';'"$"#,##0_);[Red] ("$"#,##0)';'"$"#,##0.00_); ("$"#,##0.00)';'"$"#,##0.00_);[Red] ("$"#,##0.00)';'0%';'0.00%';'0.00E+00';'# ?/?';'# ??/??';'M/D/YY';'D-MMM-YY';'D-MMM';'MMM-YY';'h:mm AM/PM';'h:mm:ss AM/PM';'h:mm';'h:mm:ss';'M/D/YY h:mm') (i.23) } formatset
 NB. format 37-49
@@ -2370,15 +2370,15 @@ cxf=: addxfobj 15{xfset  NB. predefined cell style
 destroy=: 3 : 0
 y=. y.
 if. DEBUG do.
-for_l. sheet do. 
-  if. n=. #rowcolused__l do.
-     if. n ~: # a=. ~.rowcolused__l do.
-       1!:2&2 sheetname__l, ' duplicated cell'
-       1!:2&2 (1 < rowcolused__l #/. rowcolused__l) # a
-     end.
+  for_l. sheet do.
+    if. n=. #rowcolused__l do.
+      if. n ~: # a=. ~.rowcolused__l do.
+        1!:2&2 sheetname__l, ' duplicated cell'
+        1!:2&2 (1 < rowcolused__l #/. rowcolused__l) # a
+      end.
+    end.
   end.
-end.
-end.  for_l. sheet do. destroy__l '' end.
+end. for_l. sheet do. destroy__l '' end.
 for_l. biffxfset do. destroy__l '' end.
 for_l. supbook do. destroy__l '' end.
 for_l. refname do. destroy__l '' end.
@@ -2544,7 +2544,7 @@ if. 2 131072 e.~ 3!:0 yn do.
     adjdim__l 0{::y
     stream__l=: stream__l, xf biff_label 2{.y
     if. DEBUG do.
-      rowcolused__l=: rowcolused__l, ,0{::y 
+      rowcolused__l=: rowcolused__l, ,0{::y
     end.
     '' return.
   elseif. 2=$$yn do.
@@ -2562,7 +2562,7 @@ if. 1=#@, yn do.  NB. singleton
   adjdim__l 0{::y
   stream__l=: stream__l, xf biff_label ({.y), <, >yn
   if. DEBUG do.
-    rowcolused__l=: rowcolused__l, ,0{::y 
+    rowcolused__l=: rowcolused__l, ,0{::y
   end.
 elseif. 3>$$yn do.
   if. 1=$$yn do. yn=. ,:yn end.
@@ -2644,7 +2644,7 @@ if. 1=#@, yn do.  NB. singleton
   adjdim__l 0{::y
   stream__l=: stream__l, xf biff_integer ({.y), < {., 1{::y
   if. DEBUG do.
-    rowcolused__l=: rowcolused__l, ,0{::y 
+    rowcolused__l=: rowcolused__l, ,0{::y
   end.
 elseif. 3>$$yn do.
   if. 1=$$yn do. yn=. ,:yn end.
@@ -2705,7 +2705,7 @@ if. 1=#@, yn do.  NB. singleton
   adjdim__l 0{::y
   stream__l=: stream__l, xf biff_number ({.y), < {., yn
   if. DEBUG do.
-    rowcolused__l=: rowcolused__l, ,0{::y 
+    rowcolused__l=: rowcolused__l, ,0{::y
   end.
 elseif. 3>$$yn do.
   if. 1=$$yn do. yn=. ,:yn end.
