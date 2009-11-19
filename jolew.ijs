@@ -887,8 +887,8 @@ z=. z, toDWORD0 ibdcnt
 z=. z, toDWORD0 ibbcnt+isbdcnt NB. root start
 z=. z, toDWORD0 0
 z=. z, toDWORD0 16b1000
-z=. z, toDWORD0 0                   NB. small block depot
-z=. z, toDWORD0 1
+z=. z, toDWORD0 (0=isbdcnt){0 _2    NB. small block depot
+z=. z, toDWORD0 isbdcnt
 NB. 2. extra bdlist start, count
 if. ibdcnt < i1stbdl do.
   z=. z, toDWORD0 _2       NB. extra bdlist start
