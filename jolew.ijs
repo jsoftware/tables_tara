@@ -858,20 +858,24 @@ y=. y.
 NB. 0. calculate basic setting
 iblcnt=. <.bigblocksize__rhinfo % longintsize
 i1stbdl=. <.(bigblocksize__rhinfo - 16b4c) % longintsize
+i1stbdmax=. (i1stbdl*iblcnt) - i1stbdl
 ibdexl=. 0
 iall=. ibbcnt + ippscnt + isbdcnt
 iallw=. iall
 ibdcntw=. >.iallw % iblcnt
 ibdcnt=. >.(iall + ibdcntw) % iblcnt
 NB. 0.1 calculate bd count
-if. ibdcnt > i1stbdl do.
-NB.  todo: is do-while correct here?
-  whilst. ibdcnt > i1stbdl + ibdexl*iblcnt do.
-    ibdexl=. >:ibdexl
-    iallw=. >:iallw
-    ibdcntw=. >.iallw % iblcnt
-    ibdcnt=. >.(iallw + ibdcntw) % iblcnt
+if. ibdcnt > 109 do.
+  iblcnt=. <:iblcnt  NB. the blcnt is reduced in the count of the last sect is used for a pointer the next bl
+  ibbleftover=. iall - i1stbdmax
+  if. iall > i1stbdmax do.
+    whilst. ibdcnt > >. ibbleftover % iblcnt do.
+      ibdcnt=. >. ibbleftover % iblcnt
+      ibdexl=. >. ibdcnt % iblcnt
+      ibbleftover=. ibbleftover + ibdexl
+    end.
   end.
+  ibdcnt=. ibdcnt + i1stbdl
 end.
 NB. 1.save header
 z=. 16bd0 16bcf 16b11 16be0 16ba1 16bb1 16b1a 16be1{a.
