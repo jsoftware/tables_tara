@@ -2,7 +2,7 @@ NB. ---------------------------------------------------------
 NB. Tests for writexlsheets
 Note 'To run all tests:'
   load 'tables/tara'
-  load 'tables/tara/taratest2'
+  load 'tables/tara/test/taratest2'
 )
 
 NB. Test data

@@ -1,5 +1,8 @@
 tables/tara - change history
 
+== 1.2.9 ==  NOT YET RELEASED
+ * add: header for script
+
 == 1.2.8 ==
  * add: option for writestring/writenumber to skip null or zero but retain format
  * chg: argument format for adding hyperlink (addhlink)

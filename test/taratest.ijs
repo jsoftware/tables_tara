@@ -2,7 +2,7 @@ NB. Test tara
 
 Note 'To run all tests:'
   load 'tables/tara'
-  load 'tables/tara/taratest'
+  load 'tables/tara/test/taratest'
 )
 
 cocurrent 'base'

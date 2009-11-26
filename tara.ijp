@@ -1,13 +1,14 @@
-NB. project file: c:/users/rsherloc/documents/j602-user/jsrc/addons/tables/tara/tara
+NB. project file: ~Addons/tables/tara/tara
 
 coclass 'jproject'
 
 PRIMARYFILES=: 0 : 0
-~Addons/tables/tara/jolew
-~Addons/tables/tara/jbiff
-~Addons/tables/tara/jbiffread
-~Addons/tables/tara/jbiffwrite
-~Addons/tables/tara/jbiffmso
+~Addons/tables/tara/source/init
+~Addons/tables/tara/source/jolew
+~Addons/tables/tara/source/jbiff
+~Addons/tables/tara/source/jbiffread
+~Addons/tables/tara/source/jbiffwrite
+~Addons/tables/tara/source/jbiffmso
 )
 
 PRIMARYLIBS=: ''
@@ -17,15 +18,15 @@ DEVFILES=: ''
 DEVLIBS=: ''
 
 OTHERFILES=: 0 : 0
-~Addons/tables/tara/dora.png
 ~Addons/tables/tara/history.txt
 ~Addons/tables/tara/manifest.ijs
 ~Addons/tables/tara/tara.ijt
 ~Addons/tables/tara/taradoc.txt
-~Addons/tables/tara/taratest.ijs
-~Addons/tables/tara/taratest2.ijs
-~Addons/tables/tara/test.xls
-~Addons/tables/tara/test_tara.ijs
+~Addons/tables/tara/test/test_tara.ijs
+~Addons/tables/tara/test/taratest.ijs
+~Addons/tables/tara/test/taratest2.ijs
+~Addons/tables/tara/test/test.xls
+~Addons/tables/tara/test/dora.png
 )
 
 TARGETFILE=: '~Addons/tables/tara/tara.ijs'
@@ -42,7 +43,7 @@ PREBUILDFILE=: ''
 
 POSTBUILDFILE=: '~Addons/tables/tara/postbuild.ijs'
 
-TESTFILE=: '~Addons/tables/tara/test.ijs'
+TESTFILE=: '~Addons/tables/tara/test/test.ijs'
 
 NOTES=: ''
 

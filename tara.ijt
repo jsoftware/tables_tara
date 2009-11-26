@@ -75,13 +75,13 @@ readexcel (and its alias readxl) reads the contents of a sheet as a boxed matrix
 
 Now read the first worksheet of the sample Excel file 'test.xls'. The result is a boxed matrix.
 )
-readexcel jpath '~addons/tables/tara/test.xls'      NB. read first worksheet
+readexcel jpath '~addons/tables/tara/test/test.xls'      NB. read first worksheet
 
 NB. =========================================================
 Lab Section readexcelstring
 readexcelstring is same as readexcel except that all values will be converted to string.
 )
-] b=. 'Sheet1' readexcelstring jpath '~addons/tables/tara/test.xls'  NB. worksheet by name
+] b=. 'Sheet1' readexcelstring jpath '~addons/tables/tara/test/test.xls'  NB. worksheet by name
 3!:0&.> b
 
 NB. =========================================================
@@ -95,14 +95,14 @@ readxlsheets reads the name and content pairs of one or more sheets as a 2-colum
 
 Now read the 1st and 3rd worksheets of the sample Excel file 'test.xls'. The result is a boxed matrix.
 )
-     0 2 readxlsheets jpath '~addons/tables/tara/test.xls'
+     0 2 readxlsheets jpath '~addons/tables/tara/test/test.xls'
 
 NB. =========================================================
 Lab Section readxlworkbook
 readxlworkbook <file> is an alias for:
   '' readxlsheets <file>
 )
-readxlworkbook jpath '~addons/tables/tara/test.xls'
+readxlworkbook jpath '~addons/tables/tara/test/test.xls'
 
 NB. =========================================================
 Lab Section readxlsheetnames
@@ -111,7 +111,7 @@ If you want to return the sheet names in a workbook without the overhead of read
 readxlsheetnames <file>
        returns a boxed list of all the sheet names in a workbook.
 )
-readxlsheetnames jpath '~addons/tables/tara/test.xls'
+readxlsheetnames jpath '~addons/tables/tara/test/test.xls'
 
 NB. =========================================================
 Lab Section Internal Structure of Excel File
@@ -135,7 +135,7 @@ NB. =========================================================
 Lab Section dumpexcel 
 Let's dump the first worksheet of test.xls
 )
-0 dumpexcel jpath '~addons/tables/tara/test.xls'      NB. dump first worksheet
+0 dumpexcel jpath '~addons/tables/tara/test/test.xls'      NB. dump first worksheet
 
 NB. =========================================================
 Lab Section
@@ -223,12 +223,12 @@ To do so, use '' as the file name during saving.
 
 NB. =========================================================
 Lab Section writexlsheets - more examples
-For more examples of using writexlsheets, see the '~addons/tables/tara/taratest2.ijs' script.
+For more examples of using writexlsheets, see the '~addons/tables/tara/test/taratest2.ijs' script.
 
 If you want more control over the writing and formating of your workbook, see the next Chapter:
    Writing Excel files - fine control
 )
-open '~addons/tables/tara/taratest2.ijs'
+open '~addons/tables/tara/test/taratest2.ijs'
 
 NB. =========================================================
 Lab Chapter Writing Excel Files - fine control

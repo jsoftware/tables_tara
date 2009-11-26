@@ -1,9 +1,14 @@
 NB. built from project: ~Addons/tables/tara/tara
+NB. =========================================================
+NB. tables/tara
+NB. Reads and writes files in Excel format
+
+
+
 NB. ---------------------------------------------------------
 NB.  jolew script for reading and writing ole2 storage
 NB.  portion based on ole::storage_lite by kawai takanori, kwitknr@cpan.org
 NB. utility function for olew
-
 coclass 'oleutlfcn'
 NB. return datetime in j timestamp format
 oledate2local=: 3 : 0
@@ -820,20 +825,24 @@ saveheader=: 3 : 0
 NB. 0. calculate basic setting
 iblcnt=. <.bigblocksize__rhinfo % longintsize
 i1stbdl=. <.(bigblocksize__rhinfo - 16b4c) % longintsize
+i1stbdmax=. (i1stbdl*iblcnt) - i1stbdl
 ibdexl=. 0
 iall=. ibbcnt + ippscnt + isbdcnt
 iallw=. iall
 ibdcntw=. >.iallw % iblcnt
 ibdcnt=. >.(iall + ibdcntw) % iblcnt
 NB. 0.1 calculate bd count
-if. ibdcnt > i1stbdl do.
-NB.  todo: is do-while correct here?
-  whilst. ibdcnt > i1stbdl + ibdexl*iblcnt do.
-    ibdexl=. >:ibdexl
-    iallw=. >:iallw
-    ibdcntw=. >.iallw % iblcnt
-    ibdcnt=. >.(iallw + ibdcntw) % iblcnt
+if. ibdcnt > 109 do.
+  iblcnt=. <:iblcnt  NB. the blcnt is reduced in the count of the last sect is used for a pointer the next bl
+  ibbleftover=. iall - i1stbdmax
+  if. iall > i1stbdmax do.
+    whilst. ibdcnt > >. ibbleftover % iblcnt do.
+      ibdcnt=. >. ibbleftover % iblcnt
+      ibdexl=. >. ibdcnt % iblcnt
+      ibbleftover=. ibbleftover + ibdexl
+    end.
   end.
+  ibdcnt=. ibdcnt + i1stbdl
 end.
 NB. 1.save header
 z=. 16bd0 16bcf 16b11 16be0 16ba1 16bb1 16b1a 16be1{a.
@@ -849,8 +858,8 @@ z=. z, toDWORD0 ibdcnt
 z=. z, toDWORD0 ibbcnt+isbdcnt NB. root start
 z=. z, toDWORD0 0
 z=. z, toDWORD0 16b1000
-z=. z, toDWORD0 0                   NB. small block depot
-z=. z, toDWORD0 1
+z=. z, toDWORD0 (0=isbdcnt){0 _2    NB. small block depot
+z=. z, toDWORD0 isbdcnt
 NB. 2. extra bdlist start, count
 if. ibdcnt < i1stbdl do.
   z=. z, toDWORD0 _2       NB. extra bdlist start
@@ -1143,6 +1152,9 @@ end.
 )
 
 
+
+NB. test for wine using environment inhered from linux
+IFWINE_z_=: (6 = 9!:12'') *. 0-.@-:2!:5 'LOGNAME'
 NB. ---------------------------------------------------------
 NB. package for biff format
 coclass 'biff'
@@ -1203,10 +1215,13 @@ colorset0n=: 8   NB. reserved by excel
 colorborder=: 16b40
 colorpattern=: 16b41
 colorfont=: 16b7fff
+NB. for debug
+DEBUG=: 1
+
 NB. cell ref 'AA5' => 4 26
 A1toRC=: 3 : 0
 assert. y e. '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-(26 #. (0 _1)+ _2&{. ' ABCDEFGHIJKLMNOPQRSTUVWXYZ'&i. c),~ <: 1&". y -. c=. y -. '0123456789'
+(<: 26 #. ' ABCDEFGHIJKLMNOPQRSTUVWXYZ'&i. _5&{. c),~ <: 1&". y -. c=. y -. '0123456789'
 )
 
 toHeader=: toWORD0
@@ -2567,8 +2582,8 @@ rowend=. rowstart  NB. Row containing bottom right corner of object
 NB. Zero the specified offset if greater than the cell dimensions
 if. x1 >: sizeCol colstart do. x1=. 0 end.
 if. y1 >: sizeRow rowstart do. y1=. 0 end.
-width=. width + x1 -1
-height=. height + y1 -1
+width=. width + x1
+height=. height + y1
 NB. Subtract the underlying cell widths to find the end cell of the image
 while. width >: sizeCol colend do.
   width=. width - sizeCol colend
@@ -2952,6 +2967,8 @@ filter_area=: ''
 filter_count=: 0
 filter_on=: 0
 filter_cols=: 0 0$''
+NB. for debug
+rowcolused=: 0 2$0
 )
 
 writestream=: 3 : 0
@@ -3172,7 +3189,7 @@ fontset=: fontset, fontsize ; 0 ; 0 ; colorfont ; 400 ; 0 ; 0 ; 0 ; 0 ; fontname
 fontset=: fontset, fontsize ; 0 ; 0 ; colorfont ; 400 ; 0 ; 0 ; 0 ; 0 ; fontname     NB. 3
 fontset=: fontset, fontsize ; 0 ; 0 ; colorfont ; 400 ; 0 ; 0 ; 0 ; 0 ; fontname     NB. 4 (missing)
 fontset=: fontset, fontsize ; 0 ; 0 ; colorfont ; 400 ; 0 ; 0 ; 0 ; 0 ; fontname     NB. 5
-formatset=: format0n#a:
+formatset=: format0n$<''
 NB. format 0-22
 formatset=: ('General';'0';'0.00';'#,##0';'#,##0.00';'"$"#,##0_); ("$"#,##0)';'"$"#,##0_);[Red] ("$"#,##0)';'"$"#,##0.00_); ("$"#,##0.00)';'"$"#,##0.00_);[Red] ("$"#,##0.00)';'0%';'0.00%';'0.00E+00';'# ?/?';'# ??/??';'M/D/YY';'D-MMM-YY';'D-MMM';'MMM-YY';'h:mm AM/PM';'h:mm:ss AM/PM';'h:mm';'h:mm:ss';'M/D/YY h:mm') (i.23) } formatset
 NB. format 37-49
@@ -3292,7 +3309,7 @@ images_data=: 0 0$''  NB. Store the data for MSODRAWINGGROUP.
 
 addhlink=: 3 : 0
 l=. sheeti{sheet
-hlink__l=: hlink__l, 8{.y
+hlink__l=: hlink__l, y
 )
 
 writefileprotection=: 3 : 0
@@ -3355,7 +3372,7 @@ newcrn__l y
 
 create=: 3 : 0
 if. ''-:y do.
-  'fontname fontsize'=: 'Courier New' ; 220
+  'fontname fontsize'=: ((IFUNIX+IFWINE){::'Courier New' ; 'Monospace') ; 220
   sheetname=. 'Sheet1'
 else.
   'fontname fontsize'=: 2{.y
@@ -3369,7 +3386,16 @@ cxf=: addxfobj 15{xfset  NB. predefined cell style
 )
 
 destroy=: 3 : 0
-for_l. sheet do. destroy__l '' end.
+if. DEBUG do.
+  for_l. sheet do.
+    if. n=. #rowcolused__l do.
+      if. n ~: # a=. ~.rowcolused__l do.
+        1!:2&2 sheetname__l, ' duplicated cell'
+        1!:2&2 (1 < rowcolused__l #/. rowcolused__l) # a
+      end.
+    end.
+  end.
+end. for_l. sheet do. destroy__l '' end.
 for_l. biffxfset do. destroy__l '' end.
 for_l. supbook do. destroy__l '' end.
 for_l. refname do. destroy__l '' end.
@@ -3519,11 +3545,14 @@ if. 2 131072 e.~ 3!:0 rc=. 0{::y do. y=. (<A1toRC rc) 0}y end.
 l=. sheeti{sheet
 xf=. getxfidx x
 if. 3=#y do. opt=. 2{::y else. opt=. 0 end.
-if. 0 e. $yn=. 1{::y do. '' return. end.  NB. ignore null
+if. (0=opt) *. 0 e. $yn=. 1{::y do. '' return. end.  NB. ignore null
 if. 2 131072 e.~ 3!:0 yn do.
   if. 2> $$yn do.
     adjdim__l 0{::y
-    stream__l=: stream__l, xf biff_label y
+    stream__l=: stream__l, xf biff_label 2{.y
+    if. DEBUG do.
+      rowcolused__l=: rowcolused__l, ,0{::y
+    end.
     '' return.
   elseif. 2=$$yn do.
     yn=. ,. <@dtb("1) yn    NB. column vector, yn may contain <'' here
@@ -3539,6 +3568,9 @@ if. 1=#@, yn do.  NB. singleton
   if. (0=opt) *. (0:=#), >yn do. '' return. end. NB. ignore null
   adjdim__l 0{::y
   stream__l=: stream__l, xf biff_label ({.y), <, >yn
+  if. DEBUG do.
+    rowcolused__l=: rowcolused__l, ,0{::y
+  end.
 elseif. 3>$$yn do.
   if. 1=$$yn do. yn=. ,:yn end.
   s=. $yn
@@ -3559,6 +3591,9 @@ NB. biff8 cannot store empty string
   sst=: sst, (~.f1#,yn) -. sst
   sstn=: sstn + +/f1
   stream__l=: stream__l,, (toHeader 16b00fd, 10) ,("1) (_2]\ toWORD0 f1#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 f1#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 sst i. f1#,yn)
+  if. DEBUG do.
+    rowcolused__l=: rowcolused__l, (f1#({:s)#r+i.{.s) ,. f1#,({.s)#,:c+i.{:s
+  end.
   if. (1=opt) *. 0 e. f1 do.
     stream__l=: stream__l,, (toHeader 16b0201, 6) ,("1) (_2]\ toWORD0 (-.f1)#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 (-.f1)#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf)
   end.
@@ -3584,6 +3619,9 @@ xf=. getxfidx x
 adjdim__l (<./r), <./c
 adjdim__l (>./r), >./c
 stream__l=: stream__l,, (toHeader 16b0201, 6) ,("1) (_2]\ toWORD0 r) ,("1) (_2]\ toWORD0 c) ,("1) (toWORD0 xf)
+if. DEBUG do.
+  rowcolused__l=: rowcolused__l, r ,. c
+end.
 ''
 )
 
@@ -3608,6 +3646,9 @@ if. 1=#@, yn do.  NB. singleton
   if. (1=opt) *. 0= <. 1{::y do. '' return. end.
   adjdim__l 0{::y
   stream__l=: stream__l, xf biff_integer ({.y), < {., 1{::y
+  if. DEBUG do.
+    rowcolused__l=: rowcolused__l, ,0{::y
+  end.
 elseif. 3>$$yn do.
   if. 1=$$yn do. yn=. ,:yn end.
   s=. $yn
@@ -3626,6 +3667,9 @@ elseif. 3>$$yn do.
       adjdim__l (<:s) + 0{::y
     end.
     stream__l=: stream__l,, (toHeader 16b027e, 10) ,("1) (_2]\ toWORD0 f1#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 f1#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 f1#,yn)
+    if. DEBUG do.
+      rowcolused__l=: rowcolused__l, (f1#({:s)#r+i.{.s) ,. f1#,({.s)#,:c+i.{:s
+    end.
     if. 2=opt do.
       stream__l=: stream__l,, (toHeader 16b0201, 6) ,("1) (_2]\ toWORD0 (-.f1)#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 (-.f1)#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf)
     end.
@@ -3633,6 +3677,9 @@ elseif. 3>$$yn do.
     adjdim__l 0{::y
     adjdim__l (<:s) + 0{::y
     stream__l=: stream__l,, (toHeader 16b027e, 10) ,("1) (_2]\ toWORD0 ({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 ,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 ,yn)
+    if. DEBUG do.
+      rowcolused__l=: rowcolused__l, (({:s)#r+i.{.s) ,. ,({.s)#,:c+i.{:s
+    end.
   end.
 elseif. do. 'unhandled exception' 13!:8 (3)
 end.
@@ -3658,6 +3705,9 @@ if. 1=#@, yn do.  NB. singleton
   if. (1=opt) *. 0=1{::y do. '' return. end.
   adjdim__l 0{::y
   stream__l=: stream__l, xf biff_number ({.y), < {., yn
+  if. DEBUG do.
+    rowcolused__l=: rowcolused__l, ,0{::y
+  end.
 elseif. 3>$$yn do.
   if. 1=$$yn do. yn=. ,:yn end.
   s=. $yn
@@ -3676,6 +3726,9 @@ elseif. 3>$$yn do.
       adjdim__l (<:s) + 0{::y
     end.
     stream__l=: stream__l,, (toHeader 16b0203, 14) ,("1) (_2]\ toWORD0 f1#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 f1#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_8]\ toDouble0 f1#,yn)
+    if. DEBUG do.
+      rowcolused__l=: rowcolused__l, (f1#({:s)#r+i.{.s) ,. f1#,({.s)#,:c+i.{:s
+    end.
     if. 2=opt do.
       stream__l=: stream__l,, (toHeader 16b0201, 6) ,("1) (_2]\ toWORD0 (-.f1)#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 (-.f1)#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf)
     end.
@@ -3683,6 +3736,9 @@ elseif. 3>$$yn do.
     adjdim__l 0{::y
     adjdim__l s + 0{::y
     stream__l=: stream__l,, (toHeader 16b0203, 14) ,("1) (_2]\ toWORD0 ({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 ,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_8]\ toDouble0 ,yn)
+    if. DEBUG do.
+      rowcolused__l=: rowcolused__l, (({:s)#r+i.{.s) ,. ,({.s)#,:c+i.{:s
+    end.
   end.
 elseif. do. 'unhandled exception' 13!:8 (3)
 end.
@@ -4361,7 +4417,7 @@ NB. get worksheet location
     if. x-:<'' do.
       x=. i.#worksheets__ex
     elseif. -. */ 1 4 8 e.~ 3!:0 every x do.
-      x=. x i.~ {."1 worksheets__ex
+      x=. x i.&(tolower&.>"_)~ {."1 worksheets__ex   NB. case insensitive worksheet name
     elseif. do. x=. >x NB. unbox numeric list
     end.
     (msg=. 'worksheet not found') assert x<#worksheets__ex
@@ -4397,38 +4453,26 @@ catch.
 end.
 )
 
+NB. stringtype v Ensures string type returned by appending <1 filename
+stringtype=:  (<1) ,~ [: {. boxopen  
+NB. firstsheet v Returns the first reference to a worksheet in x, or in the worksheet if no x.
+firstsheet=: 0: :({.^:(3!:0 -.@e. 2 131072"_)@[) NB. 
+
 NB.*readxlsheetsstring v Reads contents of one or more sheets from an Excel file as strings
 NB. see readxlsheets
-readxlsheetsstring=: 3 : 0
-0 readxlsheetsstring y
-:
-y=. (boxopen y),<1  NB. add string specifier
-x readxlsheets y
-)
+readxlsheetsstring=: 0&$: : ([ readxlsheets stringtype@])
 
 NB.*readxlworkbook v Reads all sheets from an Excel file
 NB. see readxlsheets
-readxlworkbook=: 3 : 0
-'' readxlsheets y
-)
+readxlworkbook=: ''&readxlsheets
 
 NB.*readexcel v Reads contents of a sheet from an Excel file
 NB. see readxlsheets
-readexcel=: 3 : 0
-0 readexcel y
-:
-x=. {.^:(3!:0 -.@e. 2 131072"_) x NB. ensure single sheet
-;{:"1 x readxlsheets y
-)
+readexcel=: 0 _1 {:: firstsheet readxlsheets ]
 
 NB.*readexcelstring v Reads contents of a sheet from an Excel file as strings
 NB. see readxlsheets
-readexcelstring=: 3 : 0
-0 readexcelstring y
-:
-y=. (boxopen y),<1  NB. add string specifier
-x readexcel y
-)
+readexcelstring=: 0 _1 {:: firstsheet readxlsheets stringtype@]
 
 NB. ---------------------------------------------------------
 NB.*readxlsheetnames v Reads sheet names from Excel workbook
@@ -4626,9 +4670,6 @@ addsheets=: 4 : 0
 NB. writeshtdat v Writes array to current worksheet
 NB. form: <wkbklocale> writeShtdat <array>
 NB. Writes blocks of string data and numeric data separately
-NB. Only 1d blocks at present. to minimise the number of calls it would be good to
-NB. find rectangular blocks of same type and write them
-NB. using (<corner>,:<shape>) u;.0 <array>
 writeshtdat=: 4 : 0
   if. 0=L.y do.
     writenumber__x 0 0;y
@@ -4645,26 +4686,8 @@ writeshtdat=: 4 : 0
   end.
 )
 
-NB. =========================================================
-NB. Finding rectangular blocks of same type.
-
 NB. ---------------------------------------------------------
-NB. 1d solution
-
-NB. explicit solution (chooses best block orientation)
-blocksx=: 3 : 0
-  fo=. (firstones ,: firstones"1) y
-  if. isr=. isrowblks fo do. NB. row-oriented
-    tl=. indices isr { fo
-    br=. indices lastones"1 y
-  else. NB. column-oriented
-    tl=. |."1 indices |: isr { fo
-    br=. |."1 indices |: lastones y
-  end.
-  tl ,:"1 >:br-tl
-)
-
-NB. ---------------------------------------------------------
+NB. Find rectangular blocks of same type.
 NB. 2d solution based on algorithm by RE Boss
 NB. http://www.jsoftware.com/pipermail/programming/2008-June/011077.html
 
@@ -4704,9 +4727,9 @@ z
 coclass 'biffsheet'
 coinsert 'biff'
 
-NB. ========================================================
+NB. =========================================================
 NB. Methods related to comments and MSO objects.
-NB. ported from CPAN Spreadsheet::WriteExcel 
+NB. ported from CPAN Spreadsheet::WriteExcel
 NB. portion Copyrighted by John McNamara, jmcnamara@cpan.org
 NB.
 
@@ -4745,7 +4768,6 @@ end.
 ''
 )
 
-
 NB. string writecomment rowcol ; opt_name ; opt_value .....
 NB.
 NB. Write a comment to the specified row and column (zero indexed).
@@ -4756,8 +4778,8 @@ NB. start_cell _1 _1
 NB. start_col _1
 NB. start_row _1
 NB. visible _1
-NB. width 129
-NB. height 75
+NB. width 128
+NB. height 74
 NB. x_offset _1
 NB. x_scale 1
 NB. y_offset _1
@@ -4827,7 +4849,6 @@ NB. TODO
 store_filtermode=: ''"_
 store_autofilterinfo=: ''"_
 store_autofilters=: ''"_
-
 
 NB.
 NB. store_images
@@ -4982,7 +5003,7 @@ NB. TODO. Won't work for external data refs. Also should use a more direct
 NB.       method.
 NB.
 formula=. '=', sheetname, '!A1'
-NB. TODO: formula
+NB. TODO formula
 NB. store_formula formula
 
 object_ids=: spid 0}object_ids
@@ -5102,7 +5123,7 @@ for_i. i.#comments_array do.
   formats=. 0 5 ,: (#str), 0
   if. (0=i) *. 0=num_objects do.
 NB. Write the parent MSODRAWIING record.
-    dg_length=.  72 + 92* #comments_array
+    dg_length=. 72 + 92* #comments_array
     spgr_length=. 48 + 92* #comments_array
 
     data=. store_mso_dg_container dg_length
@@ -5759,8 +5780,8 @@ start_cell _1 _1
 start_col _1
 start_row _1
 visible _1
-width 129
-height 75
+width 128
+height 74
 x_offset _1
 x_scale 1
 y_offset _1
@@ -5783,8 +5804,8 @@ nm=. (<'params_'),&.> {.("1) nmv=. (_2]\ 2}.y),~ ;:;._2 defcommentparams
 (, (1&u: :: ])&.> nm)=. ".&.>{:("1) nmv
 
 NB. Ensure that a width and height have been set.
-params_width=. (0<:params_width){ params_width, 129
-params_height=. (0<:params_height){ params_height, 75
+params_width=. (0<:params_width){ params_width, 128
+params_height=. (0<:params_height){ params_height, 74
 
 NB. Limit the string to the max number of chars (not bytes).
 max_len=. 32767
@@ -5842,16 +5863,13 @@ if. _1=params_x_offset do.
   end.
 end.
 
-NB. Scale the size of the comment box if required. We scale the width and
-NB. height using the relationship d2 =(d1 -1)*s +1, where d is dimension
-NB. and s is scale. This gives values that match Excel's behaviour.
-NB.
+NB. Scale the size of the comment box if required.
 if. params_x_scale do.
-  params_width=. <. ((params_width -1) * params_x_scale) +1
+  params_width=. <. params_width * params_x_scale
 end.
 
 if. params_y_scale do.
-  params_height=. <. ((params_height -1) * params_y_scale) +1
+  params_height=. <. params_height * params_y_scale
 end.
 
 NB. Calculate the positions of comment object.
@@ -5903,8 +5921,8 @@ NB. start_cell _1 _1
 NB. start_col _1
 NB. start_row _1
 NB. visible _1
-NB. width 129
-NB. height 75
+NB. width 128
+NB. height 74
 NB. x_offset _1
 NB. x_scale 1
 NB. y_offset _1
@@ -6481,5 +6499,5 @@ type, width, height
 
 NB.
 NB. end of Methods related to comments and MSO objects.
-NB. ========================================================
+NB. =========================================================
 

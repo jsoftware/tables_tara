@@ -15,12 +15,12 @@ VERSION=: '1.2.8'
 RELEASE=: 'j601 j602'
 
 FILES=: 0 : 0
-dora.png
+test/dora.png
 history.txt
 tara.ijs
 tara.ijt
 taradoc.txt
-taratest.ijs
-taratest2.ijs
-test.xls
+test/taratest.ijs
+test/taratest2.ijs
+test/test.xls
 )
