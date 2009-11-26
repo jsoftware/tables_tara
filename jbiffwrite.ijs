@@ -106,9 +106,6 @@ addsheets=: 4 : 0
 NB. writeshtdat v Writes array to current worksheet
 NB. form: <wkbklocale> writeShtdat <array>
 NB. Writes blocks of string data and numeric data separately
-NB. Only 1d blocks at present. to minimise the number of calls it would be good to
-NB. find rectangular blocks of same type and write them
-NB. using (<corner>,:<shape>) u;.0 <array>
 writeshtdat=: 4 : 0
   y=. y. [ x=. x.
   if. 0=L.y do.
@@ -126,27 +123,8 @@ writeshtdat=: 4 : 0
   end.
 )
 
-NB. =========================================================
-NB. Finding rectangular blocks of same type.
-
 NB. ---------------------------------------------------------
-NB. 1d solution
-
-NB. explicit solution (chooses best block orientation)
-blocksx=: 3 : 0
-  y=. y.
-  fo=. (firstones ,: firstones"1) y
-  if. isr=. isrowblks fo do. NB. row-oriented
-    tl=. indices isr { fo
-    br=. indices lastones"1 y
-  else. NB. column-oriented
-    tl=. |."1 indices |: isr { fo
-    br=. |."1 indices |: lastones y
-  end.
-  tl ,:"1 >:br-tl
-)
-
-NB. ---------------------------------------------------------
+NB. Find rectangular blocks of same type.
 NB. 2d solution based on algorithm by RE Boss
 NB. http://www.jsoftware.com/pipermail/programming/2008-June/011077.html
 
