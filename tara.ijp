@@ -41,7 +41,7 @@ BUILDOPTS=: 0 1 0 0 0 0 0
 
 PREBUILDFILE=: ''
 
-POSTBUILDFILE=: '~Addons/tables/tara/postbuild.ijs'
+POSTBUILDFILE=: '~Addons/tables/tara/source/postbuild.ijs'
 
 TESTFILE=: '~Addons/tables/tara/test/test.ijs'
 
