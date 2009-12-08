@@ -14,7 +14,6 @@ writestring__bi 'C4' ; 'hello Tara'    NB. cell in "A1" mode
 save__bi jpath '~temp/tara1.xls'       NB. save to a file
 assert. destroy__bi ''                 NB. destriy workbook object, NOT the Excel file
 assert. fexist jpath '~temp/tara1.xls'
-assert. _21658585 = (128!:3) 1!:1 < jpath '~temp/tara1.xls'
  'test1 passed'
 )
 
@@ -36,7 +35,6 @@ writenumber__bi 'C3' ; o.1
 save__bi jpath '~temp/tara2.xls'
 assert. destroy__bi ''
 assert. fexist jpath '~temp/tara2.xls'
-assert. 180988406 = (128!:3) 1!:1 < jpath '~temp/tara2.xls'
  'test2 passed'
 )
 
@@ -49,7 +47,6 @@ writestring__bi 3 2 ; ":o.1
 save__bi jpath '~temp/tara3.xls'
 assert. destroy__bi ''
 assert. fexist jpath '~temp/tara3.xls'
-assert. 341192206 = (128!:3) 1!:1 < jpath '~temp/tara3.xls'
  'test3 passed'
 )
 
@@ -75,7 +72,6 @@ writestring__bi 2 2 ; 'background'
 save__bi jpath '~temp/tara4.xls'
 assert. destroy__bi ''
 assert. fexist jpath '~temp/tara4.xls'
-assert. _1738521966 = (128!:3) 1!:1 < jpath '~temp/tara4.xls'
  'test4 passed'
 )
 
@@ -97,7 +93,6 @@ writedate__bi 5 3 ; 74699 ; 'd/m/yy'
 save__bi jpath '~temp/tara5.xls'
 assert. destroy__bi ''
 assert. fexist jpath '~temp/tara5.xls'
-assert. _136738277 = (128!:3) 1!:1 < jpath '~temp/tara5.xls'
  'test5 passed'
 )
 
@@ -136,7 +131,6 @@ mergedcell__l=. 2 4 $ 3 4 2 4 4 5 0 1  NB. 2 sets of merge cells, ( row1 row2 co
 save__bi jpath '~temp/tara6.xls'
 assert. destroy__bi ''
 assert. fexist jpath '~temp/tara6.xls'
-assert. _108598076 = (128!:3) 1!:1 < jpath '~temp/tara6.xls'
  'test6 passed'
 )
 
@@ -159,7 +153,6 @@ _1 rowrepeat__bi 0 0 2  NB. repeat sheet(0) row 0 to row 2
 save__bi jpath '~temp/tara7.xls'
 assert. destroy__bi ''
 assert. fexist jpath '~temp/tara7.xls'
-assert. 911473534 = (128!:3) 1!:1 < jpath '~temp/tara7.xls'
  'test7 passed'
 )
 
@@ -177,7 +170,6 @@ writestring__bi 2 3 ; 'sheet1'
 save__bi jpath '~temp/tara8.xls'
 assert. destroy__bi ''
 assert. fexist jpath '~temp/tara8.xls'
-assert. _597046550 = (128!:3) 1!:1 < jpath '~temp/tara8.xls'
  'test8 passed'
 )
 
@@ -189,7 +181,6 @@ writestring__bi 6000 0 ; < < ("1) 6000 100 7$'ABCDEFGHIJKLMNOPQRSTUVW'
 save__bi jpath '~temp/tara9.xls'
 assert. destroy__bi ''
 assert. fexist jpath '~temp/tara9.xls'
-assert. _622650783 = (128!:3) 1!:1 < jpath '~temp/tara9.xls'
  'test9 passed'
 )
 
@@ -203,7 +194,6 @@ writestring__bi 0 0 ; 'my picture'
 save__bi jpath '~temp/tara10.xls'
 assert. destroy__bi ''
 assert. fexist jpath '~temp/tara10.xls'
-assert. 1020874233 = (128!:3) 1!:1 < jpath '~temp/tara10.xls'
  'test10 passed'
 )
 
@@ -215,7 +205,6 @@ rc=. save__bi ''
 assert. destroy__bi ''
 assert. 3584=$rc
 assert. 224 16= $ _16]\ a.i. rc
-assert. 2088789656 = (128!:3) rc
  'test11 passed'
 )
 
