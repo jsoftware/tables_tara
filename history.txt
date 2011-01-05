@@ -1,6 +1,6 @@
 tables/tara - change history
 
-== 1.2.10 ==
+== 1.2.10/11 ==
  * fix: improve detection of single vs multiple sheet data for writexlsheets
 
 == 1.2.9 ==
