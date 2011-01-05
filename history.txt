@@ -1,6 +1,9 @@
 tables/tara - change history
 
-== 1.2.9 ==  NOT YET RELEASED
+== 1.2.10 ==
+ * fix: improve detection of single vs multiple sheet data for writexlsheets
+
+== 1.2.9 ==
  * add: header for script
  * chg: move postbuild script to source folder too
  * chg: reorganize to tidy up root
