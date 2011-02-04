@@ -1147,8 +1147,6 @@ if. (ibdcnt > i1stbdl) do.
 end.
 )
 
-NB. test for wine using environment inhered from linux
-IFWINE_z_=: (6 = 9!:12'') *. 0-.@-:2!:5 'LOGNAME'
 NB. ---------------------------------------------------------
 NB. package for biff format
 coclass 'biff'
