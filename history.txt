@@ -1,5 +1,8 @@
 tables/tara - change history
 
+== 1.2.12/13 ==
+ * fix: add summary information streams
+
 == 1.2.10/11 ==
  * fix: improve detection of single vs multiple sheet data for writexlsheets
 
