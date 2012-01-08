@@ -1152,6 +1152,8 @@ NB. package for biff format
 coclass 'biff'
 coinsert 'oleutlfcn'
 shortdatefmt=: 'dd/mm/yyyy'
+NB. inflate file size to make xls2csv happy
+IFBIGBLOCK_PADDING=: 1
 RECORDLEN=: 8224   NB. BIFF5: 2080 bytes, BIFF8: 8224 bytes
 NB. Excel version BIFF version Document type File type
 NB. Excel 2.1 BIFF2 Worksheet Stream
@@ -3455,7 +3457,16 @@ for_item. sheet do.
 end.
 z=. z, biff_country country
 z=. z, add_mso_drawing_group ''
-z=. z, WriteSST ''
+if. IFBIGBLOCK_PADDING do.
+  if. 2680>#z1=. WriteSST '' do.
+    add2sst <(2680-#z1)#{.a.
+    z=. z, WriteSST ''
+  else.
+    z=. z, z1
+  end.
+else.
+  z=. z, WriteSST ''
+end.
 if. #supbook do.
   for_item. supbook do.
     z=. z, writestream__item #sheet
