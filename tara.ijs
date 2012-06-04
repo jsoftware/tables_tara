@@ -3958,7 +3958,7 @@ NB. dump records of workbook global to [bkbytes] with index held in [bkrecords]
   end.
 end.
 if. #sst do. sst=: <;._2 sst end.
-assert. nsst=#sst
+assert. nsst=#~.sst
 assert. 0~:biffver
 )
 
