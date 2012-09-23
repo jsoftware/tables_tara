@@ -67,17 +67,6 @@ fromWORD1=: fromWORDm`fromWORDr@.(-.bigendian) f.
 fromDWORD1=: fromDWORDm`fromDWORDr@.(-.bigendian) f.
 fromucode1=: fromucodem`fromucoder@.(-.bigendian) f.
 fromDouble1=: fromDoublem`fromDoubler@.(-.bigendian) f.
-NB. decimal from hex string, always return integer
-DFH=: 3 : 0
-if. '0x'-:2{.y=. }:^:('L'={:y) y do.
-  d=. 0
-  for_nib. ('0123456789abcdef'&i.) tolower 2}.y do.
-    d=. nib (23 b.) 4 (33 b.) d
-  end.
-else.
-  0&". y
-end.
-)
 
 NB. for biff8 RGB values
 RGB=: 3 : 0"1
@@ -2392,12 +2381,12 @@ bottomlinestyle=: _12 bitshl 16bf000 bitand border
 leftlinecolor=: _16 bitshl 16b7f0000 bitand border
 rightlinecolor=: _23 bitshl 16b3f800000 bitand border
 diagonaltopleft=: _30 bitshl 16b40000000 bitand border
-diagonalbottomleft=: _31 bitshl (DFH '0x80000000') bitand border
+diagonalbottomleft=: _31 bitshl _2147483648 bitand border    NB. 0x80000000
 toplinecolor=: 16b7f bitand linecolor
 bottomlinecolor=: _7 bitshl 16b3f80 bitand linecolor
 diagonalcolor=: _14 bitshl 16b1fc000 bitand linecolor
 diagonalstyle=: _21 bitshl 16b1e00000 bitand linecolor
-pattern=: _26 bitshl (DFH '0xfc000000') bitand linecolor
+pattern=: _26 bitshl _67108864 bitand linecolor    NB. 0xfc000000
 patterncolor=: 16b7f bitand color
 patternbgcolor=: _7 bitshl 16b3f80 bitand color
 )
@@ -4358,17 +4347,18 @@ else.
 end.
 )
 
+bigendian=: ({.a.)={. 1&(3!:4) 1  NB. 0 little endian   1 big endian
+
 NB. decode rk value
 getrk=: 3 : 0
 if. 0=2 bitand d=. fromDWORD0 2}.y do. NB. double
-  bigendian=: ({.a.)={. 1&(3!:4) 1  NB. 0 little endian   1 big endian
   if. 0=bigendian do.
-    rk=. fromDouble0 toDWORD0 0, d bitand DFH '0xfffffffc'
+    rk=. fromDouble0 toDWORD0 0, d bitand _4    NB. 0xfffffffc
   else.
-    rk=. fromDouble0 toDWORD0 0,~ d bitand DFH '0xfffffffc'
+    rk=. fromDouble0 toDWORD0 0,~ d bitand _4    NB. 0xfffffffc
   end.
 else.  NB. integer
-  rk=. _2 bitsha d bitand DFH '0xfffffffc'
+  rk=. _2 bitsha d bitand _4    NB. 0xfffffffc
 end.
 if. 1 bitand d do.  NB. scale factor
   rk=. rk%100
