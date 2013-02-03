@@ -1,7 +1,7 @@
 tables/tara - change history
 
 == 1.2.19 ==
- * chg: update for j801
+ * j801
 
 == 1.2.18 ==
  * fix: reading negative RK Values under J64
