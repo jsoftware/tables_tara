@@ -1,6 +1,6 @@
 LABTITLE=: 'Tara and Excel'
 LABCOMMENTS=: 'bill lam'
-LABFOCUS=: 1
+LABDEPENDS=: 'tables/tara'
 
 NB. =========================================================
 Lab Chapter Introduction
