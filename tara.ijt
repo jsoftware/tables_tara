@@ -75,6 +75,7 @@ readexcel (and its alias readxl) reads the contents of a sheet as a boxed matrix
 
 Now read the first worksheet of the sample Excel file 'test.xls'. The result is a boxed matrix.
 )
+android_exec_host^:('Android'-:UNAME) 'android.intent.action.VIEW';('file://',jpath'~addons/tables/tara/test/test.xls');'application/vnd.ms-excel';0
 readexcel jpath '~addons/tables/tara/test/test.xls'      NB. read first worksheet
 
 NB. =========================================================
@@ -173,6 +174,7 @@ You can write numeric arrays that are either boxed or unboxed.
 )
 ]x1=: i.3 5        NB. simple integer array
 x1 writexlsheets jpath '~temp/tarasmp1.xls'
+android_exec_host^:('Android'-:UNAME) 'android.intent.action.VIEW';('file://',jpath'~temp/tarasmp1.xls');'application/vnd.ms-excel';0
 ]x2=: <"0 ]3 4?.@$0  NB. boxed array of floats
 x2 writexlsheets jpath '~temp/tarasmp2.xls'
 
