@@ -12,7 +12,7 @@ Tara was developed and is copyrighted by Bill Lam, bbill.lam@gmail.com, but may 
 
 VERSION=: '1.2.21'
 
-RELEASE=: 'j602 j701 j801'
+RELEASE=: 'j802'
 
 FILES=: 0 : 0
 test/dora.png
