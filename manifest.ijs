@@ -24,4 +24,3 @@ test/taratest.ijs
 test/taratest2.ijs
 test/test.xls
 )
-PLATFORMS=: 'linux win darwin android'
