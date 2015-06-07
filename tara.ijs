@@ -1339,8 +1339,7 @@ tmp=. tmp, data,~ toHeader recordtype, #data
 
 NB. extend crc32 to 16 bytes to simulate md4
 biffcrc32=: 3 : 0
-
-2&(3!:4) 4# (128!:3) y
+2&(3!:4) 4# ((_2&ic)@((4&{.)`(_4&{.)@.('a'~:{.2 ic a.i.'a'))@(3&ic))^:IF64 @: (128!:3) y
 )
 
 biffmd4=: 3 : 0
@@ -4706,7 +4705,7 @@ NB. other  crc32 128!:3
 coclass 'biffmd4'
 
 md4=: crc32_md4=: 3 : 0
-z=. 2&(3!:4) 4{. 128!:3 y
+z=. 2&(3!:4) 4# ((_2&ic)@((4&{.)`(_4&{.)@.('a'~:{.2 ic a.i.'a'))@(3&ic))^:IF64 @: (128!:3) y
 assert. 16=#z
 z
 )
