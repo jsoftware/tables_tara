@@ -2306,7 +2306,6 @@ coinsert 'biff'
 NB. merely create biffxf will not result in a new biff xf record in excel file
 NB. each biffxf object must be getxfidx
 NB. getcolor=: 3 : 0
-NB. y=. y.
 NB. if. y e. colorborder, colorpattern, colorfont do. y return. end.
 NB. if. (#colorset__COCREATOR)= n=. colorset__COCREATOR i. y do.
 NB.   colorset__COCREATOR=: colorset__COCREATOR, y
