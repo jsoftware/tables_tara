@@ -179,7 +179,7 @@ if. 1 4 e.~ 3!:0 y do.
   oio=. y
 else.
 NB. 2. sfile is a filename string
-  openfilenum=: ~. openfilenum, oio=. fopen <y   NB. ~. workaround J504's 1!:21 bug
+  openfilenum=: ~. openfilenum, oio=. fopen boxopen y   NB. ~. workaround J504's 1!:21 bug
 end.
 if. '' -.@-: p=. getheaderinfo oio do. headerinfo=: p end.
 p
@@ -677,7 +677,7 @@ if. '' -.@-: sfile do.
   elseif. do.
     fname=. sfile
     ferase <fname
-    ppsfile=: fopen <fname
+    ppsfile=: fopen boxopen fname
   end.
   if. #sdata do.
     ppsfile fappend~ sdata
@@ -733,7 +733,7 @@ elseif. 1 4 e.~ 3!:0 sfile do.
 NB. 1.2 sfile is a simple filename string
 elseif. do.
   ferase <sfile
-  fileh__rhinfo=: fopen <sfile
+  fileh__rhinfo=: fopen boxopen sfile
 end.
 iblk=. 0
 NB. 1. make an array of pps  for save
@@ -3945,7 +3945,8 @@ NB. dump records of workbook global to [bkbytes] with index held in [bkrecords]
   end.
 end.
 if. #sst do. sst=: <;._2 sst end.
-assert. nsst=#~.sst
+NB. some worksheets failed this assertion
+NB. assert. nsst=#~.sst
 assert. 0~:biffver
 )
 
