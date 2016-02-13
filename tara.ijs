@@ -4026,6 +4026,7 @@ if. uc do.
   z2=. (2*len)-#z1  NB. byte length of remaining character array
 else.
   z=. z1=. len (([ <. #@]) {. ]) (x+3+(fe*4)+(rtf*2))}.y
+  if. 1 e. 127<a.i.z do. z=. u: z end.
   z2=. len-#z1  NB. byte length of remaining character array
 end.
 if. (#y)<x+l do.
@@ -4050,6 +4051,7 @@ if. len do.
     z2=. (2*len)-#z1    NB. byte length of remaining character array
   else.
     z=. z1=. len (([ <. #@]) {. ]) (x+1)}.y
+    if. 1 e. 127<a.i.z do. z=. u: z end.
     z2=. len-#z1  NB. byte length of remaining character array
   end.
 else.
