@@ -31,6 +31,7 @@ x20=: (,.5#<''),(4#<''),"1 x3 NB. offset topleft corner by 5 rows and 4 cols
 char=: ('per Angusta';'ad Augusta'),~;:'Lorem ipsum dolor sit consectetur'
 idx=: 2 2;2 3;2 4;2 5;3 2;3 3;3 5;4 2;4 4;4 5;5 2;5 3;5 4;5 5
 x21=: 'Diff Mix array';<(14$char) idx} <"0 i.8 9
+x22=: 'hello world';'熊貓出沒注意';'россиян'  NB. utf8
 
 
 fnme=: jpath '~temp/tarawsht'
@@ -61,6 +62,7 @@ test2=: 3 : 0
   assert. x19 writexlsheets fnme,'19',suff
   assert. x20 writexlsheets fnme,'20',suff
   assert. x21 writexlsheets fnme,'21',suff
+  assert. x22 writexlsheets fnme,'22',suff
   
   NB.? add read tests to check correct contents written
   'taratest2 passed'

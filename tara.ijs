@@ -1842,7 +1842,7 @@ else.
   z=. ''
   z=. z, toWORD0 0{::y
   z=. z, toWORD0 x
-  z=. z, toDWORD0 add2sst ,&.> 1{y
+  z=. z, toDWORD0 add2sst ucp@,&.> 1{y
   z=. z,~ toHeader recordtype, #z
 end.
 )
@@ -3578,7 +3578,7 @@ NB. biff8 cannot store empty string
     adjdim__l 0{::y
     adjdim__l (<:s) + 0{::y
   end.
-  sst=: sst, (~.f1#,yn) -. sst
+  sst=: sst, (~.ucp&.>f1#,yn) -. sst
   sstn=: sstn + +/f1
   stream__l=: stream__l,, (toHeader 16b00fd, 10) ,("1) (_2]\ toWORD0 f1#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 f1#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 sst i. f1#,yn)
   if. DEBUG do.
@@ -3997,7 +3997,7 @@ uc=. 0~:1 bitand op=. {.fromBYTE (x+1){y
 fe=. 0~:4 bitand op
 rtf=. 0~:8 bitand op
 if. uc do.
-  < fromucode0 (2*len) (([ <. #@]) {. ]) (x+2+(fe*4)+(rtf*2))}.y
+  < utf8 fromucode0 (2*len) (([ <. #@]) {. ]) (x+2+(fe*4)+(rtf*2))}.y
 else.
   < len (([ <. #@]) {. ]) (x+2+(fe*4)+(rtf*2))}.y
 end.
@@ -4030,9 +4030,9 @@ else.
   z2=. len-#z1  NB. byte length of remaining character array
 end.
 if. (#y)<x+l do.
-  z ; (#y), len, (x+l)-z2+#y
+  (utf8 z) ; (#y), len, (x+l)-z2+#y
 else.
-  z ; l, len, 0
+  (utf8 z) ; l, len, 0
 end.
 )
 
@@ -4060,9 +4060,9 @@ else.
   z2=. 0
 end.
 if. (#y)<x+l do.
-  z ; (#y), len, (x+l)-z2+#y
+  (utf8 z) ; (#y), len, (x+l)-z2+#y
 else.
-  z ; l, len, 0
+  (utf8 z) ; l, len, 0
 end.
 )
 

@@ -203,9 +203,21 @@ bi=. ('Courier New' ; 220) conew 'biffbook'
 writestring__bi 1 3 ; 'hello world'
 rc=. save__bi ''
 assert. destroy__bi ''
-assert. 3584=$rc
-assert. 224 16= $ _16]\ a.i. rc
+assert. 6144=$rc
+assert. 384 16= $ _16]\ a.i. rc
  'test11 passed'
+)
+
+NB. utf8
+test12=: 3 : 0
+bi=. '' conew 'biffbook'
+writestring__bi 1 3 ; 'hello world'
+writestring__bi 2 2 ; '熊貓出沒注意'
+writestring__bi 3 1 ; 'россиян'
+save__bi jpath '~temp/tara12.xls'
+assert. destroy__bi ''
+assert. fexist jpath '~temp/tara12.xls'
+ 'test12 passed'
 )
 
 smoutput test1''
@@ -219,3 +231,4 @@ smoutput test8''
 smoutput test9''
 smoutput test10''
 smoutput test11''
+smoutput test12''
