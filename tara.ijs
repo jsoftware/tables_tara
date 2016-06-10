@@ -4030,9 +4030,9 @@ else.
   z2=. len-#z1  NB. byte length of remaining character array
 end.
 if. (#y)<x+l do.
-  (utf8 z) ; (#y), len, (x+l)-z2+#y
+  z ; (#y), len, (x+l)-z2+#y
 else.
-  (utf8 z) ; l, len, 0
+  z ; l, len, 0
 end.
 )
 
@@ -4060,9 +4060,9 @@ else.
   z2=. 0
 end.
 if. (#y)<x+l do.
-  (utf8 z) ; (#y), len, (x+l)-z2+#y
+  z ; (#y), len, (x+l)-z2+#y
 else.
-  (utf8 z) ; l, len, 0
+  z ; l, len, 0
 end.
 )
 
@@ -4342,9 +4342,9 @@ NB. biff8 does not use rstring record, but excel will read it
   lookstr=. 0>.<:lookstr
 end.
 if. 0=x do.
-  (rowcol4, rowcol8, rowcolc, rowcolss) (;<) (<("0) cellval4), (<("0) cellval8), ( <;._1 cellvalc), sst{~cellvalss
+  (rowcol4, rowcol8, rowcolc, rowcolss) (;<) (<("0) cellval4), (<("0) cellval8), ( <;._1 cellvalc), utf8&.> sst{~cellvalss
 else.
-  (rowcol, rowcolss) (;<) ( <;._1 cellval), sst{~cellvalss
+  (rowcol, rowcolss) (;<) ( <;._1 cellval), utf8&.> sst{~cellvalss
 end.
 )
 

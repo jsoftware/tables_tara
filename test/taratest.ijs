@@ -217,6 +217,7 @@ writestring__bi 3 1 ; 'россиян'
 save__bi jpath '~temp/tara12.xls'
 assert. destroy__bi ''
 assert. fexist jpath '~temp/tara12.xls'
+assert. ('hello world';'熊貓出沒注意';'россиян') -: (0 2;1 1;2 0){>{:{. 0 readxlsheets jpath '~temp/tara12.xls'
  'test12 passed'
 )
 
