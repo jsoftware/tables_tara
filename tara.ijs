@@ -1217,33 +1217,41 @@ SString=: 3 : 0
 )
 
 toString=: 3 : 0
-if. 131072= 3!:0 y do.
+if. 262144= 3!:0 y do.
+  toucode0 uucp y
+elseif. 131072= 3!:0 y do.
   toucode0 y
-else.
+elseif. do.
   y
 end.
 )
 
 toUString8=: 3 : 0
-if. 131072= 3!:0 y do.
+if. 262144= 3!:0 y do.
+  (a.{~#y), (1{a.), toucode0 uucp y
+elseif. 131072= 3!:0 y do.
   (a.{~#y), (1{a.), toucode0 y
-else.
+elseif. do.
   (a.{~#y), (0{a.), y
 end.
 )
 
 toUString16=: 3 : 0
-if. 131072= 3!:0 y do.
+if. 262144= 3!:0 y do.
+  (toWORD0 #y), (1{a.), toucode0 uucp y
+elseif. 131072= 3!:0 y do.
   (toWORD0 #y), (1{a.), toucode0 y
-else.
+elseif. do.
   (toWORD0 #y), (0{a.), y
 end.
 )
 
 toUString=: 3 : 0
-if. 131072= 3!:0 y do.
+if. 262144= 3!:0 y do.
+  (1{a.), toucode0 uucp y
+elseif. 131072= 3!:0 y do.
   (1{a.), toucode0 y
-else.
+elseif. do.
   (0{a.), y
 end.
 )
@@ -1253,17 +1261,21 @@ x fappend~ y
 )
 
 sulen8=: 3 : 0
-if. 131072= 3!:0 y do.
+if. 262144= 3!:0 y do.
+  2+2*# uucp y
+elseif. 131072= 3!:0 y do.
   2+2*#y
-else.
+elseif. do.
   2+#y
 end.
 )
 
 sulen16=: 3 : 0
-if. 131072= 3!:0 y do.
+if. 262144= 3!:0 y do.
+  3+2*# uucp y
+elseif. 131072= 3!:0 y do.
   3+2*#y
-else.
+elseif. do.
   3+#y
 end.
 )
@@ -1834,7 +1846,7 @@ NB. cell with a constant string of length
 biff_label=: 4 : 0
 assert. 2=#y
 assert. 2=# 0{::y
-assert. 2 131072 e.~ (3!:0) 1{::y
+assert. 2 131072 262144 e.~ (3!:0) 1{::y
 if. ''-:, 1{::y do.
   x biff_blank {.y
 else.
@@ -2461,7 +2473,7 @@ NB.   bitmap  The bitmap filename
 insertpicture=: 4 : 0
 img=. y
 'rowcol xyoffset scalexy'=. x
-if. 2 131072 e.~ 3!:0 rowcol do. rowcol=. A1toRC rowcol end.
+if. 2 131072 262144 e.~ 3!:0 rowcol do. rowcol=. A1toRC rowcol end.
 'row col'=. rowcol
 'x1 y1'=. xyoffset
 'scalex scaley'=. scalexy
@@ -3096,7 +3108,12 @@ sstbuf=: (toWORD0 16b00fc, 0), toDWORD0 sstn, #sst
 wrtp=: 0 [ bufn=: RECORDLEN-8
 for_ix. sst do.
   oix=. >ix
-  if. 131072= 3!:0 oix do.
+  if. 262141= 3!:0 oix do.
+    oix=. uucp oix
+    if. bufn<5 do. wrtcont '' end.
+    wrtn #oix
+    wrtw oix
+  elseif. 131072= 3!:0 oix do.
     if. bufn<5 do. wrtcont '' end.
     wrtn #oix
     wrtw oix
@@ -3529,14 +3546,14 @@ writestring=: 3 : 0
 cxf writestring y
 :
 assert. 2 3 e.~ #y
-assert. 1 2 4 8 131072 e.~ (3!:0) 0{::y
-assert. 2 32 131072 e.~ (3!:0) 1{::y
-if. 2 131072 e.~ 3!:0 rc=. 0{::y do. y=. (<A1toRC rc) 0}y end.
+assert. 1 2 4 8 131072 262144 e.~ (3!:0) 0{::y
+assert. 2 32 131072 262144 262144 e.~ (3!:0) 1{::y
+if. 2 131072 262144 e.~ 3!:0 rc=. 0{::y do. y=. (<A1toRC rc) 0}y end.
 l=. sheeti{sheet
 xf=. getxfidx x
 if. 3=#y do. opt=. 2{::y else. opt=. 0 end.
 if. (0=opt) *. 0 e. $yn=. 1{::y do. '' return. end.  NB. ignore null
-if. 2 131072 e.~ 3!:0 yn do.
+if. 2 131072 262144 e.~ 3!:0 yn do.
   if. 2> $$yn do.
     adjdim__l 0{::y
     stream__l=: stream__l, xf biff_label 2{.y
@@ -3599,8 +3616,8 @@ NB.   _2]\ row col [ row col ... ]
 writeblank=: 3 : 0
 cxf writeblank y
 :
-assert. 1 2 4 8 131072 e.~ (3!:0) y
-if. 2 131072 e.~ 3!:0 y do. y=. A1toRC y end.
+assert. 1 2 4 8 131072 262144 e.~ (3!:0) y
+if. 2 131072 262144 e.~ 3!:0 y do. y=. A1toRC y end.
 assert. 0=2|#,y
 if. 0=#,y do. '' return. end.  NB. ignore null
 'r c'=. |: _2]\ ,y
@@ -3623,9 +3640,9 @@ writeinteger=: 3 : 0
 cxf writeinteger y
 :
 assert. 2 3 e.~ #y
-assert. 1 2 4 8 131072 e.~ (3!:0) 0{::y
+assert. 1 2 4 8 131072 262144 e.~ (3!:0) 0{::y
 assert. 1 4 8 e.~ (3!:0) 1{::y
-if. 2 131072 e.~ 3!:0 rc=. 0{::y do. y=. (<A1toRC rc) 0}y end.
+if. 2 131072 262144 e.~ 3!:0 rc=. 0{::y do. y=. (<A1toRC rc) 0}y end.
 l=. sheeti{sheet
 xf=. getxfidx x
 NB. only 30 bit is used 536870911 = <:2^29
@@ -3684,9 +3701,9 @@ writenumber=: 3 : 0
 cxf writenumber y
 :
 assert. 2 3 e.~ #y
-assert. 1 2 4 8 131072 e.~ (3!:0) 0{::y
+assert. 1 2 4 8 131072 262144 e.~ (3!:0) 0{::y
 assert. 1 4 8 e.~ (3!:0) 1{::y
-if. 2 131072 e.~ 3!:0 rc=. 0{::y do. y=. (<A1toRC rc) 0}y end.
+if. 2 131072 262144 e.~ 3!:0 rc=. 0{::y do. y=. (<A1toRC rc) 0}y end.
 l=. sheeti{sheet
 xf=. getxfidx x
 if. (0:=#), yn=. 1{::y do. '' return. end.  NB. ignore null
@@ -3742,10 +3759,10 @@ writenumber2=: 3 : 0
 cxf writenumber2 y
 :
 assert. 3 4 e.~ #y
-assert. 1 2 4 8 131072 e.~ (3!:0) 0{::y
+assert. 1 2 4 8 131072 262144 e.~ (3!:0) 0{::y
 assert. 1 4 8 e.~ (3!:0) 1{::y
-assert. 2 131072 e.~ (3!:0) 2{::y
-if. 2 131072 e.~ 3!:0 rc=. 0{::y do. y=. (<A1toRC rc) 0}y end.
+assert. 2 131072 262144 e.~ (3!:0) 2{::y
+if. 2 131072 262144 e.~ 3!:0 rc=. 0{::y do. y=. (<A1toRC rc) 0}y end.
 l=. getxfobj x
 t=. format__l
 format__l=: 2{::y
@@ -3765,13 +3782,13 @@ writedate=: 3 : 0
 cxf writedate y
 :
 assert. 2 3 e.~ #y
-assert. 1 2 4 8 131072 e.~ (3!:0) 0{::y
+assert. 1 2 4 8 131072 262144 e.~ (3!:0) 0{::y
 assert. 1 4 8 e.~ (3!:0) 1{::y
-if. 2 131072 e.~ 3!:0 rc=. 0{::y do. y=. (<A1toRC rc) 0}y end.
+if. 2 131072 262144 e.~ 3!:0 rc=. 0{::y do. y=. (<A1toRC rc) 0}y end.
 l=. getxfobj x
 t=. format__l
 if. 2=#y do. y=. y, <shortdatefmt end. NB. default date format
-assert. 2 131072 e.~ (3!:0) 2{::y
+assert. 2 131072 262144 e.~ (3!:0) 2{::y
 format__l=: 2{::y
 l writenumber ({.y), <36522-~ 1{::y
 format__l=: t
@@ -4004,7 +4021,7 @@ end.
 )
 
 decodeustring16=: 4 : 0
-NB. len number of (unicode) character in string
+NB. len number of (wchar) character in string
 NB. z decoded string
 NB. p point to rtf/fe block
 NB. p1 byte length of decoded string segment
@@ -4012,7 +4029,7 @@ NB. p2 number of pending bytes to be read in next record
 NB. lenrtf rtf size in byte (4 bytes per block)
 NB. lenfe  fe size in byte
 len=. {.fromWORD0 (x+i.2){y
-uc=. 0~:1 bitand op=. {.fromBYTE (x+2){y  NB. uncompress unicode
+uc=. 0~:1 bitand op=. {.fromBYTE (x+2){y    NB. uncompress wchar
 fe=. 0~:4 bitand op                         NB. #far east phonetic (4 byte)
 rtf=. 0~:8 bitand op                        NB. #rtf format run (2 byte)
 lenrtffe=. 0
@@ -4448,7 +4465,7 @@ end.
 NB. stringtype v Ensures string type returned by appending <1 filename
 stringtype=:  (<1) ,~ [: {. boxopen  
 NB. firstsheet v Returns the first reference to a worksheet in x, or in the worksheet if no x.
-firstsheet=: 0: :({.^:(3!:0 -.@e. 2 131072"_)@[) NB. 
+firstsheet=: 0: :({.^:(3!:0 -.@e. 2 131072 262144"_)@[) NB. 
 
 NB.*readxlsheetsstring v Reads contents of one or more sheets from an Excel file as strings
 NB. see readxlsheets
@@ -4522,7 +4539,7 @@ if. #wks do.
   wk=. {.wks
   1&create__ex data__wk       NB. 1=debug mode
 NB. get worksheet location
-  if. 2 131072 e.~ 3!:0 x do. x=. (<x) i.~ {.("1) worksheets__ex end.
+  if. 2 131072 262144 e.~ 3!:0 x do. x=. (<x) i.~ {.("1) worksheets__ex end.
   assert. x<#worksheets__ex
   'name location'=. x{worksheets__ex
 else.
@@ -4607,7 +4624,7 @@ NB. ---------------------------------------------------------
 NB. utils
 mfv1=: ,:^:(#&$ = 1:)       NB. makes 1-row matrix from vector
 mfva=: ,:^:([: 2&> #@$)^:_  NB. makes a matrix from an atom or vector
-ischar=: 3!:0 e. 2 131072"_
+ischar=: 3!:0 e. 2 131072 262144"_
 firstones=: > 0: , }:
 lastones=: > 0: ,~ }.
 NB. indices=: $ #: I.@,   NB. get row,.col indices of 1s in matrix
@@ -4729,7 +4746,7 @@ NB.
 embedchart=: 4 : 0
 chart=. y
 'rowcol xy_offset xy_scale'=. x
-if. 2 131072 e.~ 3!:0 rowcol do. rowcol=. A1toRC rowcol end.
+if. 2 131072 262144 e.~ 3!:0 rowcol do. rowcol=. A1toRC rowcol end.
 charts_array=: charts_array, rowcol ; chart ; xy_offset ; xy_scale
 )
 
@@ -4741,7 +4758,7 @@ NB.
 insertimage=: 4 : 0
 img=. y
 'rowcol xy_offset xy_scale'=. x
-if. 2 131072 e.~ 3!:0 rowcol do. rowcol=. A1toRC rowcol end.
+if. 2 131072 262144 e.~ 3!:0 rowcol do. rowcol=. A1toRC rowcol end.
 NB. image_id type width height will be filled when saving workbook
 if. 32=3!:0 img do.
 NB. img is filename
@@ -4778,7 +4795,7 @@ writecomment=: 4 : 0
 rowcol=. >@{. y=. boxopen y
 opt=. }.y
 string=. x
-if. 2 131072 e.~ 3!:0 rowcol do. rowcol=. A1toRC rowcol end.
+if. 2 131072 262144 e.~ 3!:0 rowcol do. rowcol=. A1toRC rowcol end.
 
 NB.  Check for pairs of optional arguments, i.e. an odd number of args.
 if. 2|#,opt do. 'Uneven number of additional arguments' 13!:8 (3) end.
@@ -5807,7 +5824,7 @@ params_color=. color
 
 NB. Convert a cell reference to a row and column.
 if. _1 _1-.@-:params_start_cell do.
-  if. 2 131072 e.~ 3!:0 params_start_cell do. params_start_cell=. A1toRC params_start_cell end.
+  if. 2 131072 262144 e.~ 3!:0 params_start_cell do. params_start_cell=. A1toRC params_start_cell end.
   rowcol=. 'params_start_row params_start_col'=. params_start_cell
 end.
 

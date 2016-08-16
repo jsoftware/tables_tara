@@ -33,7 +33,7 @@ tables/tara - change history
 == 1.2.8 ==
  * add: option for writestring/writenumber to skip null or zero but retain format
  * chg: argument format for adding hyperlink (addhlink)
- * fix: readexcel and readexcelstring correctly handle unicode left argument
+ * fix: readexcel and readexcelstring correctly handle wchar left argument
 
 == 1.2.7 ==
  * fix: correctly writes boxed array of strings that includes empty string(s)
