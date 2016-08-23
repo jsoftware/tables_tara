@@ -3117,7 +3117,7 @@ for_ix. sst do.
     if. bufn<5 do. wrtcont '' end.
     wrtn #oix
     wrtw oix
-  else.
+  elseif. do.
     if. bufn<4 do. wrtcont '' end.
     wrtn #oix
     wrt oix
