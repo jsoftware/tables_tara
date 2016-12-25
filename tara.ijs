@@ -2856,7 +2856,7 @@ dimensions=: ((1 3{dimensions)>. y) 1 3}dimensions
 
 initsheet=: 3 : 0
 NB. read section 4.2.6 Record Order in BIFF8
-sheetname=: y
+sheetname=: ucp y
 NB. = calculation setting block
 calccount=: 100
 calcmode=: 1
@@ -3376,6 +3376,7 @@ else.
   'fontname fontsize'=: 2{.y
   sheetname=. 0{:: (2}.y) , <'Sheet1'
 end.
+fontname=: ucp fontname
 sstn=: #sst=: ''
 xfset=: sheet=: ''
 initbook ''
