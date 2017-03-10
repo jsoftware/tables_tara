@@ -3647,7 +3647,7 @@ if. 2 131072 262144 e.~ 3!:0 rc=. 0{::y do. y=. (<A1toRC rc) 0}y end.
 l=. sheeti{sheet
 xf=. getxfidx x
 NB. only 30 bit is used 536870911 = <:2^29
-if. 536870911 < >./ |, 1{::y do. x writenumber y end.
+if. 536870911 < >./ |, 1{::y do. x writenumber y return. end.
 if. (0:=#), yn=. 2b10 bitor 2 bitshl <. 1{::y do. '' return. end.  NB. ignore null
 if. 3=#y do. opt=. 2{::y else. opt=. 0 end.
 if. 1=#@, yn do.  NB. singleton
@@ -3710,7 +3710,7 @@ xf=. getxfidx x
 if. (0:=#), yn=. 1{::y do. '' return. end.  NB. ignore null
 if. 3=#y do. opt=. 2{::y else. opt=. 0 end.
 if. 1=#@, yn do.  NB. singleton
-  if. (1=opt) *. 0=1{::y do. '' return. end.
+  if. (1=opt) *. 1e_9 > |1{::y do. '' return. end.
   adjdim__l 0{::y
   stream__l=: stream__l, xf biff_number ({.y), < {., yn
   if. DEBUG do.
@@ -3721,7 +3721,7 @@ elseif. 3>$$yn do.
   s=. $yn
   'r c'=. 0{::y
   if. 0~:opt do.
-    if. (1=opt) *. 0= +./ f1=. ,f=. 0~: <. 1{::y do. '' return. end.
+    if. (1=opt) *. 0= +./ f1=. ,f=. 1e_9 < |1{::y do. '' return. end.
     if. 1=opt do.
       mr=. 1 i.~ 1 e.("1) f
       mc=. 1 i.~ 1 e.("1) |:f
