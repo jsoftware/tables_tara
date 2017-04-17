@@ -3596,9 +3596,9 @@ NB. biff8 cannot store empty string
     adjdim__l 0{::y
     adjdim__l (<:s) + 0{::y
   end.
-  sst=: sst, (~.ucp&.>f1#,yn) -. sst
-  sstn=: sstn + +/f1
-  stream__l=: stream__l,, (toHeader 16b00fd, 10) ,("1) (_2]\ toWORD0 f1#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 f1#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 sst i. f1#,yn)
+  sst=: sst, st=. (~.ucp&.>f1#,yn) -. sst
+  sstn=: sstn + #st
+  stream__l=: stream__l,, (toHeader 16b00fd, 10) ,("1) (_2]\ toWORD0 f1#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 f1#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 sst i. ucp&.>f1#,yn)
   if. DEBUG do.
     rowcolused__l=: rowcolused__l, (f1#({:s)#r+i.{.s) ,. f1#,({.s)#,:c+i.{:s
   end.
