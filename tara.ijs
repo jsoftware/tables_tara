@@ -1854,7 +1854,7 @@ else.
   z=. ''
   z=. z, toWORD0 0{::y
   z=. z, toWORD0 x
-  z=. z, toDWORD0 add2sst ucp@,&.> 1{y
+  z=. z, toDWORD0 add2sst (ucp :: u:)@,&.> 1{y
   z=. z,~ toHeader recordtype, #z
 end.
 )
@@ -2856,7 +2856,7 @@ dimensions=: ((1 3{dimensions)>. y) 1 3}dimensions
 
 initsheet=: 3 : 0
 NB. read section 4.2.6 Record Order in BIFF8
-sheetname=: ucp y
+sheetname=: (ucp :: u:) y
 NB. = calculation setting block
 calccount=: 100
 calcmode=: 1
@@ -3376,7 +3376,7 @@ else.
   'fontname fontsize'=: 2{.y
   sheetname=. 0{:: (2}.y) , <'Sheet1'
 end.
-fontname=: ucp fontname
+fontname=: (ucp :: u:) fontname
 sstn=: #sst=: ''
 xfset=: sheet=: ''
 initbook ''
@@ -3596,9 +3596,9 @@ NB. biff8 cannot store empty string
     adjdim__l 0{::y
     adjdim__l (<:s) + 0{::y
   end.
-  sst=: sst, (~.ucp&.>f1#,yn) -. sst
+  sst=: sst, (~.(ucp :: u:)&.>f1#,yn) -. sst
   sstn=: sstn + +/f1
-  stream__l=: stream__l,, (toHeader 16b00fd, 10) ,("1) (_2]\ toWORD0 f1#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 f1#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 sst i. ucp&.>f1#,yn)
+  stream__l=: stream__l,, (toHeader 16b00fd, 10) ,("1) (_2]\ toWORD0 f1#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 f1#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 sst i. (ucp :: u:)&.>f1#,yn)
   if. DEBUG do.
     rowcolused__l=: rowcolused__l, (f1#({:s)#r+i.{.s) ,. f1#,({.s)#,:c+i.{:s
   end.
