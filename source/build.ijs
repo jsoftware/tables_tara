@@ -1,6 +1,6 @@
 NB. build.ijs
 
-writesource_jp_ '~Addons/tables/tara/source/source';'~Addons/tables/tara/tara.ijs'
+writesource_jp_ '~Addons/tables/tara/source';'~Addons/tables/tara/tara.ijs'
 
 cocurrent 'base'
 
