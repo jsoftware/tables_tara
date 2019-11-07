@@ -177,7 +177,8 @@ NB. large workbook > 10MB size
 test9=: 3 : 0
 bi=. ('Courier New' ; 220) conew 'biffbook'
 writenumber__bi 0 0 ; i.6000 100
-writestring__bi 6000 0 ; < < ("1) 6000 100 7$'ABCDEFGHIJKLMNOPQRSTUVW'
+writestring__bi 6000 0 ; < t=. < ("1) 3000 100 7$'ABCDEFGHIJKLMNOPQRSTUVW'
+writestring__bi 9000 0 ; ((0;1;2;2.5;2j1) (0 1;0 2;0 3;0 4;0 5)} t) ; 2
 save__bi jpath '~temp/tara9.xls'
 assert. destroy__bi ''
 assert. fexist jpath '~temp/tara9.xls'

@@ -1854,7 +1854,7 @@ else.
   z=. ''
   z=. z, toWORD0 0{::y
   z=. z, toWORD0 x
-  z=. z, toDWORD0 add2sst (ucp :: u:)@,&.> 1{y
+  z=. z, toDWORD0 add2sst ((ucp :: u:)@:(":^:(1 4 8 16 e.~ (3!:0))))@,&.> 1{y
   z=. z,~ toHeader recordtype, #z
 end.
 )
@@ -3543,6 +3543,7 @@ NB. y row col ; text  [ ; option ]         (where 4>$$text)
 NB.   row col ; boxed text  [ ; option ]   (where 3>$$boxed text)
 NB.            (always box text argument to make 2 3 e.~ #y)
 NB. option 1: write format for empty string cells
+NB. option 2: write verbatim number for boxed data
 writestring=: 3 : 0
 cxf writestring y
 :
@@ -3552,7 +3553,8 @@ assert. 2 32 131072 262144 262144 e.~ (3!:0) 1{::y
 if. 2 131072 262144 e.~ 3!:0 rc=. 0{::y do. y=. (<A1toRC rc) 0}y end.
 l=. sheeti{sheet
 xf=. getxfidx x
-if. 3=#y do. opt=. 2{::y else. opt=. 0 end.
+if. 3=#y do. opt=. {: #: 2{::y else. opt=. 0 end.
+if. 3=#y do. gnl=. {: 0, }: #: 2{::y else. gnl=. 0 end.
 if. (0=opt) *. 0 e. $yn=. 1{::y do. '' return. end.  NB. ignore null
 if. 2 131072 262144 e.~ 3!:0 yn do.
   if. 2> $$yn do.
@@ -3596,9 +3598,17 @@ NB. biff8 cannot store empty string
     adjdim__l 0{::y
     adjdim__l (<:s) + 0{::y
   end.
-  sst=: sst, (~.(ucp :: u:)&.>f1#,yn) -. sst
-  sstn=: sstn + +/f1
-  stream__l=: stream__l,, (toHeader 16b00fd, 10) ,("1) (_2]\ toWORD0 f1#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 f1#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 sst i. (ucp :: u:)&.>f1#,yn)
+  if. gnl do.
+    f1a=. (1 4 8 e.~ (3!:0))&>f1#,yn
+    sst=: sst, (~. yns=. ((ucp :: u:)@:(":^:(16 e.~ (3!:0))))&.>(-.f1a)#f1#,yn) -. sst
+    sstn=: sstn + +/(-.f1a)#f1
+    stream__l=: stream__l,, (toHeader 16b00fd, 10) ,("1) (_2]\ toWORD0 (-.f1a)#f1#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 (-.f1a)#f1#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 sst i. yns)
+    stream__l=: stream__l,, (toHeader 16b0203, 14) ,("1) (_2]\ toWORD0 f1a#f1#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 f1a#f1#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_8]\ toDouble0 (-~1.5)+;f1a#f1#,yn)
+  else.
+    sst=: sst, (~. yns=. ((ucp :: u:)@:(":^:(1 4 8 16 e.~ (3!:0))))&.>f1#,yn) -. sst
+    sstn=: sstn + +/f1
+    stream__l=: stream__l,, (toHeader 16b00fd, 10) ,("1) (_2]\ toWORD0 f1#({:s)#r+i.{.s) ,("1) (_2]\ toWORD0 f1#,({.s)#,:c+i.{:s) ,("1) (toWORD0 xf) ,("1) (_4]\ toDWORD0 sst i. yns)
+  end.
   if. DEBUG do.
     rowcolused__l=: rowcolused__l, (f1#({:s)#r+i.{.s) ,. f1#,({.s)#,:c+i.{:s
   end.
