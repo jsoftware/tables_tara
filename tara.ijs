@@ -3727,8 +3727,9 @@ if. 1=#@, yn do.  NB. singleton
   if. DEBUG do.
     rowcolused__l=: rowcolused__l, ,0{::y
   end.
-elseif. 3>$$yn do.
+elseif. (3>$$yn) +. ((1={:$yn)*.3=$$yn) do.
   if. 1=$$yn do. yn=. ,:yn end.
+  if. ((1={:$yn)*.3=$$yn) do. yn=. ,/"1 yn end.
   s=. $yn
   'r c'=. 0{::y
   if. 0~:opt do.
