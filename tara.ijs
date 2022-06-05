@@ -4505,7 +4505,7 @@ NB. read Excel Versions 5, 95, 97, 2000, XP, 2003
 NB. biff5  excel 5  biff7 excel 97   biff8 excel 97, xp, 2003
 readxlsheetnames=: 3 : 0
 try.
-  fln=. boxopen y
+  fln=. >y
   locs=. '' NB. store locales created
   (msg=. 'file not found') assert fexist fln
   locs=. locs,ole=. fln conew 'olestorage'
