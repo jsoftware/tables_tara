@@ -76,11 +76,15 @@ RGBtuple=: 3 : 0"0
 
 NB. utf8 filename in J601
 3 : 0''
-if. 504 < 0&". 'j'-.~4{.9!:14 '' do.
-NB.  fboxname=: <@jpath_j_@(8 u: >) ::]`]@.(32 2 131072 262144 -.@e.~ 3!:0)
+if. 3=4!:0<'revinfo_j_' do.
   fboxname=: <@jpath_j_@(8 u: >) ::]`<.@.(1 4 8 e.~ 3!:0)
 else.
-  fboxname=: ([: < [: (1&u: ::]) >) ::]
+  if. 504 < 0&". 'j'-.~4{.9!:14 '' do.
+NB.  fboxname=: <@jpath_j_@(8 u: >) ::]`]@.(32 2 131072 262144 -.@e.~ 3!:0)
+    fboxname=: <@jpath_j_@(8 u: >) ::]`<.@.(1 4 8 e.~ 3!:0)
+  else.
+    fboxname=: ([: < [: (1&u: ::]) >) ::]
+  end.
 end.
 empty ''
 )

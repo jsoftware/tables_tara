@@ -14,7 +14,7 @@ writestring__bi 'C4' ; 'hello Tara'    NB. cell in "A1" mode
 save__bi jpath '~temp/tara1.xls'       NB. save to a file
 assert. destroy__bi ''                 NB. destriy workbook object, NOT the Excel file
 assert. fexist jpath '~temp/tara1.xls'
- 'test1 passed'
+'test1 passed'
 )
 
 NB. Row Height and Column Width
@@ -35,7 +35,7 @@ writenumber__bi 'C3' ; o.1
 save__bi jpath '~temp/tara2.xls'
 assert. destroy__bi ''
 assert. fexist jpath '~temp/tara2.xls'
- 'test2 passed'
+'test2 passed'
 )
 
 NB. Default Font
@@ -47,7 +47,7 @@ writestring__bi 3 2 ; ":o.1
 save__bi jpath '~temp/tara3.xls'
 assert. destroy__bi ''
 assert. fexist jpath '~temp/tara3.xls'
- 'test3 passed'
+'test3 passed'
 )
 
 NB. xf object
@@ -72,7 +72,7 @@ writestring__bi 2 2 ; 'background'
 save__bi jpath '~temp/tara4.xls'
 assert. destroy__bi ''
 assert. fexist jpath '~temp/tara4.xls'
- 'test4 passed'
+'test4 passed'
 )
 
 NB. Number and Date Format
@@ -93,7 +93,7 @@ writedate__bi 5 3 ; 74699 ; 'd/m/yy'
 save__bi jpath '~temp/tara5.xls'
 assert. destroy__bi ''
 assert. fexist jpath '~temp/tara5.xls'
- 'test5 passed'
+'test5 passed'
 )
 
 NB. Alignment and Cell Border
@@ -131,7 +131,7 @@ mergedcell__l=. 2 4 $ 3 4 2 4 4 5 0 1  NB. 2 sets of merge cells, ( row1 row2 co
 save__bi jpath '~temp/tara6.xls'
 assert. destroy__bi ''
 assert. fexist jpath '~temp/tara6.xls'
- 'test6 passed'
+'test6 passed'
 )
 
 NB. Page Setup
@@ -153,7 +153,7 @@ _1 rowrepeat__bi 0 0 2  NB. repeat sheet(0) row 0 to row 2
 save__bi jpath '~temp/tara7.xls'
 assert. destroy__bi ''
 assert. fexist jpath '~temp/tara7.xls'
- 'test7 passed'
+'test7 passed'
 )
 
 NB. Adding New Worksheet
@@ -170,7 +170,7 @@ writestring__bi 2 3 ; 'sheet1'
 save__bi jpath '~temp/tara8.xls'
 assert. destroy__bi ''
 assert. fexist jpath '~temp/tara8.xls'
- 'test8 passed'
+'test8 passed'
 )
 
 NB. large workbook > 10MB size
@@ -182,7 +182,7 @@ writestring__bi 9000 0 ; ((0;1;2;2.5;2j1) (0 1;0 2;0 3;0 4;0 5)} t) ; 2
 save__bi jpath '~temp/tara9.xls'
 assert. destroy__bi ''
 assert. fexist jpath '~temp/tara9.xls'
- 'test9 passed'
+'test9 passed'
 )
 
 NB. Picture
@@ -190,12 +190,12 @@ test10=: 3 : 0
 bi=. ('Courier New' ; 220) conew 'biffbook'
 writestring__bi 0 0 ; 'my picture'
 'my comment' writecomment__bi 0 0     NB. comment (note)
-(0  4 ; 0  0 ; 1  1) insertimage__bi <jpath '~addons/tables/tara/test/dora.png'  NB. row 0 col 4 scalex 1 scaley 1
-(4  0 ; 0  0 ; 2  2) insertimage__bi 1!:1 <jpath '~addons/tables/tara/test/dora.png'  NB. also accepts unboxed raw data
+(0 4 ; 0 0 ; 1 1) insertimage__bi <jpath '~addons/tables/tara/test/dora.png'  NB. row 0 col 4 scalex 1 scaley 1
+(4 0 ; 0 0 ; 2 2) insertimage__bi 1!:1 <jpath '~addons/tables/tara/test/dora.png'  NB. also accepts unboxed raw data
 save__bi jpath '~temp/tara10.xls'
 assert. destroy__bi ''
 assert. fexist jpath '~temp/tara10.xls'
- 'test10 passed'
+'test10 passed'
 )
 
 NB. Return Excel File as Noun
@@ -206,7 +206,7 @@ rc=. save__bi ''
 assert. destroy__bi ''
 assert. 6144=$rc
 assert. 384 16= $ _16]\ a.i. rc
- 'test11 passed'
+'test11 passed'
 )
 
 NB. utf8
@@ -219,7 +219,7 @@ save__bi jpath '~temp/tara12.xls'
 assert. destroy__bi ''
 assert. fexist jpath '~temp/tara12.xls'
 assert. ('hello world';'熊貓出沒注意';'россиян') -: (0 2;1 1;2 0){>{:{. 0 readxlsheets jpath '~temp/tara12.xls'
- 'test12 passed'
+'test12 passed'
 )
 
 smoutput test1''

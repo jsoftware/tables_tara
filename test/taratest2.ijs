@@ -23,7 +23,7 @@ x13=: 'Box Chr array';<x4
 x14=: 'Box Mix array';<x5
 x15=: '';<x1              NB. empty sheetname
 x16=: ,.x2;<x3   NB. data column- flt and boxed int arrays
-x16a=: ,.x1;<x1  NB. data column- 2 sheets of int arrays 
+x16a=: ,.x1;<x1  NB. data column- 2 sheets of int arrays
 x17=: (<x9),(<x7),(<x8),(<x5),(<x1),(<x4),x16 NB. data column
 x18=: x10 ,: 'Literal';x6
 x19=: (x10,x11,x12,x13,x14,:x15)
@@ -39,33 +39,33 @@ suff=: '.xls'
 
 NB.Tests
 test2=: 3 : 0
-  assert. x1 writexlsheets fnme,'1',suff
-  assert. x2 writexlsheets fnme,'2',suff
-  assert. x3 writexlsheets fnme,'3',suff
-  assert. x4 writexlsheets fnme,'4',suff
-  assert. x4a writexlsheets fnme,'4a',suff
-  assert. x5 writexlsheets fnme,'5',suff
-  assert. x6 writexlsheets fnme,'6',suff
-  assert. x7 writexlsheets fnme,'7',suff
-  assert. x8 writexlsheets fnme,'8',suff
-  assert. x9 writexlsheets fnme,'9',suff
-  assert. x10 writexlsheets fnme,'10',suff
-  assert. x11 writexlsheets fnme,'11',suff
-  assert. x12 writexlsheets fnme,'12',suff
-  assert. x13 writexlsheets fnme,'13',suff
-  assert. x14 writexlsheets fnme,'14',suff
-  assert. x15 writexlsheets fnme,'15',suff
-  assert. x16 writexlsheets fnme,'16',suff
-  assert. x16a writexlsheets fnme,'16a',suff
-  assert. x17 writexlsheets fnme,'17',suff
-  assert. x18 writexlsheets fnme,'18',suff
-  assert. x19 writexlsheets fnme,'19',suff
-  assert. x20 writexlsheets fnme,'20',suff
-  assert. x21 writexlsheets fnme,'21',suff
-  assert. x22 writexlsheets fnme,'22',suff
-  
-  NB.? add read tests to check correct contents written
-  'taratest2 passed'
+assert. x1 writexlsheets fnme,'1',suff
+assert. x2 writexlsheets fnme,'2',suff
+assert. x3 writexlsheets fnme,'3',suff
+assert. x4 writexlsheets fnme,'4',suff
+assert. x4a writexlsheets fnme,'4a',suff
+assert. x5 writexlsheets fnme,'5',suff
+assert. x6 writexlsheets fnme,'6',suff
+assert. x7 writexlsheets fnme,'7',suff
+assert. x8 writexlsheets fnme,'8',suff
+assert. x9 writexlsheets fnme,'9',suff
+assert. x10 writexlsheets fnme,'10',suff
+assert. x11 writexlsheets fnme,'11',suff
+assert. x12 writexlsheets fnme,'12',suff
+assert. x13 writexlsheets fnme,'13',suff
+assert. x14 writexlsheets fnme,'14',suff
+assert. x15 writexlsheets fnme,'15',suff
+assert. x16 writexlsheets fnme,'16',suff
+assert. x16a writexlsheets fnme,'16a',suff
+assert. x17 writexlsheets fnme,'17',suff
+assert. x18 writexlsheets fnme,'18',suff
+assert. x19 writexlsheets fnme,'19',suff
+assert. x20 writexlsheets fnme,'20',suff
+assert. x21 writexlsheets fnme,'21',suff
+assert. x22 writexlsheets fnme,'22',suff
+
+NB.? add read tests to check correct contents written
+'taratest2 passed'
 )
 
 smoutput test2 ''

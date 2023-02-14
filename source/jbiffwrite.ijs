@@ -19,30 +19,30 @@ NB.          Sheetnames in 1st item/col (literal)
 NB.          Associated data formats (above) for sheetnames
 NB. if <sheetname(s)> not given then defaults used
 writexlsheets=: 4 : 0
-  try.
-    locs=. '' NB. store locales created
-    if. 0=#x do. empty'' return. end. NB. if empty xarg then return.
-    (msg=. 'too many levels of boxing') assert 2>:L. x
-    msg=. 'error in left argument'
-    shts=. makexarg x
-    shtnme=. ((0 < #) {:: 'Sheet1'&;) (<0 0) {:: shts
-    locs=. locs,bi=. ('Arial';220;shtnme) conew 'biffbook'
-    shtdat=. (<0 1){:: shts
-    msg=. 'error writing data for ',shtnme
-    bi writeshtdat shtdat NB. write data for first worksheet
-    shts=. }.shts         NB. drop first sheet from list
-    msg=. 'error creating/writing later sheets'
-    if. #shts do. bi addsheets"1 shts end. NB. add and write to rest of sheets
-    binary=. save__bi y
-    success=. destroy__bi ''
-    (*#binary){:: success;binary
-  catch.
-    for_l. |.locs do. NB. housekeeping
-      destroy__l ''
-      locs=. locs -. l
-    end.
-    0 [ smoutput 'writexlsheets: ',msg
+try.
+  locs=. '' NB. store locales created
+  if. 0=#x do. empty'' return. end. NB. if empty xarg then return.
+  (msg=. 'too many levels of boxing') assert 2>:L. x
+  msg=. 'error in left argument'
+  shts=. makexarg x
+  shtnme=. ((0 < #) {:: 'Sheet1'&;) (<0 0) {:: shts
+  locs=. locs,bi=. ('Arial';220;shtnme) conew 'biffbook'
+  shtdat=. (<0 1){:: shts
+  msg=. 'error writing data for ',shtnme
+  bi writeshtdat shtdat NB. write data for first worksheet
+  shts=. }.shts         NB. drop first sheet from list
+  msg=. 'error creating/writing later sheets'
+  if. #shts do. bi addsheets"1 shts end. NB. add and write to rest of sheets
+  binary=. save__bi y
+  success=. destroy__bi ''
+  (*#binary){:: success;binary
+catch.
+  for_l. |.locs do. NB. housekeeping
+    destroy__l ''
+    locs=. locs -. l
   end.
+  0 [ smoutput 'writexlsheets: ',msg
+end.
 )
 
 NB. ---------------------------------------------------------
@@ -59,63 +59,63 @@ isrowblks=: >/@(+/^:(#&$)"_1) NB. are blocks row oriented
 NB. isdata v Verb decides on type of x argument to writesheets
 NB. returns 0 for array of names and data, 1 for single data matrix.
 isdata=: 3 : 0
-  if. 1< lvls=. L. y do. 0 return. NB. if 1<L.x must be multiple sheets
-  elseif. 0= lvls do. 1 return. NB. if not boxed then must be data for single sheet
-  elseif. 2< cols=. {:$ y do. 1 return. NB. if more than 2 items/cols then data for one sheet
-  elseif. (-. *./(ischar&> +. a:&=) {."1 y) *. 2 = cols do. 1 return. NB. if 2 cols and not all 1st col contents are either literal or empty then must be data for one sheet
-  elseif. 1< #@$ &> {:"1 y do. 0 return. NB. if any last col contents have rank greater than 1 then must be multiple sheets
-  elseif. do. 1 NB. else assume that boxed data for one sheet
-  end.
+if. 1< lvls=. L. y do. 0 return. NB. if 1<L.x must be multiple sheets
+elseif. 0= lvls do. 1 return. NB. if not boxed then must be data for single sheet
+elseif. 2< cols=. {:$ y do. 1 return. NB. if more than 2 items/cols then data for one sheet
+elseif. (-. *./(ischar&> +. a:&=) {."1 y) *. 2 = cols do. 1 return. NB. if 2 cols and not all 1st col contents are either literal or empty then must be data for one sheet
+elseif. 1< #@$ &> {:"1 y do. 0 return. NB. if any last col contents have rank greater than 1 then must be multiple sheets
+elseif. do. 1 NB. else assume that boxed data for one sheet
+end.
 )
 
 NB. makexarg v Ensures that xarg to writesheets has right form.
 NB. returns: 2-item/column vector/array.
 NB.       {."1 are sheetnames, {:"1 are boxed rank-2 arrays of sheetdata
 makexarg=: 3 : 0
-  if. isdata y do.
-    if. 2= 3!:0 y do. y=. <y end.
-    y=. a:,. <mfva y
-  else.
-    if. 2>{:$ y do. NB. if only 1 item/col add empty column of sheetnames
-      y=. a:,.y
-    end.
-    if. #idx=. (I. b=. ischar &>{:"1 y) do.  NB. sheets with unboxed string data
-      upd=. ({."1 ,. <&.>@({:"1)) b#y NB. boxed versions
-      y=. upd idx }y
-    end.
-    if. #idx=. (I. b=. 2> #@$&>{:"1 y) do.  NB. sheets with unboxed string data
-      upd=. ({."1 ,. mfva&.>@({:"1)) b#y NB. boxed versions
-      y=. upd idx }y
-    end.
+if. isdata y do.
+  if. 2= 3!:0 y do. y=. <y end.
+  y=. a:,. <mfva y
+else.
+  if. 2>{:$ y do. NB. if only 1 item/col add empty column of sheetnames
+    y=. a:,.y
   end.
-  mfv1 y
+  if. #idx=. (I. b=. ischar &>{:"1 y) do.  NB. sheets with unboxed string data
+    upd=. ({."1 ,. <&.>@({:"1)) b#y NB. boxed versions
+    y=. upd idx }y
+  end.
+  if. #idx=. (I. b=. 2> #@$&>{:"1 y) do.  NB. sheets with unboxed string data
+    upd=. ({."1 ,. mfva&.>@({:"1)) b#y NB. boxed versions
+    y=. upd idx }y
+  end.
+end.
+mfv1 y
 )
 
 NB. addsheets v Creates new sheet and writes data to it
 NB. form: <wkbklocale> addSheets <sheetname>;<array>
 addsheets=: 4 : 0
-  'shtnme shtdat'=. y
-  addsheet__x shtnme
-  x writeshtdat shtdat
+'shtnme shtdat'=. y
+addsheet__x shtnme
+x writeshtdat shtdat
 )
 
 NB. writeshtdat v Writes array to current worksheet
 NB. form: <wkbklocale> writeShtdat <array>
 NB. Writes blocks of string data and numeric data separately
 writeshtdat=: 4 : 0
-  if. 0=L.y do.
-    writenumber__x 0 0;y
-  else.
-    as=. ischar &> y
-    blks=. blocks as
-    tls=. {.0 2|: blks
-    dat=. blks <;.0 y NB. blocks of char
-    writestring__x"1 (<"1 tls),.dat
-    blks=. blocks -.as
-    tls=. {.0 2|: blks
-    dat=. blks ([:<>);.0 y  NB. blocks of non-char
-    writenumber__x"1 (<"1 tls),.dat
-  end.
+if. 0=L.y do.
+  writenumber__x 0 0;y
+else.
+  as=. ischar &> y
+  blks=. blocks as
+  tls=. {.0 2|: blks
+  dat=. blks <;.0 y NB. blocks of char
+  writestring__x"1 (<"1 tls),.dat
+  blks=. blocks -.as
+  tls=. {.0 2|: blks
+  dat=. blks ([:<>);.0 y  NB. blocks of non-char
+  writenumber__x"1 (<"1 tls),.dat
+end.
 )
 
 NB. ---------------------------------------------------------
@@ -130,10 +130,10 @@ tlbrc=: <@(tlc ,. brc)"1   NB. box by row
 bpr=: i.@# ,:"0 1&.> tlbrc NB. laminate row indices
 
 mtch=: 4 : 0
-  's t'=. <"0 x (](#~; (#~-.)) e.~&:(<@{:"2))&> {.y
-  t=. t((,&.>{:)`[)@.(1=#@])y
-  s=. x([:(<@{:"2 ({:@{.@{:(<0 1)} {.)/.]) ,)&> s
-  s;t
+'s t'=. <"0 x (](#~; (#~-.)) e.~&:(<@{:"2))&> {.y
+t=. t((,&.>{:)`[)@.(1=#@])y
+s=. x([:(<@{:"2 ({:@{.@{:(<0 1)} {.)/.]) ,)&> s
+s;t
 )
 
 NB. rowwise blocks (topleft,:bottomright)

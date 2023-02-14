@@ -561,9 +561,9 @@ end.
 )
 
 NB. stringtype v Ensures string type returned by appending <1 filename
-stringtype=:  (<1) ,~ [: {. boxopen  
+stringtype=: (<1) ,~ [: {. boxopen
 NB. firstsheet v Returns the first reference to a worksheet in x, or in the worksheet if no x.
-firstsheet=: 0: :({.^:(3!:0 -.@e. 2 131072 262144"_)@[) NB. 
+firstsheet=: 0: :({.^:(3!:0 -.@e. 2 131072 262144"_)@[) NB.
 
 NB.*readxlsheetsstring v Reads contents of one or more sheets from an Excel file as strings
 NB. see readxlsheets
