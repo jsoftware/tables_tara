@@ -3028,7 +3028,7 @@ if. #activepane do. z=. z, biff_pane (xsplit, ysplit) ; (topvis, leftvis) ; acti
 if. #selection do. z=. z, biff_selection selection end.
 NB. standardwidth broken
 NB. z=. z, biff_standardwidth standardwidth
-if. (2:~:$$) mergedcell do. mergedcell=: _4]\, mergedcell end.
+if. (2:~:$@$) mergedcell do. mergedcell=: _4]\, mergedcell end.
 z=. z, biff_mergedcells mergedcell
 z=. z, biff_labelranges rowlabelrange ; collabelrange
 z=. z, condformatstream
