@@ -674,7 +674,7 @@ destroy__bi ''
 
 NB. =========================================================
 Lab Section Image and Comment
-Assuming you have the image file '~addon/tara/dora.png', use 'insertimage' in biffbook to insert a image into a worksheet.
+Assuming you have the image file '~addon/tara/test/dora.png', use 'insertimage' in biffbook to insert a image into a worksheet.
 
 syntax: bitmap insertimage rowcol ; offset_xy ; scale_xy
 right argument
