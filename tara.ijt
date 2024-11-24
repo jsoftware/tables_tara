@@ -446,8 +446,8 @@ Lab Section Alignment and Cell Border
 Alignment is relatively simple:
 
   horzalign      ... horizontal alignment,
-                   0 general  1 left  2 center 3 left
-  vertalgin      ... vertical alignment,
+                   0 general  1 left  2 center 3 right
+  vertalign      ... vertical alignment,
                    0 top  1 center  2 bottom
   textwrap       ... wrap text
                    boolean
@@ -462,7 +462,7 @@ xf1=: addxfobj__bi xf   NB. clone xf for later use
 
 addcolinfo__bi 0 3, 256*12
 
-horzalign__xf=: 1       NB. 0 general  1 left  2 center 3 left
+horzalign__xf=: 1       NB. 0 general  1 left  2 center 3 right
 writestring__bi 0 1 ; 'hello world'
 horzalign__xf=: 2
 writestring__bi 1 1 ; 'center'
@@ -805,8 +805,8 @@ They have a lot of properties, some major properties/methods are:
   format         ... number and date format
 
   horzalign      ... horizontal alignment,
-                   0 general  1 left  2 center 3 left
-  vertalgin      ... vertical alignment,
+                   0 general  1 left  2 center 3 right
+  vertalign      ... vertical alignment,
                    0 top  1 center  2 bottom
   textwrap       ... wrap text
                    boolean
